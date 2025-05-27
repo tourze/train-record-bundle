@@ -1,0 +1,47 @@
+services:
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    public: false
+
+  # Repository services
+  Tourze\TrainRecordBundle\Repository\:
+    resource: '../../Repository/'
+    tags: ['doctrine.repository_service']
+
+  # Service layer
+  Tourze\TrainRecordBundle\Service\:
+    resource: '../../Service/'
+
+  # Command layer (注意：Commands依赖外部Repository，需要在实际项目中手动配置)
+  # Tourze\TrainRecordBundle\Command\:
+  #   resource: '../../Command/'
+  #   tags: ['console.command']
+
+  # Property accessor for internal use
+  symfony-ecol.property-accessor:
+    class: Symfony\Component\PropertyAccess\PropertyAccessor
+    factory: [ 'Symfony\Component\PropertyAccess\PropertyAccess', 'createPropertyAccessor' ]
+
+  # Specific service configurations
+  Tourze\TrainRecordBundle\Service\LearnSessionService:
+    public: true
+    
+  Tourze\TrainRecordBundle\Service\LearnBehaviorService:
+    public: true
+    
+  Tourze\TrainRecordBundle\Service\LearnDeviceService:
+    public: true
+    
+  Tourze\TrainRecordBundle\Service\LearnProgressService:
+    public: true
+    
+  Tourze\TrainRecordBundle\Service\LearnAnomalyService:
+    public: true
+    
+  Tourze\TrainRecordBundle\Service\LearnArchiveService:
+    public: true
+    
+  Tourze\TrainRecordBundle\Service\LearnAnalyticsService:
+    public: true

@@ -1,0 +1,79 @@
+<?php
+
+namespace Tourze\TrainRecordBundle\Repository;
+
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Tourze\TrainRecordBundle\Entity\LearnBehavior;
+
+/**
+ * @method LearnBehavior|null find($id, $lockMode = null, $lockVersion = null)
+ * @method LearnBehavior|null findOneBy(array $criteria, array $orderBy = null)
+ * @method LearnBehavior[]    findAll()
+ * @method LearnBehavior[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
+class LearnBehaviorRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, LearnBehavior::class);
+    }
+
+    /**
+     * 查找会话的可疑行为
+     */
+    public function findSuspiciousBySession(string $sessionId): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->andWhere('lb.session = :sessionId')
+            ->andWhere('lb.isSuspicious = true')
+            ->setParameter('sessionId', $sessionId)
+            ->orderBy('lb.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 统计会话的行为类型分布
+     */
+    public function getBehaviorStatsBySession(string $sessionId): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->select('lb.behaviorType, COUNT(lb.id) as count')
+            ->andWhere('lb.session = :sessionId')
+            ->setParameter('sessionId', $sessionId)
+            ->groupBy('lb.behaviorType')
+            ->orderBy('count', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找时间范围内的行为记录
+     */
+    public function findByTimeRange(\DateTimeInterface $startTime, \DateTimeInterface $endTime): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->andWhere('lb.createTime >= :startTime')
+            ->andWhere('lb.createTime <= :endTime')
+            ->setParameter('startTime', $startTime)
+            ->setParameter('endTime', $endTime)
+            ->orderBy('lb.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找设备的行为记录
+     */
+    public function findByDeviceFingerprint(string $deviceFingerprint, int $limit = 100): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->andWhere('lb.deviceFingerprint = :deviceFingerprint')
+            ->setParameter('deviceFingerprint', $deviceFingerprint)
+            ->orderBy('lb.createTime', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+} 
