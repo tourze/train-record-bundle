@@ -13,12 +13,14 @@
     "nesbot/carbon": "^2.72 || ^3",
     "psr/log": "^3|^2|^1",
     "psr/simple-cache": "^1.0|^2.0|^3.0",
+    "symfony/cache-contracts": "^3",
     "symfony/config": "^6.4",
     "symfony/console": "^6.4",
     "symfony/dependency-injection": "^6.4",
     "symfony/doctrine-bridge": "^6.4",
     "symfony/framework-bundle": "^6.4",
     "symfony/http-kernel": "^6.4",
+    "symfony/routing": "^6.4",
     "symfony/security-bundle": "^6.4",
     "symfony/security-core": "^6.4",
     "symfony/security-http": "^6.4",
@@ -37,9 +39,7 @@
     "tourze/json-rpc-core": "^0.0.6",
     "tourze/json-rpc-lock-bundle": "0.1.*",
     "tourze/json-rpc-log-bundle": "0.1.*",
-    "tourze/train-course-bundle": "0.0.*",
-    "symfony/cache-contracts": "^3",
-    "symfony/routing": "^6.4"
+    "tourze/train-course-bundle": "0.0.*"
   },
   "require-dev": {
     "phpstan/phpstan": "^2.1",
