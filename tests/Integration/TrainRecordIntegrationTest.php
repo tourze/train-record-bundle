@@ -40,12 +40,20 @@ class TrainRecordIntegrationTest extends KernelTestCase
         $container = static::getContainer();
 
         // 测试所有核心服务是否注册
-        $this->assertTrue($container->has(LearnSessionService::class));
-        $this->assertTrue($container->has(LearnBehaviorService::class));
-        $this->assertTrue($container->has(LearnDeviceService::class));
-        $this->assertTrue($container->has(LearnProgressService::class));
-        $this->assertTrue($container->has(LearnArchiveService::class));
-        $this->assertTrue($container->has(LearnAnalyticsService::class));
+        $services = [
+            LearnSessionService::class,
+            LearnBehaviorService::class,
+            LearnDeviceService::class,
+            LearnProgressService::class,
+            LearnArchiveService::class,
+            LearnAnalyticsService::class,
+        ];
+
+        foreach ($services as $service) {
+            if (!$container->has($service)) {
+                $this->fail("Service {$service} is not registered in the container");
+            }
+        }
 
         // 测试服务实例化
         $this->assertInstanceOf(LearnSessionService::class, $container->get(LearnSessionService::class));

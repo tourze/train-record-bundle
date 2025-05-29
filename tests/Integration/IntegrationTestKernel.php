@@ -6,6 +6,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
@@ -25,6 +26,7 @@ class IntegrationTestKernel extends Kernel
             new FrameworkBundle(),
             new SecurityBundle(),
             new DoctrineBundle(),
+            new TwigBundle(),
             new TrainRecordBundle(),
         ];
     }
@@ -58,9 +60,21 @@ class IntegrationTestKernel extends Kernel
             ],
             'orm' => [
                 'auto_generate_proxy_classes' => true,
-                'auto_mapping' => false,
-                'mappings' => [],
+                'auto_mapping' => true,
+                'mappings' => [
+                    'TrainRecordBundle' => [
+                        'is_bundle' => true,
+                        'type' => 'attribute',
+                        'dir' => 'Entity',
+                        'prefix' => 'Tourze\\TrainRecordBundle\\Entity',
+                        'alias' => 'TrainRecordBundle',
+                    ],
+                ],
             ],
+        ]);
+
+        $container->loadFromExtension('twig', [
+            'default_path' => '%kernel.project_dir%/templates',
         ]);
     }
 

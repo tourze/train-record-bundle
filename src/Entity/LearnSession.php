@@ -6,8 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use SenboTrainingBundle\Entity\FaceDetect;
-use SenboTrainingBundle\Entity\Student;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
@@ -28,7 +27,6 @@ use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
 use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
 use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainClassroomBundle\Entity\Registration;
 use Tourze\TrainCourseBundle\Entity\Course;
@@ -58,14 +56,9 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[Ignore]
-    #[Keyword(inputWidth: 60, name: 'student.realName', label: '学生姓名')]
-    #[Keyword(inputWidth: 60, name: 'student.idCardNumber', label: '证件号码')]
-    #[ListColumn(title: '学员')]
-    #[FormField(title: '学员')]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private Student $student;
+    private UserInterface $student;
 
     #[ListColumn(title: '报班')]
     #[FormField(title: '报班')]
@@ -107,7 +100,7 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     private string $currentDuration = '0.00';
 
     #[Ignore]
-    #[ORM\OneToMany(mappedBy: 'session', targetEntity: FaceDetect::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: FaceDetect::class, mappedBy: 'session', orphanRemoval: true)]
     private Collection $faceDetects;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true)]
@@ -116,13 +109,13 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     /**
      * @var Collection<int, LearnLog>
      */
-    #[ORM\OneToMany(mappedBy: 'learnSession', targetEntity: LearnLog::class)]
+    #[ORM\OneToMany(targetEntity: LearnLog::class, mappedBy: 'learnSession')]
     private Collection $learnLogs;
 
     /**
      * @var Collection<int, LearnBehavior>
      */
-    #[ORM\OneToMany(mappedBy: 'session', targetEntity: LearnBehavior::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: LearnBehavior::class, mappedBy: 'session', orphanRemoval: true)]
     private Collection $learnBehaviors;
 
     #[CreatedByColumn]
@@ -259,12 +252,12 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
         return $this->updatedFromUa;
     }
 
-    public function getStudent(): Student
+    public function getStudent(): UserInterface
     {
         return $this->student;
     }
 
-    public function setStudent(Student $student): static
+    public function setStudent(UserInterface $student): static
     {
         $this->student = $student;
 

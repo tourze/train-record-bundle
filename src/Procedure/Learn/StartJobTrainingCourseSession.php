@@ -1,15 +1,8 @@
 <?php
 
-namespace SenboTrainingBundle\Procedure\Learn;
+namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
 use Carbon\Carbon;
-use SenboTrainingBundle\Entity\LearnLog;
-use SenboTrainingBundle\Entity\LearnSession;
-use SenboTrainingBundle\Enum\LearnAction;
-use SenboTrainingBundle\Repository\LearnSessionRepository;
-use SenboTrainingBundle\Repository\LessonRepository;
-use SenboTrainingBundle\Repository\RegistrationRepository;
-use SenboTrainingBundle\Repository\StudentRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncBundle\Service\DoctrineService;
@@ -19,6 +12,13 @@ use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
+use Tourze\TrainRecordBundle\Entity\LearnLog;
+use Tourze\TrainRecordBundle\Entity\LearnSession;
+use Tourze\TrainRecordBundle\Enum\LearnAction;
+use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
+use Tourze\TrainRecordBundle\Repository\LessonRepository;
+use Tourze\TrainRecordBundle\Repository\RegistrationRepository;
+use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 /**
  * 因为可以从报班ID中读取到课程，所以这里不需要声明课程ID

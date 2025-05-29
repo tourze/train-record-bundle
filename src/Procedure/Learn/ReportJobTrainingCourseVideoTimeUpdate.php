@@ -1,15 +1,10 @@
 <?php
 
-namespace SenboTrainingBundle\Procedure\Learn;
+namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
 use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\SimpleCache\CacheInterface;
-use SenboTrainingBundle\Entity\LearnLog;
-use SenboTrainingBundle\Enum\LearnAction;
-use SenboTrainingBundle\Repository\FaceDetectRepository;
-use SenboTrainingBundle\Repository\LearnSessionRepository;
-use SenboTrainingBundle\Repository\StudentRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncBundle\Service\DoctrineService;
@@ -18,6 +13,11 @@ use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
+use Tourze\TrainRecordBundle\Entity\LearnLog;
+use Tourze\TrainRecordBundle\Enum\LearnAction;
+use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
+use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
+use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 #[MethodDoc('上报视频观看进度')]
 #[MethodExpose('ReportJobTrainingCourseVideoTimeUpdate')]

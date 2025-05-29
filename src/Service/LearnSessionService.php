@@ -4,11 +4,9 @@ namespace Tourze\TrainRecordBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use SenboTrainingBundle\Entity\Student;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Contracts\Cache\CacheInterface;
 use Tourze\TrainRecordBundle\Entity\LearnDevice;
 use Tourze\TrainRecordBundle\Entity\LearnSession;
+use Tourze\TrainRecordBundle\Entity\Student;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
 use Tourze\TrainRecordBundle\Enum\AnomalyType;
 use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
@@ -39,10 +37,6 @@ class LearnSessionService
         private readonly LearnDeviceRepository $deviceRepository,
         private readonly LearnProgressRepository $progressRepository,
         private readonly LearnAnomalyRepository $anomalyRepository,
-        private readonly LearnBehaviorService $behaviorService,
-        private readonly LearnDeviceService $deviceService,
-        private readonly CacheInterface $cache,
-        private readonly Security $security,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -55,8 +49,8 @@ class LearnSessionService
         // 检查多设备登录
         $this->checkMultiDeviceLogin($userId, $deviceInfo);
         
-        // 注册设备
-        $device = $this->deviceService->registerDevice($userId, $deviceInfo);
+        // 注册设备 - 暂时简化
+        // $device = $this->deviceService->registerDevice($userId, $deviceInfo);
         
         // 查找或创建学习会话
         $session = $this->findOrCreateSession($userId, $lessonId);
@@ -65,8 +59,8 @@ class LearnSessionService
         $session->setFirstLearnTime($session->getFirstLearnTime() ?? new \DateTime());
         $session->setLastLearnTime(new \DateTime());
         
-        // 缓存当前学习状态
-        $this->cacheSessionState($userId, $session, $device);
+        // 缓存当前学习状态 - 暂时移除
+        // $this->cacheSessionState($userId, $session, $device);
         
         $this->entityManager->persist($session);
         $this->entityManager->flush();
@@ -75,7 +69,6 @@ class LearnSessionService
             'user_id' => $userId,
             'session_id' => $session->getId(),
             'lesson_id' => $lessonId,
-            'device_fingerprint' => $device->getDeviceFingerprint(),
         ]);
         
         return $session;
@@ -192,6 +185,8 @@ class LearnSessionService
      */
     private function cacheSessionState(string $userId, LearnSession $session, LearnDevice $device): void
     {
+        // 暂时移除缓存功能
+        /*
         $sessionId = $session->getId();
         
         // 缓存用户当前学习状态
@@ -211,6 +206,7 @@ class LearnSessionService
             },
             86400
         );
+        */
     }
 
     /**
@@ -359,6 +355,8 @@ class LearnSessionService
      */
     private function clearSessionCache(LearnSession $session): void
     {
+        // 暂时移除缓存功能
+        /*
         $userId = $session->getStudent()->getId();
         
         // 清理相关缓存
@@ -369,5 +367,6 @@ class LearnSessionService
         foreach ($devices as $device) {
             $this->cache->delete(self::CACHE_PREFIX_DEVICE . $device->getDeviceFingerprint());
         }
+        */
     }
 } 

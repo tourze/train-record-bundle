@@ -2,8 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Procedure;
 
-use SenboTrainingBundle\Repository\RegistrationRepository;
-use SenboTrainingBundle\Repository\StudentRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
@@ -11,6 +9,8 @@ use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
+use Tourze\TrainRecordBundle\Repository\RegistrationRepository;
+use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 #[MethodDoc('获取学员的学习明细')]
 #[MethodExpose('GetJobTrainingLearnSessionDetail')]

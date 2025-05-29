@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Command;
 
-use SenboTrainingBundle\Repository\CourseRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,7 +14,6 @@ class GenerateCourseRecordCommand extends Command
 {
     public function __construct(
         private readonly KernelInterface $kernel,
-        private readonly CourseRepository $courseRepository,
         private readonly Environment $twig,
     ) {
         parent::__construct();

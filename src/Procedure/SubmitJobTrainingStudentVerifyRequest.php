@@ -3,7 +3,6 @@
 namespace Tourze\TrainRecordBundle\Procedure;
 
 use Carbon\Carbon;
-use SenboTrainingBundle\Repository\StudentRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\GAT2000\DocumentType;
@@ -14,6 +13,7 @@ use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
+use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 #[MethodDoc('提交实名认证申请')]
 #[MethodExpose('SubmitJobTrainingStudentVerifyRequest')]

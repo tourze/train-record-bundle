@@ -1,13 +1,8 @@
 <?php
 
-namespace SenboTrainingBundle\Procedure\Learn;
+namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
 use Psr\Log\LoggerInterface;
-use SenboTrainingBundle\Entity\FaceDetect;
-use SenboTrainingBundle\Repository\FaceDetectRepository;
-use SenboTrainingBundle\Repository\LearnSessionRepository;
-use SenboTrainingBundle\Repository\StudentRepository;
-use SenboTrainingBundle\Service\BaiduFaceService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
@@ -16,6 +11,11 @@ use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
+use Tourze\TrainRecordBundle\Entity\FaceDetect;
+use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
+use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
+use Tourze\TrainRecordBundle\Repository\StudentRepository;
+use Tourze\TrainRecordBundle\Service\BaiduFaceService;
 
 #[MethodDoc('人脸识别上传')]
 #[MethodExpose('UploadJobTrainingFaceDetect')]

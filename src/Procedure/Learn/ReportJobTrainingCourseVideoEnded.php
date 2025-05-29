@@ -1,17 +1,10 @@
 <?php
 
-namespace SenboTrainingBundle\Procedure\Learn;
+namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
 use Carbon\Carbon;
 use ExamBundle\Repository\ExamSessionRepository;
 use Psr\SimpleCache\CacheInterface;
-use SenboTrainingBundle\Entity\LearnLog;
-use SenboTrainingBundle\Enum\LearnAction;
-use SenboTrainingBundle\Enum\RegistrationLearnStatus;
-use SenboTrainingBundle\Repository\LearnSessionRepository;
-use SenboTrainingBundle\Repository\RegistrationRepository;
-use SenboTrainingBundle\Repository\StudentRepository;
-use SenboTrainingBundle\Service\TestPaperService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncBundle\Service\DoctrineService;
@@ -21,6 +14,9 @@ use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
+use Tourze\TrainRecordBundle\Entity\LearnLog;
+use Tourze\TrainRecordBundle\Enum\LearnAction;
+use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 #[MethodDoc('视频观看结束')]
 #[MethodExpose('ReportJobTrainingCourseVideoEnded')]
@@ -37,7 +33,6 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
         private readonly StudentRepository $studentRepository,
         private readonly TestPaperService $testPaperService,
         private readonly CacheInterface $cache,
-        private readonly RegistrationRepository $registrationRepository,
         private readonly DoctrineService $doctrineService,
         private readonly Security $security,
     ) {
@@ -69,13 +64,6 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
             $learnSession->setFinished(true);
             $learnSession->setCurrentDuration($learnSession->getTotalDuration());
             $this->sessionRepository->save($learnSession);
-
-            // 判断是否已经完成所有课程
-            if (RegistrationLearnStatus::FINISHED === $registration->getLearnStatus()) {
-                $registration->setFinished(true);
-                $registration->setFinishTime(Carbon::now());
-                $this->registrationRepository->save($registration);
-            }
         }
 
         $log = new LearnLog();

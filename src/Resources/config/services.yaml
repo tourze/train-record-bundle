@@ -3,45 +3,24 @@ services:
   _defaults:
     autowire: true      # Automatically injects dependencies in your services.
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-    public: false
+    public: true        # Make services public for testing
 
-  # Repository services
+  # 自动注册命令类
+  Tourze\TrainRecordBundle\Command\:
+    resource: '../../Command'
+    exclude: '../../Command/{DependencyInjection,Entity,Tests}'
+
+  # 暂时排除过程类，避免依赖注入错误
+  # Tourze\TrainRecordBundle\Procedure\:
+  #   resource: '../../Procedure'
+  #   exclude: '../../Procedure/{DependencyInjection,Entity,Tests}'
+
+  # 自动注册存储库类
   Tourze\TrainRecordBundle\Repository\:
-    resource: '../../Repository/'
-    tags: ['doctrine.repository_service']
+    resource: '../../Repository'
+    exclude: '../../Repository/{DependencyInjection,Entity,Tests}'
 
-  # Service layer
+  # 自动注册服务类
   Tourze\TrainRecordBundle\Service\:
-    resource: '../../Service/'
-
-  # Command layer (注意：Commands依赖外部Repository，需要在实际项目中手动配置)
-  # Tourze\TrainRecordBundle\Command\:
-  #   resource: '../../Command/'
-  #   tags: ['console.command']
-
-  # Property accessor for internal use
-  symfony-ecol.property-accessor:
-    class: Symfony\Component\PropertyAccess\PropertyAccessor
-    factory: [ 'Symfony\Component\PropertyAccess\PropertyAccess', 'createPropertyAccessor' ]
-
-  # Specific service configurations
-  Tourze\TrainRecordBundle\Service\LearnSessionService:
-    public: true
-    
-  Tourze\TrainRecordBundle\Service\LearnBehaviorService:
-    public: true
-    
-  Tourze\TrainRecordBundle\Service\LearnDeviceService:
-    public: true
-    
-  Tourze\TrainRecordBundle\Service\LearnProgressService:
-    public: true
-    
-  Tourze\TrainRecordBundle\Service\LearnAnomalyService:
-    public: true
-    
-  Tourze\TrainRecordBundle\Service\LearnArchiveService:
-    public: true
-    
-  Tourze\TrainRecordBundle\Service\LearnAnalyticsService:
-    public: true
+    resource: '../../Service'
+    exclude: '../../Service/{DependencyInjection,Entity,Tests}'
