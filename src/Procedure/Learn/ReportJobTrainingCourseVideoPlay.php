@@ -66,7 +66,7 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
         $this->doctrineService->asyncInsert($log);
 
         // 当一个学员开始播放视频了，我们就标记他正在学习
-        $this->cache->set("student_learning_{$student->getId()}", $learnSession->getId(), DAY_IN_SECONDS);
+        $this->cache->set("student_learning_{$student->getId()}", $learnSession->getId(), 60 * 60 * 24);
 
         return [
             '__message' => '上报成功',
