@@ -7,7 +7,7 @@ use ExamBundle\Repository\ExamSessionRepository;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService;
+use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
@@ -33,7 +33,7 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
         private readonly StudentRepository $studentRepository,
         private readonly TestPaperService $testPaperService,
         private readonly CacheInterface $cache,
-        private readonly AsyncInsertService $doctrineService,
+        private readonly DoctrineService $doctrineService,
         private readonly Security $security,
     ) {
     }
