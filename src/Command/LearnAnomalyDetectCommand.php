@@ -130,7 +130,7 @@ class LearnAnomalyDetectCommand extends Command
 
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->logger->error('学习异常检测失败', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -249,7 +249,7 @@ class LearnAnomalyDetectCommand extends Command
                     
                     $totalDetected += $result['detected'];
                     $totalResolved += $result['resolved'];
-                } catch (\Exception $e) {
+                } catch  (\Throwable $e) {
                     $this->logger->error('检测会话异常失败', [
                         'sessionId' => $session->getId(),
                         'error' => $e->getMessage(),

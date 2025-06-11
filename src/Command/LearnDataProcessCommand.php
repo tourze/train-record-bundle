@@ -105,7 +105,7 @@ class LearnDataProcessCommand extends Command
 
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->logger->error('学习数据处理失败', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -196,7 +196,7 @@ class LearnDataProcessCommand extends Command
                     }
                     
                     $processed++;
-                } catch (\Exception $e) {
+                } catch  (\Throwable $e) {
                     $errors++;
                     $this->logger->error('处理会话失败', [
                         'sessionId' => $session->getId(),

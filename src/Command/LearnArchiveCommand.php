@@ -127,7 +127,7 @@ class LearnArchiveCommand extends Command
             $io->success($result['message']);
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->logger->error('学习档案管理失败', [
                 'action' => $action,
                 'error' => $e->getMessage(),
@@ -164,7 +164,7 @@ class LearnArchiveCommand extends Command
                 try {
                     $this->archiveService->createArchive($userId, $courseId, $archiveFormat);
                     $createdCount = 1;
-                } catch (\Exception $e) {
+                } catch  (\Throwable $e) {
                     $errorCount = 1;
                     $io->error("创建档案失败: " . $e->getMessage());
                 }
@@ -202,7 +202,7 @@ class LearnArchiveCommand extends Command
                         } else {
                             $createdCount++;
                         }
-                    } catch (\Exception $e) {
+                    } catch  (\Throwable $e) {
                         $errorCount++;
                         $this->logger->error('创建档案失败', [
                             'userId' => $userCourse['userId'],
@@ -259,7 +259,7 @@ class LearnArchiveCommand extends Command
                 try {
                     $this->archiveService->updateArchive($archiveId);
                     $updatedCount = 1;
-                } catch (\Exception $e) {
+                } catch  (\Throwable $e) {
                     $errorCount = 1;
                     $io->error("更新档案失败: " . $e->getMessage());
                 }
@@ -284,7 +284,7 @@ class LearnArchiveCommand extends Command
                         } else {
                             $updatedCount++;
                         }
-                    } catch (\Exception $e) {
+                    } catch  (\Throwable $e) {
                         $errorCount++;
                         $this->logger->error('更新档案失败', [
                             'archiveId' => $archive->getId(),
@@ -372,7 +372,7 @@ class LearnArchiveCommand extends Command
                         if (!empty($result['warnings'])) {
                             $warningCount++;
                         }
-                    } catch (\Exception $e) {
+                    } catch  (\Throwable $e) {
                         $invalidCount++;
                         $this->logger->error('验证档案失败', [
                             'archiveId' => $archive->getId(),

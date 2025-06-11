@@ -137,7 +137,7 @@ class LearnStatisticsCommand extends Command
             $io->success($result['message']);
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->logger->error('学习统计生成失败', [
                 'type' => $type,
                 'period' => $period,
@@ -254,7 +254,7 @@ class LearnStatisticsCommand extends Command
                 }
 
                 $generatedCount++;
-            } catch (\Exception $e) {
+            } catch  (\Throwable $e) {
                 $errorCount++;
                 $this->logger->error('生成统计失败', [
                     'type' => $type->value,

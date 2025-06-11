@@ -161,7 +161,7 @@ class LearnMonitorCommand extends Command
 
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->logger->error('学习监控失败', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -396,7 +396,7 @@ class LearnMonitorCommand extends Command
                         'system_monitor'
                     );
                     $resolvedCount++;
-                } catch (\Exception $e) {
+                } catch  (\Throwable $e) {
                     $this->logger->error('自动解决异常失败', [
                         'anomalyId' => $anomaly->getId(),
                         'error' => $e->getMessage(),
