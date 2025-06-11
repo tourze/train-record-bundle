@@ -510,7 +510,7 @@ class EffectiveStudyTimeService
                     'success' => true,
                     'record' => $record,
                 ];
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $results[] = [
                     'success' => false,
                     'error' => $e->getMessage(),

@@ -125,7 +125,7 @@ class EffectiveStudyTimeRecalculateCommand extends Command
 
             return $errorCount > 0 ? Command::FAILURE : Command::SUCCESS;
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('学时重新计算失败', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -165,7 +165,7 @@ class EffectiveStudyTimeRecalculateCommand extends Command
                 ));
                 
                 return [1, 0];
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $io->error("重新计算记录 {$recordId} 失败: " . $e->getMessage());
                 return [0, 1];
             }
@@ -231,7 +231,7 @@ class EffectiveStudyTimeRecalculateCommand extends Command
                     }
                     
                     $processed++;
-                } catch  (\Throwable $e) {
+                } catch (\Throwable $e) {
                     $errors++;
                     
                     $this->logger->warning('重新计算记录失败', [

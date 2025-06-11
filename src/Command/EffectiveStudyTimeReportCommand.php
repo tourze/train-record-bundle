@@ -106,7 +106,7 @@ class EffectiveStudyTimeReportCommand extends Command
             $io->success('报告生成完成');
             return Command::SUCCESS;
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('生成学时报告失败', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

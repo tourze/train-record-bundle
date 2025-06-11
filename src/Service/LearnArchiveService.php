@@ -231,7 +231,7 @@ class LearnArchiveService
                         $this->createArchive($userId, $courseId);
                         $archivedCount++;
                     }
-                } catch  (\Throwable $e) {
+                } catch (\Throwable $e) {
                     $this->logger->error('归档记录失败', [
                         'sessionId' => $session->getId(),
                         'error' => $e->getMessage(),
@@ -270,7 +270,7 @@ class LearnArchiveService
                 $this->entityManager->persist($archive);
                 
                 $cleanedCount++;
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $this->logger->error('清理过期档案失败', [
                     'archiveId' => $archive->getId(),
                     'error' => $e->getMessage(),

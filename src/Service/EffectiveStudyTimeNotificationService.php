@@ -74,7 +74,7 @@ class EffectiveStudyTimeNotificationService
             
             return true;
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('发送实时学时状态提醒失败', [
                 'user_id' => $userId,
                 'error' => $e->getMessage(),
@@ -114,7 +114,7 @@ class EffectiveStudyTimeNotificationService
             
             return true;
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('发送无效学时通知失败', [
                 'user_id' => $userId,
                 'reason' => $reason->value,
@@ -162,7 +162,7 @@ class EffectiveStudyTimeNotificationService
             
             return true;
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('发送日累计限制超限通知失败', [
                 'user_id' => $userId,
                 'error' => $e->getMessage(),
@@ -204,7 +204,7 @@ class EffectiveStudyTimeNotificationService
             
             return true;
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('发送质量评分反馈失败', [
                 'user_id' => $userId,
                 'error' => $e->getMessage(),
@@ -258,7 +258,7 @@ class EffectiveStudyTimeNotificationService
             
             return true;
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('发送学时认定结果通知失败', [
                 'record_id' => $record->getId(),
                 'error' => $e->getMessage(),
