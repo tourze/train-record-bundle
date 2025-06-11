@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Tourze\DoctrineAsyncBundle\Service\DoctrineService;
+use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
@@ -32,7 +32,7 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
         private readonly Security $security,
         private readonly StudentRepository $studentRepository,
         private readonly CacheInterface $cache,
-        private readonly DoctrineService $doctrineService,
+        private readonly AsyncInsertService $doctrineService,
     ) {
     }
 

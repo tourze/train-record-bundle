@@ -5,7 +5,7 @@ namespace Tourze\TrainRecordBundle\Procedure\Learn;
 use Carbon\Carbon;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Tourze\DoctrineAsyncBundle\Service\DoctrineService;
+use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
@@ -40,7 +40,7 @@ class StartJobTrainingCourseSession extends LockableProcedure
         private readonly LessonRepository $lessonRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly StudentRepository $studentRepository,
-        private readonly DoctrineService $doctrineService,
+        private readonly AsyncInsertService $doctrineService,
         private readonly Security $security,
     ) {
     }
