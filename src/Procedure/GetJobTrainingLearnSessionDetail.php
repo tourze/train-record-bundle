@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
@@ -9,8 +10,7 @@ use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
-use Tourze\TrainRecordBundle\Repository\RegistrationRepository;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
+use Tourze\TrainClassroomBundle\Repository\RegistrationRepository;
 
 #[MethodDoc('获取学员的学习明细')]
 #[MethodExpose('GetJobTrainingLearnSessionDetail')]
@@ -21,7 +21,7 @@ class GetJobTrainingLearnSessionDetail extends BaseProcedure
     public string $registrationId;
 
     public function __construct(
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly Security $security,
         private readonly RegistrationRepository $registrationRepository,
     ) {

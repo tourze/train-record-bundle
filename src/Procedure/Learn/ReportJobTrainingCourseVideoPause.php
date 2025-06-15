@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -15,7 +16,6 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Tourze\TrainRecordBundle\Entity\LearnLog;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 #[MethodDoc('暂停视频观看')]
 #[MethodExpose('ReportJobTrainingCourseVideoPause')]
@@ -28,7 +28,7 @@ class ReportJobTrainingCourseVideoPause extends LockableProcedure
 
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly DoctrineService $doctrineService,
         private readonly Security $security,
     ) {

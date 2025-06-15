@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -16,7 +17,6 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Tourze\TrainRecordBundle\Entity\LearnLog;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 #[MethodDoc('开始观看指定视频')]
 #[MethodExpose('ReportJobTrainingCourseVideoPlay')]
@@ -30,7 +30,7 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
         private readonly Security $security,
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly CacheInterface $cache,
         private readonly DoctrineService $doctrineService,
     ) {

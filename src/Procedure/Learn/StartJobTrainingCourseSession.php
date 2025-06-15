@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -12,13 +13,12 @@ use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
+use Tourze\TrainClassroomBundle\Repository\RegistrationRepository;
+use Tourze\TrainCourseBundle\Repository\LessonRepository;
 use Tourze\TrainRecordBundle\Entity\LearnLog;
 use Tourze\TrainRecordBundle\Entity\LearnSession;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
-use Tourze\TrainRecordBundle\Repository\LessonRepository;
-use Tourze\TrainRecordBundle\Repository\RegistrationRepository;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 /**
  * 因为可以从报班ID中读取到课程，所以这里不需要声明课程ID
@@ -39,7 +39,7 @@ class StartJobTrainingCourseSession extends LockableProcedure
         private readonly RegistrationRepository $registrationRepository,
         private readonly LessonRepository $lessonRepository,
         private readonly LearnSessionRepository $sessionRepository,
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly DoctrineService $doctrineService,
         private readonly Security $security,
     ) {

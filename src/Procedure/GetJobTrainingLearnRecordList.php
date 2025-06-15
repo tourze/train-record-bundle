@@ -2,15 +2,14 @@
 
 namespace Tourze\TrainRecordBundle\Procedure;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
-use Tourze\TrainRecordBundle\Repository\RegistrationRepository;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
-use Tourze\TrainRecordBundle\Service\CourseService;
+use Tourze\TrainClassroomBundle\Repository\RegistrationRepository;
 
 #[MethodDoc('获取学员的学习记录')]
 #[MethodExpose('GetJobTrainingLearnRecordList')]
@@ -18,10 +17,9 @@ use Tourze\TrainRecordBundle\Service\CourseService;
 class GetJobTrainingLearnRecordList extends BaseProcedure
 {
     public function __construct(
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly Security $security,
         private readonly RegistrationRepository $registrationRepository,
-        private readonly CourseService $courseService,
     ) {
     }
 
@@ -35,7 +33,7 @@ class GetJobTrainingLearnRecordList extends BaseProcedure
         $registrations = $this->registrationRepository->findBy(['student' => $student]);
         $list = [];
         foreach ($registrations as $registration) {
-            $tmp = $this->courseService->getListResult($registration);
+            $tmp = $registration->retrieveApiArray();
             // $tmp['certificate'] = $registration->getCertificate()?->retrieveApiArray();
             $list[] = $tmp;
         }

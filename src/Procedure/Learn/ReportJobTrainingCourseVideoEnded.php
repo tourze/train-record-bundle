@@ -2,8 +2,10 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use ExamBundle\Repository\ExamSessionRepository;
+use ExamBundle\Repository\PaperRepository;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -30,8 +32,8 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
         private readonly ExamSessionRepository $examSessionRepository,
-        private readonly StudentRepository $studentRepository,
-        private readonly TestPaperService $testPaperService,
+        private readonly BizUserRepository $studentRepository,
+        private readonly PaperRepository $paperRepository,
         private readonly CacheInterface $cache,
         private readonly DoctrineService $doctrineService,
         private readonly Security $security,
@@ -90,8 +92,7 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
                     'sessionId' => $learnSession->getId(),
                     'nextAction' => 'exam', // 告诉前端需要做习题了
                     'paperId' => $lesson->getPaper()->getId(),
-                    // 这里直接返回题目算了
-                    'questions' => $this->testPaperService->generateQuestionList($lesson->getPaper(), $this->security->getUser()),
+                    // 前端需要额外调用试卷相关接口获取题目
                 ];
             }
         }

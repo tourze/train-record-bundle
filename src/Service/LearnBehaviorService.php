@@ -132,7 +132,7 @@ class LearnBehaviorService
         }
         
         // 标记可疑行为
-        if (!empty($suspiciousReasons)) {
+        if (count($suspiciousReasons) > 0) {
             $behavior->setIsSuspicious(true);
             $behavior->setSuspiciousReason(implode(', ', $suspiciousReasons));
         }

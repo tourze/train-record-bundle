@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -13,7 +14,6 @@ use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 #[MethodDoc('提交实名认证申请')]
 #[MethodExpose('SubmitJobTrainingStudentVerifyRequest')]
@@ -28,7 +28,7 @@ class SubmitJobTrainingStudentVerifyRequest extends LockableProcedure
     public string $certNo;
 
     public function __construct(
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly IdcardService $idCardService,
         private readonly Security $security,
     ) {

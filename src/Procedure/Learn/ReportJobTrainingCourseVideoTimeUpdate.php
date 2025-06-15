@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -17,7 +18,6 @@ use Tourze\TrainRecordBundle\Entity\LearnLog;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
 use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 #[MethodDoc('上报视频观看进度')]
 #[MethodExpose('ReportJobTrainingCourseVideoTimeUpdate')]
@@ -36,7 +36,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
         private readonly Security $security,
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly FaceDetectRepository $faceDetectRepository,
         private readonly CacheInterface $cache,
         private readonly DoctrineService $doctrineService,

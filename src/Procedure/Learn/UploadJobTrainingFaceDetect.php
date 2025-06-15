@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -14,7 +15,6 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Tourze\TrainRecordBundle\Entity\FaceDetect;
 use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
 use Tourze\TrainRecordBundle\Service\BaiduFaceService;
 
 #[MethodDoc('人脸识别上传')]
@@ -31,7 +31,7 @@ class UploadJobTrainingFaceDetect extends LockableProcedure
 
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly BaiduFaceService $faceService,
         private readonly FaceDetectRepository $faceDetectRepository,
         private readonly Security $security,

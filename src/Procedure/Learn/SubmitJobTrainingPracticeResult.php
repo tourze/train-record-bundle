@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
+use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
 use ExamBundle\Entity\Answer;
@@ -20,7 +21,6 @@ use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\TrainRecordBundle\Entity\LearnLog;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
-use Tourze\TrainRecordBundle\Repository\StudentRepository;
 
 #[MethodDoc('学习后提交习题答案')]
 #[MethodExpose('SubmitJobTrainingPracticeResult')]
@@ -40,7 +40,7 @@ class SubmitJobTrainingPracticeResult extends LockableProcedure
     public string $startTime;
 
     public function __construct(
-        private readonly StudentRepository $studentRepository,
+        private readonly BizUserRepository $studentRepository,
         private readonly PaperRepository $paperRepository,
         private readonly ExamSessionRepository $examSessionRepository,
         private readonly LearnSessionRepository $learnSessionRepository,
