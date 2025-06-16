@@ -77,4 +77,12 @@ learn_archive_verify:
   description: '验证学习档案完整性'
   options:
     - '--action=verify'
-    - '--batch-size=50' 
+    - '--batch-size=50'
+
+# 每分钟清理无效的学习会话
+learn_session_cleanup:
+  command: 'train:learn-session:cleanup'
+  schedule: '* * * * *'  # 每分钟执行
+  description: '清理3分钟内未更新的活跃学习会话'
+  options:
+    - '--threshold=3' 

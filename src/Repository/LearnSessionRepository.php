@@ -91,4 +91,49 @@ class LearnSessionRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * 查找超时的活跃会话（指定分钟内未更新）
+     * 
+     * @param int $thresholdMinutes 超时阈值（分钟）
+     * @return LearnSession[]
+     */
+    public function findInactiveActiveSessions(int $thresholdMinutes): array
+    {
+        $thresholdTime = new \DateTime();
+        $thresholdTime->modify("-{$thresholdMinutes} minutes");
+        
+        return $this->createQueryBuilder('ls')
+            ->where('ls.active = :active')
+            ->andWhere('ls.finished = :finished')
+            ->andWhere('ls.lastLearnTime < :thresholdTime')
+            ->setParameter('active', true)
+            ->setParameter('finished', false)
+            ->setParameter('thresholdTime', $thresholdTime)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 批量更新会话活跃状态
+     * 
+     * @param array $sessionIds 会话ID数组
+     * @param bool $active 活跃状态
+     * @return int 更新的记录数
+     */
+    public function batchUpdateActiveStatus(array $sessionIds, bool $active): int
+    {
+        if (empty($sessionIds)) {
+            return 0;
+        }
+        
+        return $this->createQueryBuilder('ls')
+            ->update()
+            ->set('ls.active', ':active')
+            ->where('ls.id IN (:ids)')
+            ->setParameter('active', $active)
+            ->setParameter('ids', $sessionIds)
+            ->getQuery()
+            ->execute();
+    }
 }
