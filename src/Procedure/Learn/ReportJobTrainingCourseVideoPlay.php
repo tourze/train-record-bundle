@@ -2,10 +2,10 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
-use Psr\SimpleCache\CacheInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
@@ -30,18 +30,14 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
         private readonly Security $security,
-        private readonly BizUserRepository $studentRepository,
-        private readonly CacheInterface $cache,
+        #[Autowire(service: 'cache.app')] private readonly AdapterInterface $cache,
         private readonly DoctrineService $doctrineService,
     ) {
     }
 
     public function execute(): array
     {
-        $student = $this->studentRepository->findStudent($this->security->getUser());
-        if (!$student) {
-            throw new ApiException('请先绑定学员信息', -885);
-        }
+        $student = $this->security->getUser();
 
         $learnSession = $this->sessionRepository->findOneBy([
             'id' => $this->sessionId,
@@ -85,7 +81,10 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
         $this->doctrineService->asyncInsert($log);
 
         // 当一个学员开始播放视频了，我们就标记他正在学习
-        $this->cache->set("student_learning_{$student->getId()}", $learnSession->getId(), 60 * 60 * 24);
+        $cache = $this->cache->getItem("student_learning_{$student->getId()}");
+        $cache->set($learnSession->getId());
+        $cache->expiresAfter(60 * 60 * 24);
+        $this->cache->save($cache);
 
         return [
             '__message' => '上报成功',

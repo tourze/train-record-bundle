@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
 use ExamBundle\Entity\Answer;
@@ -40,7 +39,6 @@ class SubmitJobTrainingPracticeResult extends LockableProcedure
     public string $startTime;
 
     public function __construct(
-        private readonly BizUserRepository $studentRepository,
         private readonly PaperRepository $paperRepository,
         private readonly ExamSessionRepository $examSessionRepository,
         private readonly LearnSessionRepository $learnSessionRepository,
@@ -53,7 +51,7 @@ class SubmitJobTrainingPracticeResult extends LockableProcedure
 
     public function execute(): array
     {
-        $student = $this->studentRepository->findStudent($this->security->getUser());
+        $student = $this->security->getUser();
 
         $learnSession = null;
         if ($this->learnSessionId) {

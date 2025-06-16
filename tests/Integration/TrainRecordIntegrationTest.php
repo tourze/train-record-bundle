@@ -3,6 +3,8 @@
 namespace Tourze\TrainRecordBundle\Tests\Integration;
 
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\HttpKernel\KernelInterface;
+use Tourze\IntegrationTestKernel\IntegrationTestKernel;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
 use Tourze\TrainRecordBundle\Enum\AnomalyType;
 use Tourze\TrainRecordBundle\Enum\ArchiveFormat;
@@ -15,6 +17,7 @@ use Tourze\TrainRecordBundle\Service\LearnBehaviorService;
 use Tourze\TrainRecordBundle\Service\LearnDeviceService;
 use Tourze\TrainRecordBundle\Service\LearnProgressService;
 use Tourze\TrainRecordBundle\Service\LearnSessionService;
+use Tourze\TrainRecordBundle\TrainRecordBundle;
 
 /**
  * 集成测试类
@@ -24,12 +27,17 @@ class TrainRecordIntegrationTest extends KernelTestCase
 {
     protected function setUp(): void
     {
-        self::bootKernel(['environment' => 'test']);
+        self::bootKernel();
     }
 
-    protected static function getKernelClass(): string
+    protected static function createKernel(array $options = []): KernelInterface
     {
-        return IntegrationTestKernel::class;
+        $env = $options['environment'] ?? $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'test';
+        $debug = $options['debug'] ?? $_ENV['APP_DEBUG'] ?? $_SERVER['APP_DEBUG'] ?? true;
+
+        return new IntegrationTestKernel($env, $debug, [
+            TrainRecordBundle::class => ['all' => true],
+        ]);
     }
 
     /**

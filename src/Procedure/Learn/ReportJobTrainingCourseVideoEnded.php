@@ -2,12 +2,10 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
-use ExamBundle\Repository\ExamSessionRepository;
-use ExamBundle\Repository\PaperRepository;
-use Psr\SimpleCache\CacheInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
@@ -31,10 +29,7 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
 
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
-        private readonly ExamSessionRepository $examSessionRepository,
-        private readonly BizUserRepository $studentRepository,
-        private readonly PaperRepository $paperRepository,
-        private readonly CacheInterface $cache,
+        #[Autowire(service: 'cache.app')] private readonly AdapterInterface $cache,
         private readonly DoctrineService $doctrineService,
         private readonly Security $security,
     ) {
@@ -42,10 +37,7 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
 
     public function execute(): array
     {
-        $student = $this->studentRepository->findStudent($this->security->getUser());
-        if (!$student) {
-            throw new ApiException('请先绑定学员信息', -885);
-        }
+        $student = $this->security->getUser();
 
         $learnSession = $this->sessionRepository->findOneBy([
             'id' => $this->sessionId,
@@ -56,7 +48,7 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
         }
         $registration = $learnSession->getRegistration();
 
-        $this->cache->delete("student_learning_{$student->getId()}");
+        $this->cache->deleteItem("student_learning_{$student->getId()}");
 
         $lesson = $learnSession->getLesson();
 
@@ -77,27 +69,6 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
         $log->setLesson($lesson);
         $log->setAction(LearnAction::ENDED);
         $this->doctrineService->asyncInsert($log);
-
-        if ($lesson->getPaper()) {
-            $examSession = $this->examSessionRepository->findOneBy([
-                'student' => $student,
-                'paper' => $lesson->getPaper(),
-                'learnSession' => $learnSession,
-            ], ['id' => 'DESC']);
-            if (!$examSession || !$examSession->isPass()) {
-                $examSession = null;
-            }
-
-            if (!$examSession) {
-                return [
-                    'registration' => $registration->retrieveApiArray(),
-                    'sessionId' => $learnSession->getId(),
-                    'nextAction' => 'exam', // 告诉前端需要做习题了
-                    'paperId' => $lesson->getPaper()->getId(),
-                    // 前端需要额外调用试卷相关接口获取题目
-                ];
-            }
-        }
 
         return [
             'registration' => $registration->retrieveApiArray(),

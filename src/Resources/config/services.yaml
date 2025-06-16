@@ -5,22 +5,11 @@ services:
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
     public: true        # Make services public for testing
 
-  # 自动注册命令类
   Tourze\TrainRecordBundle\Command\:
     resource: '../../Command'
-    exclude: '../../Command/{DependencyInjection,Entity,Tests}'
-
-  # 暂时排除过程类，避免依赖注入错误
-  # Tourze\TrainRecordBundle\Procedure\:
-  #   resource: '../../Procedure'
-  #   exclude: '../../Procedure/{DependencyInjection,Entity,Tests}'
-
-  # 自动注册存储库类
+  Tourze\TrainRecordBundle\Procedure\:
+    resource: '../../Procedure'
   Tourze\TrainRecordBundle\Repository\:
     resource: '../../Repository'
-    exclude: '../../Repository/{DependencyInjection,Entity,Tests}'
-
-  # 自动注册服务类
   Tourze\TrainRecordBundle\Service\:
     resource: '../../Service'
-    exclude: '../../Service/{DependencyInjection,Entity,Tests}'

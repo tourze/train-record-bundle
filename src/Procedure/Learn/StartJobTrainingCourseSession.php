@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -39,7 +38,6 @@ class StartJobTrainingCourseSession extends LockableProcedure
         private readonly RegistrationRepository $registrationRepository,
         private readonly LessonRepository $lessonRepository,
         private readonly LearnSessionRepository $sessionRepository,
-        private readonly BizUserRepository $studentRepository,
         private readonly DoctrineService $doctrineService,
         private readonly Security $security,
     ) {
@@ -47,10 +45,7 @@ class StartJobTrainingCourseSession extends LockableProcedure
 
     public function execute(): array
     {
-        $student = $this->studentRepository->findStudent($this->security->getUser());
-        if (!$student) {
-            throw new ApiException('请先绑定学员信息', -885);
-        }
+        $student = $this->security->getUser();
 
         // 报班
         $registration = $this->registrationRepository->findOneBy([

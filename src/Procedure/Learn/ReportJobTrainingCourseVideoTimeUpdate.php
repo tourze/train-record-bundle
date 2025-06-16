@@ -2,11 +2,11 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use BizUserBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\SimpleCache\CacheInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
@@ -36,9 +36,8 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
         private readonly Security $security,
-        private readonly BizUserRepository $studentRepository,
         private readonly FaceDetectRepository $faceDetectRepository,
-        private readonly CacheInterface $cache,
+        #[Autowire(service: 'cache.app')] private readonly AdapterInterface $cache,
         private readonly DoctrineService $doctrineService,
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -46,10 +45,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
 
     public function execute(): array
     {
-        $student = $this->studentRepository->findStudent($this->security->getUser());
-        if (!$student) {
-            throw new ApiException('请先绑定学员信息', -885);
-        }
+        $student = $this->security->getUser();
 
         $learnSession = $this->sessionRepository->findOneBy([
             'id' => $this->sessionId,
@@ -60,7 +56,9 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
         }
 
         // 检查学习是否合法
-        if ($learningSessionId = $this->cache->get("student_learning_{$student->getId()}")) {
+        $cache = $this->cache->getItem("student_learning_{$student->getId()}");
+        if ($cache->isHit()) {
+            $learningSessionId = $cache->get();
             if ($learningSessionId !== $learnSession->getId()) {
                 $this->entityManager->remove($learnSession);
                 $this->entityManager->flush();

@@ -2,12 +2,10 @@
 
 namespace Tourze\TrainRecordBundle\Procedure;
 
-use BizUserBundle\Repository\BizUserRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\TrainClassroomBundle\Repository\RegistrationRepository;
 
@@ -17,7 +15,6 @@ use Tourze\TrainClassroomBundle\Repository\RegistrationRepository;
 class GetJobTrainingLearnRecordList extends BaseProcedure
 {
     public function __construct(
-        private readonly BizUserRepository $studentRepository,
         private readonly Security $security,
         private readonly RegistrationRepository $registrationRepository,
     ) {
@@ -25,10 +22,7 @@ class GetJobTrainingLearnRecordList extends BaseProcedure
 
     public function execute(): array
     {
-        $student = $this->studentRepository->findStudent($this->security->getUser());
-        if (!$student) {
-            throw new ApiException('请先绑定学员信息', -885);
-        }
+        $student = $this->security->getUser();
 
         $registrations = $this->registrationRepository->findBy(['student' => $student]);
         $list = [];
