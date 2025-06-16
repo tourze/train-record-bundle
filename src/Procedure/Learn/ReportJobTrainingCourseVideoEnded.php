@@ -65,6 +65,8 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
             $learnSession->setLastLearnTime(Carbon::now());
             $learnSession->setFinished(true);
             $learnSession->setCurrentDuration($learnSession->getTotalDuration());
+            // 将会话设置为非活跃状态
+            $learnSession->setActive(false);
             $this->sessionRepository->save($learnSession);
         }
 

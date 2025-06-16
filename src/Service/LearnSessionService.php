@@ -181,6 +181,80 @@ class LearnSessionService
     }
 
     /**
+     * 检查学员是否有其他活跃的学习会话
+     * 
+     * @param mixed $student 学员实体
+     * @param string $lessonId 当前要学习的课时ID
+     * @throws \RuntimeException 如果存在其他活跃会话
+     */
+    public function checkConcurrentLearning($student, string $lessonId): void
+    {
+        $otherActiveSessions = $this->sessionRepository->findOtherActiveSessionsByStudent($student, $lessonId);
+        
+        if (!empty($otherActiveSessions)) {
+            $activeSession = $otherActiveSessions[0];
+            $courseName = $activeSession->getCourse()->getName();
+            $lessonName = $activeSession->getLesson()->getTitle();
+            
+            throw new \RuntimeException(
+                sprintf(
+                    '您正在学习课程"%s"的课时"%s"，请先完成或暂停当前学习后再开始新的课程',
+                    $courseName,
+                    $lessonName
+                )
+            );
+        }
+    }
+
+    /**
+     * 设置学习会话为活跃状态
+     * 
+     * @param LearnSession $session 学习会话
+     * @param bool $flush 是否立即刷新到数据库
+     */
+    public function activateSession(LearnSession $session, bool $flush = true): void
+    {
+        $session->setActive(true);
+        $session->setLastLearnTime(new \DateTime());
+        
+        $this->entityManager->persist($session);
+        
+        if ($flush) {
+            $this->entityManager->flush();
+        }
+        
+        $this->logger->info('学习会话已激活', [
+            'session_id' => $session->getId(),
+            'student_id' => $session->getStudent()->getId(),
+            'lesson_id' => $session->getLesson()->getId(),
+        ]);
+    }
+
+    /**
+     * 设置学习会话为非活跃状态
+     * 
+     * @param LearnSession $session 学习会话
+     * @param bool $flush 是否立即刷新到数据库
+     */
+    public function deactivateSession(LearnSession $session, bool $flush = true): void
+    {
+        $session->setActive(false);
+        $session->setLastLearnTime(new \DateTime());
+        
+        $this->entityManager->persist($session);
+        
+        if ($flush) {
+            $this->entityManager->flush();
+        }
+        
+        $this->logger->info('学习会话已停用', [
+            'session_id' => $session->getId(),
+            'student_id' => $session->getStudent()->getId(),
+            'lesson_id' => $session->getLesson()->getId(),
+        ]);
+    }
+
+    /**
      * 缓存会话状态
      */
     private function cacheSessionState(string $userId, LearnSession $session, LearnDevice $device): void

@@ -93,6 +93,12 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(options: ['comment' => '是否完成'])]
     private bool $finished = false;
 
+    #[BoolColumn]
+    #[IndexColumn]
+    #[ListColumn(title: '是否活跃')]
+    #[ORM\Column(options: ['comment' => '是否为活跃会话（正在学习中）', 'default' => false])]
+    private bool $active = false;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '完成时间'])]
     private ?\DateTimeInterface $finishTime = null;
 
@@ -336,6 +342,18 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     public function setFinishTime(?\DateTimeInterface $finishTime): static
     {
         $this->finishTime = $finishTime;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): static
+    {
+        $this->active = $active;
 
         return $this;
     }

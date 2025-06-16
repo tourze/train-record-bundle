@@ -80,6 +80,23 @@ class StartJobTrainingCourseSession extends LockableProcedure
 
         $startTime = Carbon::now();
 
+        // 检查是否有其他活跃的学习会话（跨课程检查）
+        $otherActiveSessions = $this->sessionRepository->findOtherActiveSessionsByStudent($student, $this->lessonId);
+        if (!empty($otherActiveSessions)) {
+            $activeSession = $otherActiveSessions[0];
+            $courseName = $activeSession->getCourse()->getName();
+            $lessonName = $activeSession->getLesson()->getTitle();
+            
+            throw new ApiException(
+                sprintf(
+                    '您正在学习课程"%s"的课时"%s"，请先完成或暂停当前学习后再开始新的课程',
+                    $courseName,
+                    $lessonName
+                ),
+                -886
+            );
+        }
+
         // 查找和创建学习记录
         $learnSession = $this->sessionRepository->findOneBy([
             'student' => $student,
@@ -104,8 +121,12 @@ class StartJobTrainingCourseSession extends LockableProcedure
             $learnSession->setFirstLearnTime($startTime);
             $learnSession->setLastLearnTime($startTime);
         }
+        
+        // 设置会话为活跃状态
+        $learnSession->setActive(true);
         $learnSession->setSupplier($registration->getSupplier());
         $learnSession->setCourse($course);
+        $learnSession->setLastLearnTime($startTime);
         $this->sessionRepository->save($learnSession);
 
         $log = new LearnLog();

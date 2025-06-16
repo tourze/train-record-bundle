@@ -51,9 +51,28 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
             throw new ApiException('找不到学习记录');
         }
 
+        // 检查是否有其他活跃的学习会话
+        $otherActiveSessions = $this->sessionRepository->findOtherActiveSessionsByStudent($student, $learnSession->getLesson()->getId());
+        if (!empty($otherActiveSessions)) {
+            $activeSession = $otherActiveSessions[0];
+            $courseName = $activeSession->getCourse()->getName();
+            $lessonName = $activeSession->getLesson()->getTitle();
+            
+            throw new ApiException(
+                sprintf(
+                    '您正在学习课程"%s"的课时"%s"，请先完成或暂停当前学习后再开始新的课程',
+                    $courseName,
+                    $lessonName
+                ),
+                -886
+            );
+        }
+
         if (!$learnSession->isFinished()) {
             // 记录最后学习时间
             $learnSession->setLastLearnTime(Carbon::now());
+            // 将会话设置为活跃状态
+            $learnSession->setActive(true);
             $this->sessionRepository->save($learnSession);
         }
 
