@@ -194,13 +194,13 @@ class EffectiveStudyTimeRecalculateCommand extends Command
         }
         
         if ($date) {
-            $targetDate = new \DateTime($date);
+            $targetDate = new \DateTimeImmutable($date);
             return $this->recordRepository->findByUserAndDate($userId, $targetDate);
         }
         
         if (empty($criteria)) {
             // 如果没有指定条件，返回最近需要重新验证的记录
-            $beforeDate = new \DateTime('-7 days');
+            $beforeDate = new \DateTimeImmutable('-7 days');
             return $this->recordRepository->findNeedingRevalidation($beforeDate);
         }
         

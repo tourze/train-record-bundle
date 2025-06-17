@@ -38,7 +38,7 @@ class LearnDeviceService
             $device = new LearnDevice();
             $device->setUserId($userId);
             $device->setDeviceFingerprint($deviceFingerprint);
-            $device->setFirstSeenTime(new \DateTime());
+            $device->setFirstSeenTime(new \DateTimeImmutable());
             $device->setSessionCount(0);
             $device->setSuspiciousCount(0);
             $device->setIsTrusted(false);
@@ -49,7 +49,7 @@ class LearnDeviceService
         $device->setDeviceInfo($deviceInfo['device'] ?? []);
         $device->setBrowserInfo($deviceInfo['browser'] ?? []);
         $device->setOsInfo($deviceInfo['os'] ?? []);
-        $device->setLastSeenTime(new \DateTime());
+        $device->setLastSeenTime(new \DateTimeImmutable());
         $device->setIsActive(true);
         
         // 增加会话计数
@@ -71,7 +71,7 @@ class LearnDeviceService
      */
     public function getActiveDevices(string $userId): array
     {
-        $threshold = new \DateTime();
+        $threshold = new \DateTimeImmutable();
         $threshold->sub(new \DateInterval('PT' . self::DEVICE_ACTIVE_THRESHOLD . 'S'));
         
         return $this->deviceRepository->findActiveByUser($userId, $threshold);

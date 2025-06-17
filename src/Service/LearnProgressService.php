@@ -90,7 +90,7 @@ class LearnProgressService
         
         // 更新进度信息
         $progress->setProgress($newProgress);
-        $progress->setLastUpdateTime(new \DateTime());
+        $progress->setLastUpdateTime(new \DateTimeImmutable());
         $progress->setLastUpdateDevice($deviceFingerprint);
         
         // 添加进度历史
@@ -278,7 +278,7 @@ class LearnProgressService
                 'start' => $currentTime,
                 'end' => $currentTime,
                 'duration' => 0,
-                'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
+                'timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
             ];
         }
         
@@ -322,7 +322,7 @@ class LearnProgressService
             'progress' => $newProgress,
             'device' => $device,
             'action' => $action,
-            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
+            'timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
         
         // 保留最近100条记录
@@ -349,7 +349,7 @@ class LearnProgressService
         $progress->setEffectiveDuration(0.0);
         $progress->setWatchedSegments([]);
         $progress->setIsCompleted(false);
-        $progress->setLastUpdateTime(new \DateTime());
+        $progress->setLastUpdateTime(new \DateTimeImmutable());
         
         // 添加重置记录
         $this->addProgressHistory($progress, 0.0, 'system', 'reset');

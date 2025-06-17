@@ -41,8 +41,8 @@ class LearnAnalyticsService
         ?string $userId = null,
         ?string $courseId = null
     ): array {
-        $startDate = $startDate ?? (new \DateTime())->modify('-30 days');
-        $endDate = $endDate ?? new \DateTime();
+        $startDate = $startDate ?? (new \DateTimeImmutable())->modify('-30 days');
+        $endDate = $endDate ?? new \DateTimeImmutable();
 
         $report = [
             'period' => [
@@ -57,7 +57,7 @@ class LearnAnalyticsService
             'anomalies' => $this->generateAnomalyStats($startDate, $endDate, $userId, $courseId),
             'trends' => $this->generateTrendAnalysis($startDate, $endDate, $userId, $courseId),
             'insights' => $this->generateInsights($startDate, $endDate, $userId, $courseId),
-            'generatedAt' => (new \DateTime())->format('Y-m-d H:i:s'),
+            'generatedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
 
         $this->logger->info('学习报告已生成', [
@@ -78,8 +78,8 @@ class LearnAnalyticsService
         ?\DateTimeInterface $startDate = null,
         ?\DateTimeInterface $endDate = null
     ): array {
-        $startDate = $startDate ?? (new \DateTime())->modify('-90 days');
-        $endDate = $endDate ?? new \DateTime();
+        $startDate = $startDate ?? (new \DateTimeImmutable())->modify('-90 days');
+        $endDate = $endDate ?? new \DateTimeImmutable();
 
         return [
             'userId' => $userId,
@@ -103,8 +103,8 @@ class LearnAnalyticsService
         ?\DateTimeInterface $startDate = null,
         ?\DateTimeInterface $endDate = null
     ): array {
-        $startDate = $startDate ?? (new \DateTime())->modify('-30 days');
-        $endDate = $endDate ?? new \DateTime();
+        $startDate = $startDate ?? (new \DateTimeImmutable())->modify('-30 days');
+        $endDate = $endDate ?? new \DateTimeImmutable();
 
         return [
             'courseId' => $courseId,
@@ -125,7 +125,7 @@ class LearnAnalyticsService
      */
     public function getRealTimeStatistics(): array
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $today = (clone $now)->setTime(0, 0, 0);
         $thisHour = (clone $now)->setTime($now->format('H'), 0, 0);
 
@@ -499,7 +499,7 @@ class LearnAnalyticsService
      */
     private function getCurrentOnlineUsers(): int
     {
-        $fiveMinutesAgo = (new \DateTime())->modify('-5 minutes');
+        $fiveMinutesAgo = (new \DateTimeImmutable())->modify('-5 minutes');
         return $this->sessionRepository->countActiveSessionsSince($fiveMinutesAgo);
     }
 

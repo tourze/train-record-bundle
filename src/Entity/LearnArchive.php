@@ -148,8 +148,8 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
 
     public function __construct()
     {
-        $this->archiveDate = new \DateTime();
-        $this->expiryDate = new \DateTime('+3 years'); // 3年保存期限
+        $this->archiveDate = new \DateTimeImmutable();
+        $this->expiryDate = new \DateTimeImmutable('+3 years'); // 3年保存期限
     }
 
     public function getId(): ?string
@@ -385,7 +385,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
         $this->setArchiveStatus(ArchiveStatus::ARCHIVED);
         $this->setArchivePath($archivePath);
         $this->setArchiveHash($archiveHash);
-        $this->setArchiveDate(new \DateTime());
+        $this->setArchiveDate(new \DateTimeImmutable());
         return $this;
     }
 
@@ -419,10 +419,10 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
             'isValid' => $isValid,
             'expectedHash' => $this->archiveHash,
             'actualHash' => $currentHash,
-            'verifiedAt' => (new \DateTime())->format('Y-m-d H:i:s'),
+            'verifiedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ]);
 
-        $this->setLastVerificationTime(new \DateTime());
+        $this->setLastVerificationTime(new \DateTimeImmutable());
 
         return $isValid;
     }
@@ -436,7 +436,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
             return false;
         }
 
-        return new \DateTime() > $this->expiryDate;
+        return new \DateTimeImmutable() > $this->expiryDate;
     }
 
     /**
@@ -452,7 +452,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
         $nextVerificationTime = \DateTime::createFromInterface($this->lastVerificationTime);
         $nextVerificationTime->add(new \DateInterval('P1M'));
 
-        return new \DateTime() > $nextVerificationTime;
+        return new \DateTimeImmutable() > $nextVerificationTime;
     }
 
     /**
@@ -464,7 +464,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
             return null;
         }
 
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         if ($now > $this->expiryDate) {
             return 0;
         }

@@ -193,7 +193,7 @@ class LearnStatisticsRepository extends ServiceEntityRepository
      */
     public function findNeedingUpdate(StatisticsPeriod $period): array
     {
-        $cutoffTime = new \DateTime();
+        $cutoffTime = new \DateTimeImmutable();
         
         // 根据周期确定更新阈值
         switch ($period) {

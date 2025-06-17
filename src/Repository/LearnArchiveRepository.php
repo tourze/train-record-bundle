@@ -40,7 +40,7 @@ class LearnArchiveRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('la')
             ->andWhere('la.expiryDate < :now')
-            ->setParameter('now', new \DateTime())
+            ->setParameter('now', new \DateTimeImmutable())
             ->orderBy('la.expiryDate', 'ASC')
             ->getQuery()
             ->getResult();

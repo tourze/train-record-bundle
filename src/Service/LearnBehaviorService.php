@@ -273,7 +273,7 @@ class LearnBehaviorService
             'suspiciousBehaviors' => $suspiciousBehaviors,
             'suspiciousRate' => round($suspiciousRate, 2),
             'behaviorTypes' => $behaviorStats['behaviorTypes'] ?? [],
-            'lastUpdated' => (new \DateTime())->format('Y-m-d H:i:s'),
+            'lastUpdated' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
 
         $this->logger->info('会话统计已更新', [

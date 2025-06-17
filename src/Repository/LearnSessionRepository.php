@@ -100,7 +100,7 @@ class LearnSessionRepository extends ServiceEntityRepository
      */
     public function findInactiveActiveSessions(int $thresholdMinutes): array
     {
-        $thresholdTime = new \DateTime();
+        $thresholdTime = new \DateTimeImmutable();
         $thresholdTime->modify("-{$thresholdMinutes} minutes");
         
         return $this->createQueryBuilder('ls')

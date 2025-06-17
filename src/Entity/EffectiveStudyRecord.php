@@ -198,8 +198,8 @@ class EffectiveStudyRecord
     public function __construct()
     {
         $this->id = uniqid('esr_', true);
-        $this->createTime = new \DateTime();
-        $this->updateTime = new \DateTime();
+        $this->createTime = new \DateTimeImmutable();
+        $this->updateTime = new \DateTimeImmutable();
     }
 
     public function getId(): ?string
@@ -527,9 +527,9 @@ class EffectiveStudyRecord
     {
         $this->status = $status;
         $this->reviewedBy = $reviewedBy;
-        $this->reviewedAt = new \DateTime();
+        $this->reviewedAt = new \DateTimeImmutable();
         $this->reviewComment = $comment;
-        $this->updateTime = new \DateTime();
+        $this->updateTime = new \DateTimeImmutable();
         
         return $this;
     }
@@ -545,7 +545,7 @@ class EffectiveStudyRecord
         $this->effectiveDuration = 0.0;
         $this->invalidDuration = $this->totalDuration;
         $this->includeInDailyTotal = false;
-        $this->updateTime = new \DateTime();
+        $this->updateTime = new \DateTimeImmutable();
         
         return $this;
     }
@@ -560,7 +560,7 @@ class EffectiveStudyRecord
         $this->effectiveDuration = $effectiveDuration ?? $this->totalDuration;
         $this->invalidDuration = $this->totalDuration - $this->effectiveDuration;
         $this->includeInDailyTotal = true;
-        $this->updateTime = new \DateTime();
+        $this->updateTime = new \DateTimeImmutable();
         
         return $this;
     }

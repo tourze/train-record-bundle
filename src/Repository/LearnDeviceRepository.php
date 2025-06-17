@@ -111,7 +111,7 @@ class LearnDeviceRepository extends ServiceEntityRepository
             ->set('ld.lastUsedTime', ':now')
             ->set('ld.usageCount', 'ld.usageCount + 1')
             ->andWhere('ld.id = :deviceId')
-            ->setParameter('now', new \DateTime())
+            ->setParameter('now', new \DateTimeImmutable())
             ->setParameter('deviceId', $deviceId)
             ->getQuery()
             ->execute();

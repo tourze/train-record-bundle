@@ -181,7 +181,7 @@ class LearnMonitorCommand extends Command
      */
     private function collectMonitoringData(): array
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $oneHourAgo = (clone $now)->sub(new \DateInterval('PT1H'));
 
         // 活跃会话统计

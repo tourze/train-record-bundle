@@ -151,7 +151,7 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
 
     public function __construct()
     {
-        $this->statisticsDate = new \DateTime();
+        $this->statisticsDate = new \DateTimeImmutable();
     }
 
     public function getId(): ?string

@@ -46,7 +46,9 @@
     "tourze/json-rpc-core": "0.0.*",
     "tourze/json-rpc-lock-bundle": "0.1.*",
     "tourze/json-rpc-log-bundle": "0.1.*",
+    "tourze/question-bank-bundle": "0.0.*",
     "tourze/symfony-integration-test-kernel": "0.0.*",
+    "tourze/test-paper-bundle": "0.0.*",
     "tourze/train-classroom-bundle": "0.0.*",
     "tourze/train-course-bundle": "0.0.*",
     "twig/twig": "^3.13|^4.0"

@@ -93,6 +93,7 @@ class FaceDetect implements AdminArrayInterface, ApiArrayInterface
     private ?string $errorMessage = null;
 
     #[CreateTimeColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['api', 'admin'])]
     #[ListColumn]
     #[ExportColumn]

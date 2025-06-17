@@ -147,8 +147,8 @@ class LearnDataProcessCommand extends Command
      */
     private function processUserSessions(string $userId, string $date, int $batchSize, bool $dryRun, SymfonyStyle $io): int
     {
-        $startDate = new \DateTime($date . ' 00:00:00');
-        $endDate = new \DateTime($date . ' 23:59:59');
+        $startDate = new \DateTimeImmutable($date . ' 00:00:00');
+        $endDate = new \DateTimeImmutable($date . ' 23:59:59');
 
         $sessions = $this->sessionRepository->findByUserAndDateRange($userId, $startDate, $endDate);
         
@@ -162,8 +162,8 @@ class LearnDataProcessCommand extends Command
      */
     private function processDateSessions(string $date, int $batchSize, bool $dryRun, SymfonyStyle $io): int
     {
-        $startDate = new \DateTime($date . ' 00:00:00');
-        $endDate = new \DateTime($date . ' 23:59:59');
+        $startDate = new \DateTimeImmutable($date . ' 00:00:00');
+        $endDate = new \DateTimeImmutable($date . ' 23:59:59');
 
         $sessions = $this->sessionRepository->findByDateRange($startDate, $endDate);
         

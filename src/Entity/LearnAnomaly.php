@@ -135,7 +135,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
 
     public function __construct()
     {
-        $this->detectedTime = new \DateTime();
+        $this->detectedTime = new \DateTimeImmutable();
     }
 
     public function getId(): ?string
@@ -337,7 +337,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
         $this->setStatus(AnomalyStatus::RESOLVED);
         $this->setResolution($resolution);
         $this->setResolvedBy($resolvedBy);
-        $this->setResolvedTime(new \DateTime());
+        $this->setResolvedTime(new \DateTimeImmutable());
         return $this;
     }
 
@@ -349,7 +349,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
         $this->setStatus(AnomalyStatus::IGNORED);
         $this->setResolution($reason);
         $this->setResolvedBy($ignoredBy);
-        $this->setResolvedTime(new \DateTime());
+        $this->setResolvedTime(new \DateTimeImmutable());
         return $this;
     }
 
@@ -363,7 +363,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
         $evidenceEntry = [
             'type' => $type,
             'data' => $data,
-            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
+            'timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
         
         $evidence[] = $evidenceEntry;

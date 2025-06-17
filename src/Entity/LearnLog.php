@@ -2,9 +2,9 @@
 
 namespace Tourze\TrainRecordBundle\Entity;
 
+use BizUserBundle\Entity\BizUser;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
@@ -32,7 +32,7 @@ class LearnLog
     private ?LearnSession $learnSession = null;
 
     #[ORM\ManyToOne]
-    private ?UserInterface $student = null;
+    private ?BizUser $student = null;
 
     #[ORM\ManyToOne(inversedBy: 'learnLogs')]
     private ?Registration $registration = null;
@@ -81,12 +81,12 @@ class LearnLog
         return $this;
     }
 
-    public function getStudent(): ?UserInterface
+    public function getStudent(): ?BizUser
     {
         return $this->student;
     }
 
-    public function setStudent(?UserInterface $student): static
+    public function setStudent(?BizUser $student): static
     {
         $this->student = $student;
 

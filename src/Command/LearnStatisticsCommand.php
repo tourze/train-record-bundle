@@ -171,7 +171,7 @@ class LearnStatisticsCommand extends Command
         $statisticsPeriod = StatisticsPeriod::from($period);
 
         // 计算日期范围
-        $endDate = new \DateTime($date . ' 23:59:59');
+        $endDate = new \DateTimeImmutable($date . ' 23:59:59');
         $startDate = (clone $endDate)->sub(new \DateInterval('P' . $days . 'D'));
 
         $io->text(sprintf(
@@ -234,7 +234,7 @@ class LearnStatisticsCommand extends Command
         ];
 
         $statisticsPeriod = StatisticsPeriod::from($period);
-        $endDate = new \DateTime($date . ' 23:59:59');
+        $endDate = new \DateTimeImmutable($date . ' 23:59:59');
         $startDate = (clone $endDate)->sub(new \DateInterval('P' . $days . 'D'));
 
         $generatedCount = 0;

@@ -302,7 +302,7 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
      */
     public function updateProgress(float $progress, float $watchedDuration, ?string $deviceFingerprint = null): static
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         
         // 记录进度历史
         $historyEntry = [
@@ -348,7 +348,7 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
             'start' => $start,
             'end' => $end,
             'duration' => $end - $start,
-            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
+            'timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
         
         $segments[] = $newSegment;

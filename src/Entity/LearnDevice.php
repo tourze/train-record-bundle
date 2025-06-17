@@ -475,7 +475,7 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
      */
     public function updateUsage(?string $ipAddress = null, ?string $userAgent = null): static
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         
         if ($this->firstUsedTime === null) {
             $this->firstUsedTime = $now;

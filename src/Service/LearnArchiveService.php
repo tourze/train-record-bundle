@@ -75,8 +75,8 @@ class LearnArchiveService
         $archive->setTotalSessions($archiveData['totalSessions']);
         $archive->setArchiveStatus(ArchiveStatus::ACTIVE);
         $archive->setArchiveFormat(ArchiveFormat::from($format));
-        $archive->setArchiveDate(new \DateTime());
-        $archive->setExpiryDate((new \DateTime())->modify('+' . self::ARCHIVE_RETENTION_YEARS . ' years'));
+        $archive->setArchiveDate(new \DateTimeImmutable());
+        $archive->setExpiryDate((new \DateTimeImmutable())->modify('+' . self::ARCHIVE_RETENTION_YEARS . ' years'));
         $archive->setArchivePath($archivePath);
         $archive->setArchiveHash($archiveHash);
 
@@ -348,7 +348,7 @@ class LearnArchiveService
             'anomalySummary' => $anomalySummary,
             'totalEffectiveTime' => $this->calculateTotalEffectiveTime($sessions),
             'totalSessions' => count($sessions),
-            'archiveGeneratedAt' => (new \DateTime())->format('Y-m-d H:i:s'),
+            'archiveGeneratedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
     }
 

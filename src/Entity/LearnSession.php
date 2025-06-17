@@ -2,11 +2,11 @@
 
 namespace Tourze\TrainRecordBundle\Entity;
 
+use BizUserBundle\Entity\BizUser;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
@@ -58,7 +58,7 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private UserInterface $student;
+    private BizUser $student;
 
     #[ListColumn(title: '报班')]
     #[FormField(title: '报班')]
@@ -258,12 +258,12 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
         return $this->updatedFromUa;
     }
 
-    public function getStudent(): UserInterface
+    public function getStudent(): BizUser
     {
         return $this->student;
     }
 
-    public function setStudent(UserInterface $student): static
+    public function setStudent(BizUser $student): static
     {
         $this->student = $student;
 

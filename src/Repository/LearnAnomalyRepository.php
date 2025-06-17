@@ -170,7 +170,7 @@ class LearnAnomalyRepository extends ServiceEntityRepository
      */
     public function getRecentTrends(int $days = 7): array
     {
-        $startDate = new \DateTime("-{$days} days");
+        $startDate = new \DateTimeImmutable("-{$days} days");
         
         return $this->createQueryBuilder('la')
             ->select('DATE(la.detectedTime) as date, COUNT(la.id) as count')

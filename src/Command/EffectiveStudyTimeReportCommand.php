@@ -83,8 +83,8 @@ class EffectiveStudyTimeReportCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $userId = $input->getOption('user-id');
         $courseId = $input->getOption('course-id');
-        $startDate = new \DateTime($input->getOption('start-date'));
-        $endDate = new \DateTime($input->getOption('end-date'));
+        $startDate = new \DateTimeImmutable($input->getOption('start-date'));
+        $endDate = new \DateTimeImmutable($input->getOption('end-date'));
         $format = $input->getOption('format');
         $outputFile = $input->getOption('output-file');
         $includeDetails = $input->getOption('include-details');

@@ -56,8 +56,8 @@ class LearnSessionService
         $session = $this->findOrCreateSession($userId, $lessonId);
         
         // 更新会话状态
-        $session->setFirstLearnTime($session->getFirstLearnTime() ?? new \DateTime());
-        $session->setLastLearnTime(new \DateTime());
+        $session->setFirstLearnTime($session->getFirstLearnTime() ?? new \DateTimeImmutable());
+        $session->setLastLearnTime(new \DateTimeImmutable());
         
         // 缓存当前学习状态 - 暂时移除
         // $this->cacheSessionState($userId, $session, $device);
@@ -89,7 +89,7 @@ class LearnSessionService
         
         // 更新会话进度
         $session->setCurrentDuration((string) $currentTime);
-        $session->setLastLearnTime(new \DateTime());
+        $session->setLastLearnTime(new \DateTimeImmutable());
         
         // 同步跨设备进度
         $this->syncProgressAcrossDevices($session, $currentTime);
@@ -125,7 +125,7 @@ class LearnSessionService
             return;
         }
         
-        $session->setLastLearnTime(new \DateTime());
+        $session->setLastLearnTime(new \DateTimeImmutable());
         
         // 计算有效学习时长
         $effectiveDuration = $this->calculateEffectiveDuration($session);
@@ -215,7 +215,7 @@ class LearnSessionService
     public function activateSession(LearnSession $session, bool $flush = true): void
     {
         $session->setActive(true);
-        $session->setLastLearnTime(new \DateTime());
+        $session->setLastLearnTime(new \DateTimeImmutable());
         
         $this->entityManager->persist($session);
         
@@ -239,7 +239,7 @@ class LearnSessionService
     public function deactivateSession(LearnSession $session, bool $flush = true): void
     {
         $session->setActive(false);
-        $session->setLastLearnTime(new \DateTime());
+        $session->setLastLearnTime(new \DateTimeImmutable());
         
         $this->entityManager->persist($session);
         

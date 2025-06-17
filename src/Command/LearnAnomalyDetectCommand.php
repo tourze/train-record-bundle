@@ -189,8 +189,8 @@ class LearnAnomalyDetectCommand extends Command
         bool $dryRun,
         SymfonyStyle $io
     ): array {
-        $startDate = new \DateTime($date . ' 00:00:00');
-        $endDate = new \DateTime($date . ' 23:59:59');
+        $startDate = new \DateTimeImmutable($date . ' 00:00:00');
+        $endDate = new \DateTimeImmutable($date . ' 23:59:59');
 
         $sessions = $this->sessionRepository->findByUserAndDateRange($userId, $startDate, $endDate);
         
@@ -210,8 +210,8 @@ class LearnAnomalyDetectCommand extends Command
         bool $dryRun,
         SymfonyStyle $io
     ): array {
-        $startDate = new \DateTime($date . ' 00:00:00');
-        $endDate = new \DateTime($date . ' 23:59:59');
+        $startDate = new \DateTimeImmutable($date . ' 00:00:00');
+        $endDate = new \DateTimeImmutable($date . ' 23:59:59');
 
         $sessions = $this->sessionRepository->findByDateRange($startDate, $endDate);
         

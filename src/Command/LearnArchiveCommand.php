@@ -469,7 +469,7 @@ class LearnArchiveCommand extends Command
             $io->warning(sprintf('有 %d 个档案将在 %d 天内过期，请及时处理', count($expiringArchives), $daysBeforeExpiry));
             
             foreach ($expiringArchives as $archive) {
-                $daysLeft = (new \DateTime())->diff($archive->getExpiryDate())->days;
+                $daysLeft = (new \DateTimeImmutable())->diff($archive->getExpiryDate())->days;
                 $io->text(sprintf(
                     '档案 %s (用户: %s, 课程: %s) 将在 %d 天后过期',
                     $archive->getId(),

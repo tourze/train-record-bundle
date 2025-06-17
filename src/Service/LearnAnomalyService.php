@@ -168,7 +168,7 @@ class LearnAnomalyService
         $anomaly->setStatus(AnomalyStatus::RESOLVED);
         $anomaly->setResolution($resolution);
         $anomaly->setResolvedBy($resolvedBy);
-        $anomaly->setResolvedTime(new \DateTime());
+        $anomaly->setResolvedTime(new \DateTimeImmutable());
 
         $this->entityManager->persist($anomaly);
         $this->entityManager->flush();
