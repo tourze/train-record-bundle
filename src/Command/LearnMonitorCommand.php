@@ -21,6 +21,7 @@ use Tourze\TrainRecordBundle\Service\LearnAnomalyService;
 )]
 class LearnMonitorCommand extends Command
 {
+    protected const NAME = 'learn:monitor';
     private bool $shouldStop = false;
 
     public function __construct(
@@ -93,17 +94,17 @@ class LearnMonitorCommand extends Command
         $alertThreshold = (int) $input->getOption('alert-threshold');
         $outputFormat = $input->getOption('output-format');
         $logFile = $input->getOption('log-file');
-        $autoResolve = $input->getOption('auto-resolve');
-        $quiet = $input->getOption('quiet');
+        $autoResolve = (bool) $input->getOption('auto-resolve');
+        $quiet = (bool) $input->getOption('quiet');
 
-        if ($quiet === null) {
+        if (!$quiet) {
             $io->title('学习系统实时监控');
             $io->text([
                 "监控间隔: {$interval}秒",
                 "持续时间: " . ($duration > 0 ? "{$duration}分钟" : "无限"),
                 "异常阈值: {$alertThreshold}",
                 "输出格式: {$outputFormat}",
-                "自动解决: " . (($autoResolve !== null) ? '是' : '否'),
+                "自动解决: " . ($autoResolve ? '是' : '否'),
             ]);
             $io->newLine();
         }
@@ -128,7 +129,7 @@ class LearnMonitorCommand extends Command
                 }
 
                 // 输出监控信息
-                if ($quiet === null) {
+                if (!$quiet) {
                     $this->displayMonitoringData($monitorData, $outputFormat, $io);
                 }
 
@@ -153,7 +154,7 @@ class LearnMonitorCommand extends Command
                 fclose($logHandle);
             }
 
-            if ($quiet === null) {
+            if (!$quiet) {
                 $io->success('监控已停止');
             }
 
@@ -356,7 +357,7 @@ class LearnMonitorCommand extends Command
 
         // 输出告警
         if (!empty($alerts)) {
-            if ($quiet === null) {
+            if (!$quiet) {
                 $io->warning('检测到异常:');
                 foreach ($alerts as $alert) {
                     $io->text('- ' . $alert);
@@ -370,7 +371,7 @@ class LearnMonitorCommand extends Command
             ]);
 
             // 自动解决
-            if ($autoResolve !== null) {
+            if ($autoResolve) {
                 $this->performAutoResolve($data, $io, $quiet);
             }
         }

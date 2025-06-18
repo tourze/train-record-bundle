@@ -2,15 +2,13 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Tourze\TrainRecordBundle\Entity\LearnDevice;
 use Tourze\TrainRecordBundle\Entity\LearnSession;
 use Tourze\TrainRecordBundle\Entity\Student;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
 use Tourze\TrainRecordBundle\Enum\AnomalyType;
-use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
 use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
-use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
@@ -28,8 +26,7 @@ class LearnSessionService
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnDeviceRepository $deviceRepository,
-        private readonly LearnProgressRepository $progressRepository,
-        private readonly LearnAnomalyRepository $anomalyRepository,
+        private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -247,42 +244,13 @@ class LearnSessionService
     }
 
     /**
-     * 缓存会话状态
-     */
-    private function cacheSessionState(string $userId, LearnSession $session, LearnDevice $device): void
-    {
-        // 暂时移除缓存功能
-        /*
-        $sessionId = $session->getId();
-        
-        // 缓存用户当前学习状态
-        $this->cache->get(
-            self::CACHE_PREFIX_LEARNING . $userId,
-            function() use ($sessionId) {
-                return $sessionId;
-            },
-            86400
-        );
-        
-        // 缓存设备会话关联
-        $this->cache->get(
-            self::CACHE_PREFIX_DEVICE . $device->getDeviceFingerprint(),
-            function() use ($sessionId) {
-                return $sessionId;
-            },
-            86400
-        );
-        */
-    }
-
-    /**
      * 检查进度异常
      */
     private function checkProgressAnomaly(LearnSession $session, float $currentTime, float $duration): void
     {
         $lastTime = (float) $session->getCurrentDuration();
         $timeDiff = $currentTime - $lastTime;
-        $realTimeDiff = time() - $session->getLastLearnTime()?->getTimestamp() ?? time();
+        $realTimeDiff = time() - ($session->getLastLearnTime()?->getTimestamp() ?? time());
         
         // 检查播放速度异常
         if ($realTimeDiff > 0 && ($timeDiff / $realTimeDiff) > self::SUSPICIOUS_SPEED_THRESHOLD) {
@@ -344,7 +312,7 @@ class LearnSessionService
     {
         // 简化实现，直接记录异常
         $this->recordAnomaly(
-            $session->getStudent()->getId(),
+            (string) $session->getStudent()->getId(),
             AnomalyType::WINDOW_SWITCH,
             AnomalySeverity::LOW,
             '检测到窗口切换行为',
@@ -359,7 +327,7 @@ class LearnSessionService
     {
         // 简化实现，直接记录异常
         $this->recordAnomaly(
-            $session->getStudent()->getId(),
+            (string) $session->getStudent()->getId(),
             AnomalyType::SUSPICIOUS_BEHAVIOR,
             AnomalySeverity::LOW,
             '检测到鼠标离开学习区域',
@@ -374,7 +342,7 @@ class LearnSessionService
     {
         // 简化实现，直接记录异常
         $this->recordAnomaly(
-            $session->getStudent()->getId(),
+            (string) $session->getStudent()->getId(),
             AnomalyType::RAPID_PROGRESS,
             AnomalySeverity::MEDIUM,
             '检测到快速拖拽行为',

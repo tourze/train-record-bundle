@@ -21,6 +21,7 @@ use Tourze\TrainRecordBundle\Service\LearnArchiveService;
 )]
 class LearnArchiveCommand extends Command
 {
+    protected const NAME = 'learn:archive';
     public function __construct(
                 private readonly LearnArchiveRepository $archiveRepository,
         private readonly LearnSessionRepository $sessionRepository,

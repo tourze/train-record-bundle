@@ -19,6 +19,7 @@ use Tourze\TrainRecordBundle\Service\LearnProgressService;
 )]
 class LearnDataProcessCommand extends Command
 {
+    protected const NAME = 'learn:data:process';
     public function __construct(
                 private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnProgressService $progressService,

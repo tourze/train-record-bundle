@@ -19,6 +19,7 @@ use Tourze\TrainRecordBundle\Service\LearnAnomalyService;
 )]
 class LearnAnomalyDetectCommand extends Command
 {
+    protected const NAME = 'learn:anomaly:detect';
     public function __construct(
                 private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnAnomalyService $anomalyService,

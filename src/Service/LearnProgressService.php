@@ -6,7 +6,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
+use Tourze\TrainRecordBundle\Entity\EffectiveStudyRecord;
 use Tourze\TrainRecordBundle\Entity\LearnProgress;
+use Tourze\TrainRecordBundle\Enum\StudyTimeStatus;
 use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
@@ -20,7 +22,6 @@ class LearnProgressService
     // 进度计算常量
     private const MIN_SEGMENT_DURATION = 5;     // 最小有效片段时长（秒）
     private const MAX_PROGRESS_JUMP = 30;       // 最大允许进度跳跃（秒）
-    private const EFFECTIVE_TIME_RATIO = 0.8;   // 有效时长比例阈值
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -48,7 +49,7 @@ class LearnProgressService
             $course = $this->entityManager->getRepository(Course::class)->find($courseId);
             $lesson = $this->entityManager->getRepository(Lesson::class)->find($lessonId);
             
-            if (!$course || !$lesson) {
+            if ($course === null || $lesson === null) {
                 throw new \InvalidArgumentException('课程或课时不存在');
             }
             
@@ -370,18 +371,24 @@ class LearnProgressService
      */
     public function recalculateEffectiveTime(string $userId, ?string $courseId = null): int
     {
-        $progressRecords = $courseId 
+        $progressRecords = $courseId !== null
             ? $this->progressRepository->findByUserAndCourse($userId, $courseId)
             : $this->progressRepository->findByUser($userId);
 
         $recalculatedCount = 0;
         
         foreach ($progressRecords as $progress) {
-            $sessions = $this->sessionRepository->findByUserAndLesson($userId, $progress->getLesson()->getId());
+            // 从有效学时记录中计算总有效时长
+            $effectiveRecords = $this->entityManager->getRepository(EffectiveStudyRecord::class)
+                ->findBy([
+                    'userId' => $userId,
+                    'lesson' => $progress->getLesson(),
+                    'status' => StudyTimeStatus::VALID
+                ]);
             
             $totalEffectiveTime = 0;
-            foreach ($sessions as $session) {
-                $totalEffectiveTime += $session->getEffectiveLearnTime() ?? 0;
+            foreach ($effectiveRecords as $record) {
+                $totalEffectiveTime += $record->getEffectiveDuration();
             }
             
             if ($progress->getEffectiveDuration() !== $totalEffectiveTime) {

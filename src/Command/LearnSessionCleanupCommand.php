@@ -17,6 +17,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 )]
 class LearnSessionCleanupCommand extends Command
 {
+    protected const NAME = 'train:learn-session:cleanup';
     private const INACTIVE_THRESHOLD_MINUTES = 3;
 
     public function __construct(
@@ -73,7 +74,7 @@ class LearnSessionCleanupCommand extends Command
             foreach ($inactiveSessions as $session) {
                 $table[] = [
                     $session->getId(),
-                    $session->getStudent()->getName() ?? $session->getStudent()->getId(),
+                    $session->getStudent()->getNickName() ?? $session->getStudent()->getId(),
                     $session->getCourse()->getTitle(),
                     $session->getLesson()->getTitle(),
                     $session->getLastLearnTime()->format('Y-m-d H:i:s'),

@@ -20,6 +20,7 @@ use Tourze\TrainRecordBundle\Service\LearnAnalyticsService;
 )]
 class LearnStatisticsCommand extends Command
 {
+    protected const NAME = 'learn:statistics';
     public function __construct(
                 private readonly LearnStatisticsRepository $statisticsRepository,
         private readonly LearnAnalyticsService $analyticsService,

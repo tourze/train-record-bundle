@@ -18,6 +18,7 @@ use Tourze\TrainRecordBundle\Service\EffectiveStudyTimeService;
 )]
 class EffectiveStudyTimeRecalculateCommand extends Command
 {
+    protected const NAME = 'effective-study-time:recalculate';
     public function __construct(
                 private readonly EffectiveStudyRecordRepository $recordRepository,
         private readonly EffectiveStudyTimeService $studyTimeService,
