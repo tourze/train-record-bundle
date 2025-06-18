@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Tourze\TrainRecordBundle\Entity\EffectiveStudyRecord;
@@ -37,8 +36,7 @@ class EffectiveStudyTimeService
     private const CACHE_PREFIX_USER_CONFIG = 'user_study_config_';
     
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly EffectiveStudyRecordRepository $recordRepository,
+                private readonly EffectiveStudyRecordRepository $recordRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly CacheInterface $cache,
@@ -304,7 +302,7 @@ class EffectiveStudyTimeService
             $currentTime = $behavior['timestamp'] ?? null;
             if (!$currentTime) continue;
             
-            if ($lastInteractionTime) {
+            if ($lastInteractionTime !== null) {
                 $interval = $currentTime - $lastInteractionTime;
                 if ($interval > $maxInterval) {
                     return [
@@ -367,7 +365,7 @@ class EffectiveStudyTimeService
         $focusTime = 0;
         
         foreach ($behaviorData as $behavior) {
-            $duration = $behavior['duration'] ?? 0;
+            $duration = $behavior['duration'];
             $totalTime += $duration;
             
             if (!in_array($behavior['action'] ?? '', ['window_blur', 'mouse_leave', 'tab_switch'])) {

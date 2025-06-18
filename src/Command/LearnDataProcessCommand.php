@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -21,8 +20,7 @@ use Tourze\TrainRecordBundle\Service\LearnProgressService;
 class LearnDataProcessCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnSessionRepository $sessionRepository,
+                private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnProgressService $progressService,
         private readonly LearnBehaviorService $behaviorService,
         private readonly LoggerInterface $logger,
@@ -74,7 +72,7 @@ class LearnDataProcessCommand extends Command
         $userId = $input->getOption('user-id');
         $date = $input->getOption('date');
         $batchSize = (int) $input->getOption('batch-size');
-        $dryRun = $input->getOption('dry-run');
+        $dryRun = (bool) $input->getOption('dry-run');
 
         $io->title('学习数据处理');
 
@@ -86,10 +84,10 @@ class LearnDataProcessCommand extends Command
             $processedCount = 0;
             $errorCount = 0;
 
-            if ($sessionId) {
+            if ($sessionId !== null) {
                 // 处理单个会话
                 $processedCount = $this->processSingleSession($sessionId, $dryRun, $io);
-            } elseif ($userId) {
+            } elseif ($userId !== null) {
                 // 处理指定用户的会话
                 $processedCount = $this->processUserSessions($userId, $date, $batchSize, $dryRun, $io);
             } else {
@@ -122,7 +120,7 @@ class LearnDataProcessCommand extends Command
     private function processSingleSession(string $sessionId, bool $dryRun, SymfonyStyle $io): int
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             $io->error("会话 {$sessionId} 不存在");
             return 0;
         }
@@ -150,7 +148,7 @@ class LearnDataProcessCommand extends Command
         $startDate = new \DateTimeImmutable($date . ' 00:00:00');
         $endDate = new \DateTimeImmutable($date . ' 23:59:59');
 
-        $sessions = $this->sessionRepository->findByUserAndDateRange($userId, $startDate, $endDate);
+        $sessions = $this->sessionRepository->findByUserAndDateRange((string) $userId, $startDate, $endDate);
         
         $io->text(sprintf("找到用户 %s 在 %s 的 %d 个会话", $userId, $date, count($sessions)));
 

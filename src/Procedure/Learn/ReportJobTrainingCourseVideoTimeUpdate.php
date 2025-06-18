@@ -3,7 +3,6 @@
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
 use Carbon\Carbon;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -39,8 +38,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
         private readonly FaceDetectRepository $faceDetectRepository,
         #[Autowire(service: 'cache.app')] private readonly AdapterInterface $cache,
         private readonly DoctrineService $doctrineService,
-        private readonly EntityManagerInterface $entityManager,
-    ) {
+            ) {
     }
 
     public function execute(): array
@@ -51,7 +49,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
             'id' => $this->sessionId,
             'student' => $student,
         ]);
-        if (!$learnSession) {
+        if ($learnSession === null) {
             throw new ApiException('找不到学习记录');
         }
 
@@ -98,7 +96,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
                 'lesson' => $lesson,
                 'pass' => true,
             ], ['id' => 'DESC']);
-            if ($lastFaceDetect) {
+            if ($lastFaceDetect !== null) {
                 if (Carbon::now()->diffInSeconds($lastFaceDetect->getCreateTime()) > $lesson->getFaceDetectDuration()) {
                     $needFace = true;
                 }
@@ -108,7 +106,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
                 }
             }
 
-            if ($needFace) {
+            if ($needFace !== null) {
                 return [
                     'sessionId' => $learnSession->getId(),
                     'nextAction' => 'face-detect', // 告诉前端需要人脸识别

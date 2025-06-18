@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -23,8 +22,7 @@ use Tourze\TrainRecordBundle\Service\LearnArchiveService;
 class LearnArchiveCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnArchiveRepository $archiveRepository,
+                private readonly LearnArchiveRepository $archiveRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnArchiveService $archiveService,
         private readonly LoggerInterface $logger,
@@ -106,7 +104,7 @@ class LearnArchiveCommand extends Command
         $exportPath = $input->getOption('export-path');
         $daysBeforeExpiry = (int) $input->getOption('days-before-expiry');
         $batchSize = (int) $input->getOption('batch-size');
-        $dryRun = $input->getOption('dry-run');
+        $dryRun = (bool) $input->getOption('dry-run');
 
         $io->title('学习档案管理');
 
@@ -156,13 +154,13 @@ class LearnArchiveCommand extends Command
         $createdCount = 0;
         $errorCount = 0;
 
-        if ($userId && $courseId) {
+        if ($userId !== null && $courseId !== null) {
             // 创建指定用户和课程的档案
             $io->text("为用户 {$userId} 的课程 {$courseId} 创建档案");
             
             if (!$dryRun) {
                 try {
-                    $this->archiveService->createArchive($userId, $courseId, $archiveFormat);
+                    $this->archiveService->createArchive($userId, $courseId, $archiveFormat->value);
                     $createdCount = 1;
                 } catch (\Throwable $e) {
                     $errorCount = 1;
@@ -191,11 +189,11 @@ class LearnArchiveCommand extends Command
                                 $userCourse['courseId']
                             );
 
-                            if (!$existingArchive) {
+                            if ($existingArchive === null) {
                                 $this->archiveService->createArchive(
                                     $userCourse['userId'],
                                     $userCourse['courseId'],
-                                    $archiveFormat
+                                    $archiveFormat->value
                                 );
                                 $createdCount++;
                             }
@@ -251,7 +249,7 @@ class LearnArchiveCommand extends Command
         $updatedCount = 0;
         $errorCount = 0;
 
-        if ($archiveId) {
+        if ($archiveId !== null) {
             // 更新指定档案
             $io->text("更新档案: {$archiveId}");
             
@@ -332,7 +330,7 @@ class LearnArchiveCommand extends Command
         $invalidCount = 0;
         $warningCount = 0;
 
-        if ($archiveId) {
+        if ($archiveId !== null) {
             // 验证指定档案
             $io->text("验证档案: {$archiveId}");
             
@@ -413,7 +411,7 @@ class LearnArchiveCommand extends Command
     ): array {
         $io->section('导出档案');
 
-        if (!$archiveId) {
+        if ($archiveId === null) {
             throw new \InvalidArgumentException('导出操作需要指定档案ID');
         }
 
@@ -422,7 +420,7 @@ class LearnArchiveCommand extends Command
         if (!$dryRun) {
             $filePath = $this->archiveService->exportArchive($archiveId, $format);
             
-            if ($exportPath && $exportPath !== $filePath) {
+            if ($exportPath !== null && $exportPath !== $filePath) {
                 // 复制到指定路径
                 if (!copy($filePath, $exportPath)) {
                     throw new \RuntimeException("无法复制文件到: {$exportPath}");
@@ -521,10 +519,10 @@ class LearnArchiveCommand extends Command
      */
     private function getArchivesToUpdate(?string $userId, ?string $courseId): array
     {
-        if ($userId && $courseId) {
+        if ($userId !== null && $courseId !== null) {
             $archive = $this->archiveRepository->findByUserAndCourse($userId, $courseId);
-            return $archive ? [$archive] : [];
-        } elseif ($userId) {
+            return ($archive !== null) ? [$archive] : [];
+        } elseif ($userId !== null) {
             return $this->archiveRepository->findByUser($userId);
         } else {
             return $this->archiveRepository->findByStatus(ArchiveStatus::ACTIVE);

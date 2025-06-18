@@ -43,7 +43,7 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
             'id' => $this->sessionId,
             'student' => $student,
         ]);
-        if (!$learnSession) {
+        if ($learnSession === null) {
             throw new ApiException('找不到学习记录');
         }
 
@@ -51,7 +51,7 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
         $otherActiveSessions = $this->sessionRepository->findOtherActiveSessionsByStudent($student, $learnSession->getLesson()->getId());
         if (!empty($otherActiveSessions)) {
             $activeSession = $otherActiveSessions[0];
-            $courseName = $activeSession->getCourse()->getName();
+            $courseName = $activeSession->getCourse()->getTitle();
             $lessonName = $activeSession->getLesson()->getTitle();
             
             throw new ApiException(

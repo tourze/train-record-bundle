@@ -139,7 +139,7 @@ class LearnProgressRepository extends ServiceEntityRepository
     public function batchUpdateEffectiveDuration(array $progressIds, array $effectiveDurations): void
     {
         foreach ($progressIds as $index => $progressId) {
-            $effectiveDuration = $effectiveDurations[$index] ?? 0;
+            $effectiveDuration = $effectiveDurations[$index];
             
             $this->createQueryBuilder('lp')
                 ->update()
@@ -149,6 +149,21 @@ class LearnProgressRepository extends ServiceEntityRepository
                 ->setParameter('progressId', $progressId)
                 ->getQuery()
                 ->execute();
+        }
+    }
+
+    /**
+     * 更新学习进度
+     * 
+     * @param LearnProgress $progress
+     * @param bool $flush
+     */
+    public function updateProgress(LearnProgress $progress, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($progress);
+        
+        if ($flush) {
+            $this->getEntityManager()->flush();
         }
     }
 } 

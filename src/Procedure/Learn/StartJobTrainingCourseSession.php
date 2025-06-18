@@ -52,7 +52,7 @@ class StartJobTrainingCourseSession extends LockableProcedure
             'id' => $this->registrationId,
             'student' => $student,
         ]);
-        if (!$registration) {
+        if ($registration === null) {
             throw new ApiException('找不到报名信息');
         }
 
@@ -66,7 +66,7 @@ class StartJobTrainingCourseSession extends LockableProcedure
         $lesson = $this->lessonRepository->findOneBy([
             'id' => $this->lessonId,
         ]);
-        if (!$lesson) {
+        if ($lesson === null) {
             throw new ApiException('找不到课时信息[1]');
         }
         if ($lesson->getChapter()->getCourse()->getId() !== $course->getId()) {
@@ -79,7 +79,7 @@ class StartJobTrainingCourseSession extends LockableProcedure
         $otherActiveSessions = $this->sessionRepository->findOtherActiveSessionsByStudent($student, $this->lessonId);
         if (!empty($otherActiveSessions)) {
             $activeSession = $otherActiveSessions[0];
-            $courseName = $activeSession->getCourse()->getName();
+            $courseName = $activeSession->getCourse()->getTitle();
             $lessonName = $activeSession->getLesson()->getTitle();
             
             throw new ApiException(
@@ -98,14 +98,14 @@ class StartJobTrainingCourseSession extends LockableProcedure
             'registration' => $registration,
             'lesson' => $lesson,
         ]);
-        if (!$learnSession) {
+        if ($learnSession === null) {
             // 如果有其他还没完成的学习会话，那我们不能继续
             $otherSession = $this->sessionRepository->findOneBy([
                 'student' => $student,
                 'registration' => $registration,
                 'finished' => false,
             ]);
-            if ($otherSession) {
+            if ($otherSession !== null) {
                 throw new ApiException('请先完成上一课时');
             }
 

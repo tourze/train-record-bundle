@@ -11,6 +11,7 @@ use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
@@ -39,6 +40,7 @@ use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
 #[ORM\Index(name: 'idx_archive_date', columns: ['archive_date'])]
 class LearnArchive implements ApiArrayInterface, AdminArrayInterface
 {
+    use TimestampableAware;
     #[ExportColumn]
     #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
@@ -138,15 +140,9 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
     #[Groups(['restful_read', 'admin_curd'])]
     #[ListColumn(title: '创建时间', order: 98, sorter: true)]
     #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    #[UpdateTimeColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
     #[ListColumn(title: '更新时间', order: 99, sorter: true)]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
-
-    public function __construct()
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]public function __construct()
     {
         $this->archiveDate = new \DateTimeImmutable();
         $this->expiryDate = new \DateTimeImmutable('+3 years'); // 3年保存期限
@@ -353,31 +349,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
     {
         $this->lastVerificationTime = $lastVerificationTime;
         return $this;
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(?\DateTimeInterface $createTime): static
-    {
-        $this->createTime = $createTime;
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): static
-    {
-        $this->updateTime = $updateTime;
-        return $this;
-    }
-
-    /**
+    }/**
      * 标记为已归档
      */
     public function markAsArchived(string $archivePath, string $archiveHash): static

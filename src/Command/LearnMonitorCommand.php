@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -25,8 +24,7 @@ class LearnMonitorCommand extends Command
     private bool $shouldStop = false;
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnSessionRepository $sessionRepository,
+                private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnAnomalyRepository $anomalyRepository,
         private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly LearnDeviceRepository $deviceRepository,
@@ -98,14 +96,14 @@ class LearnMonitorCommand extends Command
         $autoResolve = $input->getOption('auto-resolve');
         $quiet = $input->getOption('quiet');
 
-        if (!$quiet) {
+        if ($quiet === null) {
             $io->title('学习系统实时监控');
             $io->text([
                 "监控间隔: {$interval}秒",
                 "持续时间: " . ($duration > 0 ? "{$duration}分钟" : "无限"),
                 "异常阈值: {$alertThreshold}",
                 "输出格式: {$outputFormat}",
-                "自动解决: " . ($autoResolve ? '是' : '否'),
+                "自动解决: " . (($autoResolve !== null) ? '是' : '否'),
             ]);
             $io->newLine();
         }
@@ -118,7 +116,7 @@ class LearnMonitorCommand extends Command
 
         $startTime = time();
         $endTime = $duration > 0 ? $startTime + ($duration * 60) : 0;
-        $logHandle = $logFile ? fopen($logFile, 'a') : null;
+        $logHandle = ($logFile !== null) ? fopen($logFile, 'a') : null;
 
         try {
             while (!$this->shouldStop) {
@@ -130,12 +128,12 @@ class LearnMonitorCommand extends Command
                 }
 
                 // 输出监控信息
-                if (!$quiet) {
+                if ($quiet === null) {
                     $this->displayMonitoringData($monitorData, $outputFormat, $io);
                 }
 
                 // 记录到日志文件
-                if ($logHandle) {
+                if ($logHandle !== null) {
                     $this->writeToLogFile($monitorData, $logHandle);
                 }
 
@@ -151,11 +149,11 @@ class LearnMonitorCommand extends Command
                 }
             }
 
-            if ($logHandle) {
+            if ($logHandle !== null) {
                 fclose($logHandle);
             }
 
-            if (!$quiet) {
+            if ($quiet === null) {
                 $io->success('监控已停止');
             }
 
@@ -167,7 +165,7 @@ class LearnMonitorCommand extends Command
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            if ($logHandle) {
+            if ($logHandle !== null) {
                 fclose($logHandle);
             }
 
@@ -358,7 +356,7 @@ class LearnMonitorCommand extends Command
 
         // 输出告警
         if (!empty($alerts)) {
-            if (!$quiet) {
+            if ($quiet === null) {
                 $io->warning('检测到异常:');
                 foreach ($alerts as $alert) {
                     $io->text('- ' . $alert);
@@ -372,7 +370,7 @@ class LearnMonitorCommand extends Command
             ]);
 
             // 自动解决
-            if ($autoResolve) {
+            if ($autoResolve !== null) {
                 $this->performAutoResolve($data, $io, $quiet);
             }
         }
@@ -426,8 +424,8 @@ class LearnMonitorCommand extends Command
             $userId = $session->getStudent()->getId();
             $courseId = $session->getCourse()->getId();
 
-            $details['byUser'][$userId] = ($details['byUser'][$userId] ?? 0) + 1;
-            $details['byCourse'][$courseId] = ($details['byCourse'][$courseId] ?? 0) + 1;
+            $details['byUser'][$userId] = ($details['byUser'][$userId]) + 1;
+            $details['byCourse'][$courseId] = ($details['byCourse'][$courseId]) + 1;
             $totalDuration += $session->getTotalDuration();
         }
 
@@ -446,7 +444,7 @@ class LearnMonitorCommand extends Command
         $distribution = [];
         foreach ($anomalies as $anomaly) {
             $type = $anomaly->getAnomalyType()->value;
-            $distribution[$type] = ($distribution[$type] ?? 0) + 1;
+            $distribution[$type] = ($distribution[$type]) + 1;
         }
         return $distribution;
     }
@@ -459,7 +457,7 @@ class LearnMonitorCommand extends Command
         $distribution = [];
         foreach ($anomalies as $anomaly) {
             $severity = $anomaly->getSeverity()->value;
-            $distribution[$severity] = ($distribution[$severity] ?? 0) + 1;
+            $distribution[$severity] = ($distribution[$severity]) + 1;
         }
         return $distribution;
     }
@@ -472,7 +470,7 @@ class LearnMonitorCommand extends Command
         $distribution = [];
         foreach ($devices as $device) {
             $type = $device->getDeviceType();
-            $distribution[$type] = ($distribution[$type] ?? 0) + 1;
+            $distribution[$type] = ($distribution[$type]) + 1;
         }
         return $distribution;
     }

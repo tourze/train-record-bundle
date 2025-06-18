@@ -47,8 +47,8 @@ class BaiduFaceService
             $result = $response->toArray();
 
             $this->logger->info('百度人脸检测完成', [
-                'face_num' => $result['result']['face_num'] ?? 0,
-                'error_code' => $result['error_code'] ?? 0
+                'face_num' => $result['result']['face_num'],
+                'error_code' => $result['error_code']
             ]);
 
             return $result;
@@ -120,8 +120,8 @@ class BaiduFaceService
             $result = $response->toArray();
             
             $this->logger->info('百度人脸比对完成', [
-                'score' => $result['result']['score'] ?? 0,
-                'error_code' => $result['error_code'] ?? 0
+                'score' => $result['result']['score'],
+                'error_code' => $result['error_code']
             ]);
 
             return $result;
@@ -158,8 +158,8 @@ class BaiduFaceService
             $result = $response->toArray();
             
             $this->logger->info('百度人脸核身完成', [
-                'score' => $result['result']['score'] ?? 0,
-                'error_code' => $result['error_code'] ?? 0
+                'score' => $result['result']['score'],
+                'error_code' => $result['error_code']
             ]);
 
             return $result;

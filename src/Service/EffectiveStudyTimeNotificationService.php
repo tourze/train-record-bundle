@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Tourze\TrainRecordBundle\Entity\EffectiveStudyRecord;
@@ -32,8 +31,7 @@ class EffectiveStudyTimeNotificationService
     private const CACHE_PREFIX_NOTIFICATION = 'study_notification_';
     
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly EffectiveStudyRecordRepository $recordRepository,
+                private readonly EffectiveStudyRecordRepository $recordRepository,
         private readonly CacheInterface $cache,
         private readonly LoggerInterface $logger,
         // 注意：实际项目中可能需要注入具体的通知服务（如短信、邮件、websocket等）
@@ -295,8 +293,8 @@ class EffectiveStudyTimeNotificationService
      */
     private function buildRealtimeMessage(array $statusData): string
     {
-        $effectiveTime = $statusData['effective_time'] ?? 0;
-        $totalTime = $statusData['total_time'] ?? 0;
+        $effectiveTime = $statusData['effective_time'];
+        $totalTime = $statusData['total_time'];
         $efficiency = $totalTime > 0 ? round(($effectiveTime / $totalTime) * 100, 1) : 0;
         
         return sprintf(
@@ -368,11 +366,11 @@ class EffectiveStudyTimeNotificationService
             $effectiveMinutes
         );
         
-        if ($record->getInvalidReason()) {
+        if ($record->getInvalidReason() !== null) {
             $message .= '，无效原因：' . $record->getInvalidReason()->getLabel();
         }
         
-        if ($record->getQualityScore()) {
+        if ($record->getQualityScore() !== null) {
             $message .= sprintf('，质量评分：%.1f分', $record->getQualityScore());
         }
         

@@ -100,8 +100,7 @@ class LearnSessionRepository extends ServiceEntityRepository
      */
     public function findInactiveActiveSessions(int $thresholdMinutes): array
     {
-        $thresholdTime = new \DateTimeImmutable();
-        $thresholdTime->modify("-{$thresholdMinutes} minutes");
+        $thresholdTime = new \DateTimeImmutable("-{$thresholdMinutes} minutes");
         
         return $this->createQueryBuilder('ls')
             ->where('ls.active = :active')
@@ -135,5 +134,47 @@ class LearnSessionRepository extends ServiceEntityRepository
             ->setParameter('ids', $sessionIds)
             ->getQuery()
             ->execute();
+    }
+
+    /**
+     * 根据用户和日期范围查找会话
+     * 
+     * @param string $userId 用户ID
+     * @param \DateTimeInterface $startDate 开始日期
+     * @param \DateTimeInterface $endDate 结束日期
+     * @return LearnSession[]
+     */
+    public function findByUserAndDateRange(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('ls')
+            ->leftJoin('ls.student', 's')
+            ->where('s.id = :userId')
+            ->andWhere('ls.createdAt >= :startDate')
+            ->andWhere('ls.createdAt <= :endDate')
+            ->setParameter('userId', $userId)
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('ls.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 根据日期范围查找会话
+     * 
+     * @param \DateTimeInterface $startDate 开始日期
+     * @param \DateTimeInterface $endDate 结束日期
+     * @return LearnSession[]
+     */
+    public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('ls')
+            ->where('ls.createdAt >= :startDate')
+            ->andWhere('ls.createdAt <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('ls.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainRecordBundle\Entity\LearnArchive;
@@ -28,8 +27,7 @@ class LearnArchiveService
     private const ARCHIVE_FORMAT_PDF = 'pdf';      // PDF格式
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnArchiveRepository $archiveRepository,
+                private readonly LearnArchiveRepository $archiveRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly LearnAnomalyRepository $anomalyRepository,
@@ -47,13 +45,13 @@ class LearnArchiveService
         string $format = self::ARCHIVE_FORMAT_JSON
     ): LearnArchive {
         $course = $this->entityManager->getRepository(Course::class)->find($courseId);
-        if (!$course) {
+        if ($course === null) {
             throw new \InvalidArgumentException('课程不存在');
         }
 
         // 检查是否已存在档案
         $existingArchive = $this->archiveRepository->findByUserAndCourse($userId, $courseId);
-        if ($existingArchive) {
+        if ($existingArchive !== null) {
             throw new \InvalidArgumentException('该用户的课程档案已存在');
         }
 
@@ -100,7 +98,7 @@ class LearnArchiveService
     public function updateArchive(string $archiveId): bool
     {
         $archive = $this->archiveRepository->find($archiveId);
-        if (!$archive) {
+        if ($archive === null) {
             return false;
         }
 
@@ -151,7 +149,7 @@ class LearnArchiveService
     public function verifyArchiveIntegrity(string $archiveId): array
     {
         $archive = $this->archiveRepository->find($archiveId);
-        if (!$archive) {
+        if ($archive === null) {
             return ['valid' => false, 'error' => '档案不存在'];
         }
 
@@ -186,7 +184,7 @@ class LearnArchiveService
     public function getArchiveContent(string $archiveId): ?array
     {
         $archive = $this->archiveRepository->find($archiveId);
-        if (!$archive) {
+        if ($archive === null) {
             return null;
         }
 
@@ -227,7 +225,7 @@ class LearnArchiveService
                     // 检查是否已有档案
                     $existingArchive = $this->archiveRepository->findByUserAndCourse($userId, $courseId);
                     
-                    if (!$existingArchive) {
+                    if ($existingArchive === null) {
                         $this->createArchive($userId, $courseId);
                         $archivedCount++;
                     }
@@ -322,8 +320,8 @@ class LearnArchiveService
             'totalTime' => array_sum(array_map(fn($s) => $s->getTotalDuration(), $sessions)),
             'completionRate' => $this->calculateCompletionRate($sessions),
             'averageSessionTime' => count($sessions) > 0 ? array_sum(array_map(fn($s) => $s->getTotalDuration(), $sessions)) / count($sessions) : 0,
-            'firstLearnTime' => $sessions ? min(array_map(fn($s) => $s->getFirstLearnTime(), $sessions))->format('Y-m-d H:i:s') : null,
-            'lastLearnTime' => $sessions ? max(array_map(fn($s) => $s->getLastLearnTime(), $sessions))->format('Y-m-d H:i:s') : null,
+            'firstLearnTime' => ($sessions !== null) ? min(array_map(fn($s) => $s->getFirstLearnTime(), $sessions))->format('Y-m-d H:i:s') : null,
+            'lastLearnTime' => ($sessions !== null) ? max(array_map(fn($s) => $s->getLastLearnTime(), $sessions))->format('Y-m-d H:i:s') : null,
         ];
 
         // 行为汇总
@@ -414,7 +412,7 @@ class LearnArchiveService
         $stats = [];
         foreach ($behaviors as $behavior) {
             $type = $behavior->getBehaviorType();
-            $stats[$type] = ($stats[$type] ?? 0) + 1;
+            $stats[$type] = ($stats[$type]) + 1;
         }
         return $stats;
     }
@@ -439,7 +437,7 @@ class LearnArchiveService
         $distribution = [];
         foreach ($anomalies as $anomaly) {
             $type = $anomaly->getAnomalyType()->value;
-            $distribution[$type] = ($distribution[$type] ?? 0) + 1;
+            $distribution[$type] = ($distribution[$type]) + 1;
         }
         return $distribution;
     }
@@ -471,7 +469,7 @@ class LearnArchiveService
         $distribution = [];
         foreach ($anomalies as $anomaly) {
             $severity = $anomaly->getSeverity()->value;
-            $distribution[$severity] = ($distribution[$severity] ?? 0) + 1;
+            $distribution[$severity] = ($distribution[$severity]) + 1;
         }
         return $distribution;
     }

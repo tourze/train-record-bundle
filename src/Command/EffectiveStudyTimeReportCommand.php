@@ -20,7 +20,6 @@ use Tourze\TrainRecordBundle\Service\EffectiveStudyTimeService;
 class EffectiveStudyTimeReportCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
         private readonly EffectiveStudyRecordRepository $recordRepository,
         private readonly EffectiveStudyTimeService $studyTimeService,
         private readonly LoggerInterface $logger,
@@ -87,15 +86,15 @@ class EffectiveStudyTimeReportCommand extends Command
         $endDate = new \DateTimeImmutable($input->getOption('end-date'));
         $format = $input->getOption('format');
         $outputFile = $input->getOption('output-file');
-        $includeDetails = $input->getOption('include-details');
+        $includeDetails = (bool) $input->getOption('include-details');
 
         $io->title('有效学时统计报告');
 
         try {
-            if ($userId) {
+            if ($userId !== null) {
                 $report = $this->generateUserReport($userId, $startDate, $endDate, $includeDetails);
                 $this->displayUserReport($report, $io, $format, $outputFile);
-            } elseif ($courseId) {
+            } elseif ($courseId !== null) {
                 $report = $this->generateCourseReport($courseId, $includeDetails);
                 $this->displayCourseReport($report, $io, $format, $outputFile);
             } else {
@@ -133,14 +132,14 @@ class EffectiveStudyTimeReportCommand extends Command
             ],
             'summary' => [
                 'total_records' => (int) $stats['totalRecords'],
-                'total_time_hours' => round(($stats['totalTime'] ?? 0) / 3600, 2),
-                'effective_time_hours' => round(($stats['effectiveTime'] ?? 0) / 3600, 2),
-                'invalid_time_hours' => round(($stats['invalidTime'] ?? 0) / 3600, 2),
+                'total_time_hours' => round(($stats['totalTime']) / 3600, 2),
+                'effective_time_hours' => round(($stats['effectiveTime']) / 3600, 2),
+                'invalid_time_hours' => round(($stats['invalidTime']) / 3600, 2),
                 'efficiency_rate' => $stats['totalTime'] > 0 ? round(($stats['effectiveTime'] / $stats['totalTime']) * 100, 1) : 0,
-                'avg_quality_score' => round($stats['avgQuality'] ?? 0, 1),
-                'avg_focus_score' => round($stats['avgFocus'] ?? 0, 3),
-                'avg_interaction_score' => round($stats['avgInteraction'] ?? 0, 3),
-                'avg_continuity_score' => round($stats['avgContinuity'] ?? 0, 3),
+                'avg_quality_score' => round($stats['avgQuality'], 1),
+                'avg_focus_score' => round($stats['avgFocus'], 3),
+                'avg_interaction_score' => round($stats['avgInteraction'], 3),
+                'avg_continuity_score' => round($stats['avgContinuity'], 3),
             ],
         ];
 
@@ -176,10 +175,10 @@ class EffectiveStudyTimeReportCommand extends Command
             'course_id' => $courseId,
             'summary' => [
                 'total_students' => (int) $stats['totalStudents'],
-                'total_effective_time_hours' => round(($stats['totalEffectiveTime'] ?? 0) / 3600, 2),
-                'avg_effective_time_hours' => round(($stats['avgEffectiveTime'] ?? 0) / 3600, 2),
-                'total_study_time_hours' => round(($stats['totalStudyTime'] ?? 0) / 3600, 2),
-                'avg_quality_score' => round($stats['avgQuality'] ?? 0, 1),
+                'total_effective_time_hours' => round(($stats['totalEffectiveTime']) / 3600, 2),
+                'avg_effective_time_hours' => round(($stats['avgEffectiveTime']) / 3600, 2),
+                'total_study_time_hours' => round(($stats['totalStudyTime']) / 3600, 2),
+                'avg_quality_score' => round($stats['avgQuality'], 1),
             ],
         ];
 
@@ -227,7 +226,7 @@ class EffectiveStudyTimeReportCommand extends Command
                     return [
                         'reason' => $stat['invalidReason']->getLabel(),
                         'count' => (int) $stat['count'],
-                        'total_invalid_hours' => round(($stat['totalInvalidTime'] ?? 0) / 3600, 2),
+                        'total_invalid_hours' => round(($stat['totalInvalidTime']) / 3600, 2),
                     ];
                 }, $invalidStats),
             ],
@@ -360,7 +359,7 @@ class EffectiveStudyTimeReportCommand extends Command
      */
     private function outputReport(array $report, string $format, ?string $outputFile, SymfonyStyle $io): void
     {
-        if (!$outputFile) {
+        if ($outputFile === null) {
             return;
         }
 

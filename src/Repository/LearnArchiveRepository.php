@@ -34,6 +34,20 @@ class LearnArchiveRepository extends ServiceEntityRepository
     }
 
     /**
+     * 查找用户和课程的档案
+     */
+    public function findByUserAndCourse(string $userId, string $courseId): ?LearnArchive
+    {
+        return $this->createQueryBuilder('la')
+            ->andWhere('la.userId = :userId')
+            ->andWhere('la.courseId = :courseId')
+            ->setParameter('userId', $userId)
+            ->setParameter('courseId', $courseId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * 查找已过期的档案
      */
     public function findExpired(): array

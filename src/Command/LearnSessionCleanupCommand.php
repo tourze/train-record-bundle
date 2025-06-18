@@ -47,7 +47,7 @@ class LearnSessionCleanupCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $dryRun = $input->getOption('dry-run');
+        $dryRun = (bool) $input->getOption('dry-run');
         $threshold = (int) $input->getOption('threshold');
 
         $io->title('清理无效的学习会话');
@@ -74,7 +74,7 @@ class LearnSessionCleanupCommand extends Command
                 $table[] = [
                     $session->getId(),
                     $session->getStudent()->getName() ?? $session->getStudent()->getId(),
-                    $session->getCourse()->getName(),
+                    $session->getCourse()->getTitle(),
                     $session->getLesson()->getTitle(),
                     $session->getLastLearnTime()->format('Y-m-d H:i:s'),
                     $session->getCurrentDuration(),
@@ -114,7 +114,7 @@ class LearnSessionCleanupCommand extends Command
                 }
                 
                 // 批量提交
-                $this->sessionRepository->save($session, true);
+                $this->sessionRepository->flush();
                 
                 $io->success(sprintf('成功清理 %d 个无效的学习会话', $cleanedCount));
             } else {

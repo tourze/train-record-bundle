@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Entity\LearnAnomaly;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
@@ -19,8 +18,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 class LearnAnomalyService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnAnomalyRepository $anomalyRepository,
+                private readonly LearnAnomalyRepository $anomalyRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LoggerInterface $logger,
     ) {
@@ -41,7 +39,7 @@ class LearnAnomalyService
     public function detectRapidProgressAnomaly(string $sessionId, float $speedThreshold): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             return null;
         }
 
@@ -65,7 +63,7 @@ class LearnAnomalyService
     public function detectWindowSwitchAnomaly(string $sessionId, int $switchThreshold): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             return null;
         }
 
@@ -89,7 +87,7 @@ class LearnAnomalyService
     public function detectIdleTimeoutAnomaly(string $sessionId, int $timeoutSeconds): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             return null;
         }
 
@@ -113,7 +111,7 @@ class LearnAnomalyService
     public function detectFaceDetectFailAnomaly(string $sessionId, int $failThreshold): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             return null;
         }
 
@@ -137,7 +135,7 @@ class LearnAnomalyService
     public function detectNetworkAnomaly(string $sessionId, array $networkData): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             return null;
         }
 
@@ -161,7 +159,7 @@ class LearnAnomalyService
     public function resolveAnomaly(string $anomalyId, string $resolution, string $resolvedBy = 'system'): void
     {
         $anomaly = $this->anomalyRepository->find($anomalyId);
-        if (!$anomaly) {
+        if ($anomaly === null) {
             return;
         }
 

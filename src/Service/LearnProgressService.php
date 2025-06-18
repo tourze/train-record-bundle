@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
@@ -23,8 +22,7 @@ class LearnProgressService
     private const EFFECTIVE_TIME_RATIO = 0.8;   // 有效时长比例阈值
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnProgressRepository $progressRepository,
+                private readonly LearnProgressRepository $progressRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LoggerInterface $logger,
     ) {
@@ -43,7 +41,7 @@ class LearnProgressService
     ): LearnProgress {
         $progress = $this->progressRepository->findByUserAndLesson($userId, $lessonId);
         
-        if (!$progress) {
+        if ($progress === null) {
             // 获取课程和课时实体
             $course = $this->entityManager->getRepository(Course::class)->find($courseId);
             $lesson = $this->entityManager->getRepository(Lesson::class)->find($lessonId);
@@ -119,7 +117,7 @@ class LearnProgressService
      */
     public function getUserProgress(string $userId, ?string $courseId = null): array
     {
-        if ($courseId) {
+        if ($courseId !== null) {
             return $this->progressRepository->findByCourse($userId, $courseId);
         }
         
@@ -137,7 +135,7 @@ class LearnProgressService
     ): ?LearnProgress {
         $progress = $this->progressRepository->findByUserAndLesson($userId, $lessonId);
         
-        if (!$progress) {
+        if ($progress === null) {
             return null;
         }
 
@@ -207,7 +205,7 @@ class LearnProgressService
      */
     public function getProgressStatistics(string $userId, ?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null): array
     {
-        $progressList = $this->progressRepository->findByUserAndDateRange($userId, $startDate, $endDate);
+        $progressList = $this->progressRepository->findByUserAndDateRange((string) $userId, $startDate, $endDate);
         
         $statistics = [
             'totalSessions' => count($progressList),
@@ -340,7 +338,7 @@ class LearnProgressService
     {
         $progress = $this->progressRepository->findByUserAndLesson($userId, $lessonId);
         
-        if (!$progress) {
+        if ($progress === null) {
             return false;
         }
 

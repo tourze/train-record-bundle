@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
 use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
@@ -23,8 +22,7 @@ class LearnAnalyticsService
     private const PERCENTILE_THRESHOLDS = [25, 50, 75, 90, 95]; // 百分位阈值
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnSessionRepository $sessionRepository,
+                private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnProgressRepository $progressRepository,
         private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly LearnAnomalyRepository $anomalyRepository,
@@ -361,8 +359,8 @@ class LearnAnalyticsService
      */
     private function generateUserLearningProfile(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
-        $sessions = $this->sessionRepository->findByUserAndDateRange($userId, $startDate, $endDate);
-        $behaviors = $this->behaviorRepository->findByUserAndDateRange($userId, $startDate, $endDate);
+        $sessions = $this->sessionRepository->findByUserAndDateRange((string) $userId, $startDate, $endDate);
+        $behaviors = $this->behaviorRepository->findByUserAndDateRange((string) $userId, $startDate, $endDate);
         
         return [
             'learningStyle' => $this->identifyLearningStyle($sessions, $behaviors),
@@ -462,7 +460,7 @@ class LearnAnalyticsService
         $deviceStats = [];
         foreach ($sessions as $session) {
             $device = $session->getDeviceFingerprint() ?? 'unknown';
-            $deviceStats[$device] = ($deviceStats[$device] ?? 0) + 1;
+            $deviceStats[$device] = ($deviceStats[$device]) + 1;
         }
         return $deviceStats;
     }

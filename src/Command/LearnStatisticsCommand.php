@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,8 +21,7 @@ use Tourze\TrainRecordBundle\Service\LearnAnalyticsService;
 class LearnStatisticsCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnStatisticsRepository $statisticsRepository,
+                private readonly LearnStatisticsRepository $statisticsRepository,
         private readonly LearnAnalyticsService $analyticsService,
         private readonly LoggerInterface $logger,
     ) {
@@ -110,9 +108,9 @@ class LearnStatisticsCommand extends Command
         $courseId = $input->getOption('course-id');
         $days = (int) $input->getOption('days');
         $format = $input->getOption('format');
-        $save = $input->getOption('save');
+        $save = (bool) $input->getOption('save');
         $exportPath = $input->getOption('export');
-        $batchGenerate = $input->getOption('batch-generate');
+        $batchGenerate = (bool) $input->getOption('batch-generate');
 
         $io->title('学习统计生成');
 
@@ -200,7 +198,7 @@ class LearnStatisticsCommand extends Command
         }
 
         // 导出文件
-        if ($exportPath) {
+        if ($exportPath !== null) {
             $this->exportStatistics($statisticsData, $exportPath, $format);
             $io->note("统计数据已导出到: {$exportPath}");
         }
@@ -290,12 +288,10 @@ class LearnStatisticsCommand extends Command
         ?string $courseId = null
     ): array {
         return match ($type) {
-            StatisticsType::USER => $userId 
-                ? $this->analyticsService->generateUserAnalytics($userId, $startDate, $endDate)
+            StatisticsType::USER => ($userId !== null) ? $this->analyticsService->generateUserAnalytics($userId, $startDate, $endDate)
                 : $this->generateGlobalUserStatistics($startDate, $endDate),
             
-            StatisticsType::COURSE => $courseId
-                ? $this->analyticsService->generateCourseAnalytics($courseId, $startDate, $endDate)
+            StatisticsType::COURSE => ($courseId !== null) ? $this->analyticsService->generateCourseAnalytics($courseId, $startDate, $endDate)
                 : $this->generateGlobalCourseStatistics($startDate, $endDate),
             
             StatisticsType::BEHAVIOR => $this->generateBehaviorStatistics($startDate, $endDate, $userId),
@@ -390,7 +386,7 @@ class LearnStatisticsCommand extends Command
     private function outputCsvData(array $data, SymfonyStyle $io, string $prefix = ''): void
     {
         foreach ($data as $key => $value) {
-            $fullKey = $prefix ? $prefix . '.' . $key : $key;
+            $fullKey = ($prefix !== '') ? $prefix . '.' . $key : $key;
             
             if (is_array($value)) {
                 $this->outputCsvData($value, $io, $fullKey);
@@ -455,7 +451,7 @@ class LearnStatisticsCommand extends Command
     private function writeCsvData(array $data, $handle, string $prefix = ''): void
     {
         foreach ($data as $key => $value) {
-            $fullKey = $prefix ? $prefix . '.' . $key : $key;
+            $fullKey = ($prefix !== '') ? $prefix . '.' . $key : $key;
             
             if (is_array($value)) {
                 $this->writeCsvData($value, $handle, $fullKey);

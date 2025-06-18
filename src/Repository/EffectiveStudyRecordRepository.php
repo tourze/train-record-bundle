@@ -56,7 +56,7 @@ class EffectiveStudyRecordRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return (float) ($result ?? 0);
+        return (float) ($result);
     }
 
     /**
@@ -82,7 +82,7 @@ class EffectiveStudyRecordRepository extends ServiceEntityRepository
             ->setParameter('courseId', $courseId)
             ->orderBy('esr.startTime', 'DESC');
 
-        if ($limit) {
+        if ($limit !== null) {
             $qb->setMaxResults($limit);
         }
 
@@ -99,7 +99,7 @@ class EffectiveStudyRecordRepository extends ServiceEntityRepository
             ->setParameter('lessonId', $lessonId)
             ->orderBy('esr.startTime', 'DESC');
 
-        if ($limit) {
+        if ($limit !== null) {
             $qb->setMaxResults($limit);
         }
 
@@ -189,7 +189,7 @@ class EffectiveStudyRecordRepository extends ServiceEntityRepository
             ->setParameter('reason', $reason)
             ->orderBy('esr.createTime', 'DESC');
 
-        if ($limit) {
+        if ($limit !== null) {
             $qb->setMaxResults($limit);
         }
 

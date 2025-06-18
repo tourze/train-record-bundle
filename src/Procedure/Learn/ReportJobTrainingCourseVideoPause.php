@@ -40,7 +40,7 @@ class ReportJobTrainingCourseVideoPause extends LockableProcedure
             'id' => $this->sessionId,
             'student' => $student,
         ]);
-        if (!$learnSession) {
+        if ($learnSession === null) {
             throw new ApiException('找不到学习记录');
         }
 

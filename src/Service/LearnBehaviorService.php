@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Entity\LearnBehavior;
 use Tourze\TrainRecordBundle\Entity\LearnSession;
@@ -26,8 +25,7 @@ class LearnBehaviorService
     ];
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnBehaviorRepository $behaviorRepository,
+                private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LoggerInterface $logger,
     ) {
@@ -42,7 +40,7 @@ class LearnBehaviorService
         array $behaviorData = []
     ): LearnBehavior {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             throw new \InvalidArgumentException('学习会话不存在');
         }
 
@@ -146,7 +144,7 @@ class LearnBehaviorService
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate
     ): array {
-        $behaviors = $this->behaviorRepository->findByUserAndDateRange($userId, $startDate, $endDate);
+        $behaviors = $this->behaviorRepository->findByUserAndDateRange((string) $userId, $startDate, $endDate);
         
         $analysis = [
             'totalBehaviors' => count($behaviors),
@@ -159,7 +157,7 @@ class LearnBehaviorService
         foreach ($behaviors as $behavior) {
             // 统计行为类型
             $type = $behavior->getBehaviorType();
-            $analysis['behaviorTypes'][$type] = ($analysis['behaviorTypes'][$type] ?? 0) + 1;
+            $analysis['behaviorTypes'][$type] = ($analysis['behaviorTypes'][$type]) + 1;
             
             // 统计可疑行为
             if ($behavior->isSuspicious()) {
@@ -173,7 +171,7 @@ class LearnBehaviorService
             
             // 时间分布统计
             $hour = $behavior->getCreateTime()->format('H');
-            $analysis['timeDistribution'][$hour] = ($analysis['timeDistribution'][$hour] ?? 0) + 1;
+            $analysis['timeDistribution'][$hour] = ($analysis['timeDistribution'][$hour]) + 1;
         }
         
         return $analysis;
@@ -185,7 +183,7 @@ class LearnBehaviorService
     public function generateBehaviorReport(string $sessionId): array
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             throw new \InvalidArgumentException('学习会话不存在');
         }
         
@@ -255,7 +253,7 @@ class LearnBehaviorService
     public function updateSessionStatistics(string $sessionId): array
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             throw new \InvalidArgumentException('学习会话不存在');
         }
 
@@ -263,8 +261,8 @@ class LearnBehaviorService
         $behaviorStats = $this->getBehaviorStatsBySession($sessionId);
         
         // 计算可疑行为比例
-        $totalBehaviors = $behaviorStats['totalBehaviors'] ?? 0;
-        $suspiciousBehaviors = $behaviorStats['suspiciousBehaviors'] ?? 0;
+        $totalBehaviors = $behaviorStats['totalBehaviors'];
+        $suspiciousBehaviors = $behaviorStats['suspiciousBehaviors'];
         $suspiciousRate = $totalBehaviors > 0 ? ($suspiciousBehaviors / $totalBehaviors) * 100 : 0;
 
         $statistics = [

@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
+use BizUserBundle\Entity\BizUser;
 use Carbon\Carbon;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -38,12 +39,15 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
     public function execute(): array
     {
         $student = $this->security->getUser();
+        if (!$student instanceof BizUser) {
+            throw new ApiException('用户类型错误');
+        }
 
         $learnSession = $this->sessionRepository->findOneBy([
             'id' => $this->sessionId,
             'student' => $student,
         ]);
-        if (!$learnSession) {
+        if ($learnSession === null) {
             throw new ApiException('找不到学习记录');
         }
         $registration = $learnSession->getRegistration();

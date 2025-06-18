@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -20,8 +19,7 @@ use Tourze\TrainRecordBundle\Service\EffectiveStudyTimeService;
 class EffectiveStudyTimeRecalculateCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly EffectiveStudyRecordRepository $recordRepository,
+                private readonly EffectiveStudyRecordRepository $recordRepository,
         private readonly EffectiveStudyTimeService $studyTimeService,
         private readonly LoggerInterface $logger,
     ) {
@@ -84,12 +82,12 @@ class EffectiveStudyTimeRecalculateCommand extends Command
         $date = $input->getOption('date');
         $courseId = $input->getOption('course-id');
         $batchSize = (int) $input->getOption('batch-size');
-        $onlyInvalid = $input->getOption('only-invalid');
-        $dryRun = $input->getOption('dry-run');
+        $onlyInvalid = (bool) $input->getOption('only-invalid');
+        $dryRun = (bool) $input->getOption('dry-run');
 
         $io->title('有效学时重新计算');
 
-        if ($dryRun) {
+        if ($dryRun === true) {
             $io->note('运行在试运行模式，不会实际更新数据');
         }
 
@@ -97,7 +95,7 @@ class EffectiveStudyTimeRecalculateCommand extends Command
             $processedCount = 0;
             $errorCount = 0;
 
-            if ($recordId) {
+            if ($recordId !== null) {
                 // 重新计算单个记录
                 [$processed, $errors] = $this->recalculateSingleRecord($recordId, $dryRun, $io);
                 $processedCount += $processed;
@@ -142,7 +140,7 @@ class EffectiveStudyTimeRecalculateCommand extends Command
     private function recalculateSingleRecord(string $recordId, bool $dryRun, SymfonyStyle $io): array
     {
         $record = $this->recordRepository->find($recordId);
-        if (!$record) {
+        if ($record === null) {
             $io->error("记录 {$recordId} 不存在");
             return [0, 1];
         }
@@ -181,11 +179,11 @@ class EffectiveStudyTimeRecalculateCommand extends Command
     {
         $criteria = [];
         
-        if ($userId) {
+        if ($userId !== null) {
             $criteria['userId'] = $userId;
         }
         
-        if ($courseId) {
+        if ($courseId !== null) {
             $criteria['course'] = $courseId;
         }
         
@@ -193,7 +191,7 @@ class EffectiveStudyTimeRecalculateCommand extends Command
             return $this->recordRepository->findBy(['status' => 'invalid']);
         }
         
-        if ($date) {
+        if ($date !== null) {
             $targetDate = new \DateTimeImmutable($date);
             return $this->recordRepository->findByUserAndDate($userId, $targetDate);
         }

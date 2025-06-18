@@ -22,11 +22,9 @@ use Tourze\TrainRecordBundle\Service\LearnBehaviorService;
 class LearnAnomalyDetectCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnSessionRepository $sessionRepository,
+                private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnAnomalyService $anomalyService,
-        private readonly LearnBehaviorService $behaviorService,
-        private readonly LoggerInterface $logger,
+                private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
     }
@@ -88,8 +86,8 @@ class LearnAnomalyDetectCommand extends Command
         $date = $input->getOption('date');
         $anomalyType = $input->getOption('anomaly-type');
         $batchSize = (int) $input->getOption('batch-size');
-        $autoResolve = $input->getOption('auto-resolve');
-        $dryRun = $input->getOption('dry-run');
+        $autoResolve = (bool) $input->getOption('auto-resolve');
+        $dryRun = (bool) $input->getOption('dry-run');
 
         $io->title('学习异常检测');
 
@@ -105,12 +103,12 @@ class LearnAnomalyDetectCommand extends Command
             $detectedCount = 0;
             $resolvedCount = 0;
 
-            if ($sessionId) {
+            if ($sessionId !== null) {
                 // 检测单个会话
                 $result = $this->detectSingleSession($sessionId, $anomalyType, $autoResolve, $dryRun, $io);
                 $detectedCount = $result['detected'];
                 $resolvedCount = $result['resolved'];
-            } elseif ($userId) {
+            } elseif ($userId !== null) {
                 // 检测指定用户的会话
                 $result = $this->detectUserSessions($userId, $date, $anomalyType, $batchSize, $autoResolve, $dryRun, $io);
                 $detectedCount = $result['detected'];
@@ -152,7 +150,7 @@ class LearnAnomalyDetectCommand extends Command
         SymfonyStyle $io
     ): array {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             $io->error("会话 {$sessionId} 不存在");
             return ['detected' => 0, 'resolved' => 0];
         }
@@ -162,7 +160,7 @@ class LearnAnomalyDetectCommand extends Command
         $detected = 0;
         $resolved = 0;
 
-        if ($anomalyType) {
+        if ($anomalyType !== null) {
             // 检测指定类型的异常
             $result = $this->detectSpecificAnomaly($sessionId, $anomalyType, $autoResolve, $dryRun);
             $detected += $result['detected'];
@@ -192,7 +190,7 @@ class LearnAnomalyDetectCommand extends Command
         $startDate = new \DateTimeImmutable($date . ' 00:00:00');
         $endDate = new \DateTimeImmutable($date . ' 23:59:59');
 
-        $sessions = $this->sessionRepository->findByUserAndDateRange($userId, $startDate, $endDate);
+        $sessions = $this->sessionRepository->findByUserAndDateRange((string) $userId, $startDate, $endDate);
         
         $io->text(sprintf("找到用户 %s 在 %s 的 %d 个会话", $userId, $date, count($sessions)));
 
@@ -241,7 +239,7 @@ class LearnAnomalyDetectCommand extends Command
         foreach (array_chunk($sessions, $batchSize) as $batch) {
             foreach ($batch as $session) {
                 try {
-                    if ($anomalyType) {
+                    if ($anomalyType !== null) {
                         $result = $this->detectSpecificAnomaly($session->getId(), $anomalyType, $autoResolve, $dryRun);
                     } else {
                         $result = $this->detectAllAnomalies($session->getId(), $autoResolve, $dryRun);
@@ -286,43 +284,43 @@ class LearnAnomalyDetectCommand extends Command
                 case 'multiple_device':
                     $session = $this->sessionRepository->find($sessionId);
                     $userId = $session->getStudent()->getId();
-                    $anomalies = $this->anomalyService->detectMultipleDeviceAnomaly($userId);
+                    $anomalies = $this->anomalyService->detectMultipleDeviceAnomaly((string) $userId);
                     $detected = count($anomalies);
                     break;
 
                 case 'rapid_progress':
                     // 简化实现，实际应该从行为数据中计算进度速度
                     $anomaly = $this->anomalyService->detectRapidProgressAnomaly($sessionId, 3.0);
-                    if ($anomaly) $detected = 1;
+                    if ($anomaly !== null) $detected = 1;
                     break;
 
                 case 'window_switch':
                     // 简化实现，实际应该从行为数据中统计窗口切换次数
                     $anomaly = $this->anomalyService->detectWindowSwitchAnomaly($sessionId, 25);
-                    if ($anomaly) $detected = 1;
+                    if ($anomaly !== null) $detected = 1;
                     break;
 
                 case 'idle_timeout':
                     // 简化实现，实际应该从行为数据中计算空闲时长
                     $anomaly = $this->anomalyService->detectIdleTimeoutAnomaly($sessionId, 700);
-                    if ($anomaly) $detected = 1;
+                    if ($anomaly !== null) $detected = 1;
                     break;
 
                 case 'face_detect_fail':
                     // 简化实现，实际应该从人脸检测记录中统计失败次数
                     $anomaly = $this->anomalyService->detectFaceDetectFailAnomaly($sessionId, 4);
-                    if ($anomaly) $detected = 1;
+                    if ($anomaly !== null) $detected = 1;
                     break;
 
                 case 'network_anomaly':
                     // 简化实现，实际应该从网络监控数据中获取
                     $anomaly = $this->anomalyService->detectNetworkAnomaly($sessionId, ['disconnectCount' => 6]);
-                    if ($anomaly) $detected = 1;
+                    if ($anomaly !== null) $detected = 1;
                     break;
             }
 
             // 自动解决轻微异常
-            if ($autoResolve && $anomaly && $anomaly->getSeverity() === AnomalySeverity::LOW) {
+            if ($autoResolve && $anomaly !== null && $anomaly->getSeverity() === AnomalySeverity::LOW) {
                 $this->anomalyService->resolveAnomaly(
                     $anomaly->getId(),
                     '自动解决：轻微异常，不影响学习效果',
@@ -361,7 +359,7 @@ class LearnAnomalyDetectCommand extends Command
         if (!$dryRun) {
             $session = $this->sessionRepository->find($sessionId);
             $userId = $session->getStudent()->getId();
-            $anomalies = $this->anomalyService->detectMultipleDeviceAnomaly($userId);
+            $anomalies = $this->anomalyService->detectMultipleDeviceAnomaly((string) $userId);
             $totalDetected += count($anomalies);
 
             if ($autoResolve) {

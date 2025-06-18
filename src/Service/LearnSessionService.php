@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Entity\LearnDevice;
 use Tourze\TrainRecordBundle\Entity\LearnSession;
@@ -21,18 +20,12 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
  */
 class LearnSessionService
 {
-    // 缓存键前缀
-    private const CACHE_PREFIX_LEARNING = 'learning_session_';
-    private const CACHE_PREFIX_DEVICE = 'device_session_';
-    private const CACHE_PREFIX_PROGRESS = 'progress_sync_';
-    
     // 防作弊阈值
     private const MAX_CONCURRENT_DEVICES = 2;
     private const SUSPICIOUS_SPEED_THRESHOLD = 2.0; // 2倍速度
     private const MIN_FOCUS_RATIO = 0.7; // 最小专注度比例
     
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnDeviceRepository $deviceRepository,
         private readonly LearnProgressRepository $progressRepository,
@@ -80,7 +73,7 @@ class LearnSessionService
     public function updateProgress(string $sessionId, float $currentTime, float $duration): void
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             throw new \InvalidArgumentException('学习会话不存在');
         }
         
@@ -104,7 +97,7 @@ class LearnSessionService
     public function recordBehavior(string $sessionId, string $behaviorType, array $data = []): void
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             return;
         }
         
@@ -121,7 +114,7 @@ class LearnSessionService
     public function endSession(string $sessionId): void
     {
         $session = $this->sessionRepository->find($sessionId);
-        if (!$session) {
+        if ($session === null) {
             return;
         }
         
@@ -148,11 +141,10 @@ class LearnSessionService
      */
     private function checkMultiDeviceLogin(string $userId, array $deviceInfo): void
     {
-        $activeDevices = $this->deviceRepository->findActiveDevicesByUser($userId);
+        $activeDevices = $this->deviceRepository->findBy(['user' => $userId]);
         
         if (count($activeDevices) >= self::MAX_CONCURRENT_DEVICES) {
-                         $this->recordAnomaly(
-                 $userId,
+                         $this->recordAnomaly((string) $userId,
                  AnomalyType::MULTIPLE_DEVICE,
                  AnomalySeverity::HIGH,
                  '检测到多设备同时登录',
@@ -193,7 +185,7 @@ class LearnSessionService
         
         if (!empty($otherActiveSessions)) {
             $activeSession = $otherActiveSessions[0];
-            $courseName = $activeSession->getCourse()->getName();
+            $courseName = $activeSession->getCourse()->getTitle();
             $lessonName = $activeSession->getLesson()->getTitle();
             
             throw new \RuntimeException(
@@ -295,7 +287,7 @@ class LearnSessionService
         // 检查播放速度异常
         if ($realTimeDiff > 0 && ($timeDiff / $realTimeDiff) > self::SUSPICIOUS_SPEED_THRESHOLD) {
             $this->recordAnomaly(
-                $session->getStudent()->getId(),
+                (string) $session->getStudent()->getId(),
                 AnomalyType::RAPID_PROGRESS,
                 AnomalySeverity::MEDIUM,
                 '检测到异常播放速度',
@@ -437,7 +429,7 @@ class LearnSessionService
         $this->cache->delete(self::CACHE_PREFIX_LEARNING . $userId);
         
         // 清理设备缓存需要获取设备信息
-        $devices = $this->deviceRepository->findActiveDevicesByUser($userId);
+        $devices = $this->deviceRepository->findBy(['user' => $userId);
         foreach ($devices as $device) {
             $this->cache->delete(self::CACHE_PREFIX_DEVICE . $device->getDeviceFingerprint());
         }

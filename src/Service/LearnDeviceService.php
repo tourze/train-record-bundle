@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Entity\LearnDevice;
 use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
@@ -17,8 +16,7 @@ class LearnDeviceService
     private const DEVICE_ACTIVE_THRESHOLD = 3600; // 设备活跃阈值（1小时）
     
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LearnDeviceRepository $deviceRepository,
+                private readonly LearnDeviceRepository $deviceRepository,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -33,7 +31,7 @@ class LearnDeviceService
         // 查找现有设备
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
         
-        if (!$device) {
+        if ($device === null) {
             // 创建新设备
             $device = new LearnDevice();
             $device->setUserId($userId);
@@ -92,7 +90,7 @@ class LearnDeviceService
     public function trustDevice(string $userId, string $deviceFingerprint): void
     {
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
-        if ($device) {
+        if ($device !== null) {
             $device->setIsTrusted(true);
             $this->deviceRepository->save($device);
             
@@ -109,7 +107,7 @@ class LearnDeviceService
     public function recordSuspiciousActivity(string $userId, string $deviceFingerprint): void
     {
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
-        if ($device) {
+        if ($device !== null) {
             $device->setSuspiciousCount($device->getSuspiciousCount() + 1);
             
             // 如果可疑活动过多，取消信任
@@ -133,7 +131,7 @@ class LearnDeviceService
     public function deactivateDevice(string $userId, string $deviceFingerprint): void
     {
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
-        if ($device) {
+        if ($device !== null) {
             $device->setIsActive(false);
             $this->deviceRepository->save($device);
             
@@ -171,20 +169,20 @@ class LearnDeviceService
             
             // 统计设备类型
             $deviceType = $device->getDeviceType();
-            $stats['deviceTypes'][$deviceType] = ($stats['deviceTypes'][$deviceType] ?? 0) + 1;
+            $stats['deviceTypes'][$deviceType] = ($stats['deviceTypes'][$deviceType]) + 1;
             
             // 统计浏览器
             $browserInfo = $device->getBrowserInfo();
             if (isset($browserInfo['name'])) {
                 $browser = $browserInfo['name'];
-                $stats['browsers'][$browser] = ($stats['browsers'][$browser] ?? 0) + 1;
+                $stats['browsers'][$browser] = ($stats['browsers'][$browser]) + 1;
             }
             
             // 统计操作系统
             $osInfo = $device->getOsInfo();
             if (isset($osInfo['name'])) {
                 $os = $osInfo['name'];
-                $stats['operatingSystems'][$os] = ($stats['operatingSystems'][$os] ?? 0) + 1;
+                $stats['operatingSystems'][$os] = ($stats['operatingSystems'][$os]) + 1;
             }
         }
         

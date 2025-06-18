@@ -52,12 +52,12 @@ class LearnStatisticsRepository extends ServiceEntityRepository
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate);
 
-        if ($type) {
+        if ($type !== null) {
             $qb->andWhere('ls.statisticsType = :type')
                ->setParameter('type', $type);
         }
 
-        if ($period) {
+        if ($period !== null) {
             $qb->andWhere('ls.statisticsPeriod = :period')
                ->setParameter('period', $period);
         }
@@ -92,7 +92,7 @@ class LearnStatisticsRepository extends ServiceEntityRepository
             ->andWhere('ls.statisticsDate = :date')
             ->setParameter('date', $date);
 
-        if ($type) {
+        if ($type !== null) {
             $qb->andWhere('ls.statisticsType = :type')
                ->setParameter('type', $type);
         }
