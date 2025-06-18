@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -13,7 +12,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 use Tourze\TrainRecordBundle\Service\LearnAnomalyService;
-use Tourze\TrainRecordBundle\Service\LearnBehaviorService;
 
 #[AsCommand(
     name: 'learn:anomaly:detect',
