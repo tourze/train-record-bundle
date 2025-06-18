@@ -143,7 +143,7 @@ class EffectiveStudyTimeReportCommand extends Command
             ],
         ];
 
-        if ($includeDetails) {
+        if ((bool) $includeDetails) {
             $records = $this->recordRepository->findByUserAndDate($userId, $startDate);
             $report['details'] = array_map(function($record) {
                 return [
@@ -182,7 +182,7 @@ class EffectiveStudyTimeReportCommand extends Command
             ],
         ];
 
-        if ($includeDetails) {
+        if ((bool) $includeDetails) {
             $records = $this->recordRepository->findByCourse($courseId, 100);
             $report['details'] = array_map(function($record) {
                 return [
@@ -232,7 +232,7 @@ class EffectiveStudyTimeReportCommand extends Command
             ],
         ];
 
-        if ($includeDetails) {
+        if ((bool) $includeDetails) {
             $report['low_quality_records'] = array_slice(array_map(function($record) {
                 return [
                     'id' => $record->getId(),
@@ -279,7 +279,7 @@ class EffectiveStudyTimeReportCommand extends Command
             ]
         );
 
-        if (isset($report['details'])) {
+        if ((bool) isset($report['details'])) {
             $io->section('详细记录');
             $io->table(
                 ['记录ID', '课程', '课时', '日期', '总时长(分)', '有效时长(分)', '状态', '质量评分'],
@@ -381,7 +381,7 @@ class EffectiveStudyTimeReportCommand extends Command
         // 简化实现，只输出摘要数据
         $csv = '';
         
-        if (isset($report['summary'])) {
+        if ((bool) isset($report['summary'])) {
             foreach ($report['summary'] as $key => $value) {
                 $csv .= "{$key},{$value}\n";
             }

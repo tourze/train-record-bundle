@@ -67,7 +67,7 @@ class BaiduFaceService
      */
     private function getAccessToken(): string
     {
-        if (time() < $this->tokenExpireTime && !empty($this->accessToken)) {
+        if ((bool) time() < $this->tokenExpireTime && !empty($this->accessToken)) {
             return $this->accessToken;
         }
 

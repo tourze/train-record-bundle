@@ -10,12 +10,7 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainRecordBundle\Enum\ArchiveFormat;
 use Tourze\TrainRecordBundle\Enum\ArchiveStatus;
@@ -27,8 +22,6 @@ use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
  * 管理学习记录的归档，满足3年保存期限要求。
  * 支持多种归档格式、完整性验证、自动过期清理等功能。
  */
-#[AsPermission(title: '学习档案管理')]
-#[Deletable]
 #[Exportable]
 #[ORM\Entity(repositoryClass: LearnArchiveRepository::class)]
 #[ORM\Table(name: 'job_training_learn_archive', options: ['comment' => '学习档案管理'])]
@@ -39,8 +32,6 @@ use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
 class LearnArchive implements ApiArrayInterface, AdminArrayInterface
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -49,88 +40,59 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
     private ?string $id = null;
 
     #[IndexColumn]
-    #[ListColumn(title: '用户ID')]
-    #[FormField(title: '用户ID')]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => '用户ID'])]
     private string $userId;
 
-    #[ListColumn(title: '课程')]
-    #[FormField(title: '课程')]
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Course $course;
 
-    #[FormField(title: '会话汇总')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '会话汇总JSON'])]
     private ?array $sessionSummary = null;
 
-    #[FormField(title: '行为汇总')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '行为汇总JSON'])]
     private ?array $behaviorSummary = null;
 
-    #[FormField(title: '异常汇总')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '异常汇总JSON'])]
     private ?array $anomalySummary = null;
 
-    #[ListColumn(title: '总有效学习时长')]
-    #[FormField(title: '总有效学习时长')]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, options: ['comment' => '总有效学习时长（秒）', 'default' => '0.0000'])]
     private string $totalEffectiveTime = '0.0000';
 
-    #[ListColumn(title: '总会话数')]
-    #[FormField(title: '总会话数')]
     #[ORM\Column(options: ['comment' => '总会话数', 'default' => 0])]
     private int $totalSessions = 0;
 
     #[IndexColumn]
-    #[ListColumn(title: '档案状态')]
-    #[FormField(title: '档案状态')]
     #[ORM\Column(length: 20, enumType: ArchiveStatus::class, options: ['comment' => '档案状态', 'default' => 'active'])]
     private ArchiveStatus $archiveStatus = ArchiveStatus::ACTIVE;
 
-    #[ListColumn(title: '归档格式')]
-    #[FormField(title: '归档格式')]
     #[ORM\Column(length: 10, enumType: ArchiveFormat::class, options: ['comment' => '归档格式', 'default' => 'json'])]
     private ArchiveFormat $archiveFormat = ArchiveFormat::JSON;
 
-    #[ListColumn(title: '归档日期')]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '归档日期'])]
     private ?\DateTimeInterface $archiveDate = null;
 
     #[IndexColumn]
-    #[ListColumn(title: '过期日期')]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '过期日期（3年后）'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '过期日期（3年后）'])]
     private ?\DateTimeInterface $expiryDate = null;
 
-    #[ListColumn(title: '归档文件路径')]
-    #[FormField(title: '归档文件路径')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '归档文件路径'])]
     private ?string $archivePath = null;
 
-    #[FormField(title: '归档文件哈希')]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '归档文件哈希（完整性验证）'])]
     private ?string $archiveHash = null;
 
-    #[ListColumn(title: '文件大小')]
-    #[FormField(title: '文件大小')]
     #[ORM\Column(type: Types::BIGINT, nullable: true, options: ['comment' => '文件大小（字节）'])]
     private ?string $fileSize = null;
 
-    #[ListColumn(title: '压缩比率')]
-    #[FormField(title: '压缩比率')]
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true, options: ['comment' => '压缩比率'])]
     private ?string $compressionRatio = null;
 
-    #[FormField(title: '归档元数据')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '归档元数据JSON'])]
     private ?array $archiveMetadata = null;
 
-    #[FormField(title: '验证结果')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '验证结果JSON'])]
     private ?array $verificationResult = null;
 
-    #[ListColumn(title: '最后验证时间')]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后验证时间'])]
     private ?\DateTimeInterface $lastVerificationTime = null;
 
 

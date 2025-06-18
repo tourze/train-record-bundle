@@ -77,7 +77,7 @@ class LearnDataProcessCommand extends Command
 
         $io->title('学习数据处理');
 
-        if ($dryRun) {
+        if ((bool) $dryRun) {
             $io->note('运行在试运行模式，不会实际更新数据');
         }
 

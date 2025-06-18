@@ -2,12 +2,21 @@
 
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\Itemable;
+use Tourze\EnumExtra\ItemTrait;
+use Tourze\EnumExtra\Labelable;
+use Tourze\EnumExtra\Selectable;
+use Tourze\EnumExtra\SelectTrait;
+
 /**
  * 统计类型枚举
  */
 enum StatisticsType: string
-{
-    case USER = 'user';                     // 用户统计
+ implements Itemable, Labelable, Selectable{
+    
+    use ItemTrait;
+    use SelectTrait;
+case USER = 'user';                     // 用户统计
     case COURSE = 'course';                 // 课程统计
     case BEHAVIOR = 'behavior';             // 行为统计
     case ANOMALY = 'anomaly';               // 异常统计

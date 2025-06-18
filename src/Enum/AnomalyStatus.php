@@ -2,12 +2,21 @@
 
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\Itemable;
+use Tourze\EnumExtra\ItemTrait;
+use Tourze\EnumExtra\Labelable;
+use Tourze\EnumExtra\Selectable;
+use Tourze\EnumExtra\SelectTrait;
+
 /**
  * 异常状态枚举
  */
 enum AnomalyStatus: string
-{
-    case DETECTED = 'detected';         // 已检测
+ implements Itemable, Labelable, Selectable{
+    
+    use ItemTrait;
+    use SelectTrait;
+case DETECTED = 'detected';         // 已检测
     case INVESTIGATING = 'investigating'; // 调查中
     case RESOLVED = 'resolved';         // 已解决
     case IGNORED = 'ignored';           // 已忽略

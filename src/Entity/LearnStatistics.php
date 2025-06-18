@@ -10,12 +10,7 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainRecordBundle\Enum\StatisticsPeriod;
 use Tourze\TrainRecordBundle\Enum\StatisticsType;
 use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
@@ -26,8 +21,6 @@ use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
  * 存储各种维度的学习统计数据，支持按日、周、月等不同周期统计。
  * 包括用户统计、课程统计、行为统计、异常统计、设备统计等。
  */
-#[AsPermission(title: '学习统计管理')]
-#[Deletable]
 #[Exportable]
 #[ORM\Entity(repositoryClass: LearnStatisticsRepository::class)]
 #[ORM\Table(name: 'job_training_learn_statistics', options: ['comment' => '学习统计'])]
@@ -37,8 +30,6 @@ use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
 class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -47,92 +38,62 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
     private ?string $id = null;
 
     #[IndexColumn]
-    #[ListColumn(title: '统计类型')]
-    #[FormField(title: '统计类型')]
     #[ORM\Column(length: 30, enumType: StatisticsType::class, options: ['comment' => '统计类型'])]
     private StatisticsType $statisticsType;
 
     #[IndexColumn]
-    #[ListColumn(title: '统计周期')]
-    #[FormField(title: '统计周期')]
     #[ORM\Column(length: 20, enumType: StatisticsPeriod::class, options: ['comment' => '统计周期'])]
     private StatisticsPeriod $statisticsPeriod;
 
     #[IndexColumn]
-    #[ListColumn(title: '统计日期')]
-    #[FormField(title: '统计日期')]
     #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '统计日期'])]
     private \DateTimeInterface $statisticsDate;
 
-    #[FormField(title: '用户统计')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '用户统计JSON'])]
     private ?array $userStatistics = null;
 
-    #[FormField(title: '课程统计')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '课程统计JSON'])]
     private ?array $courseStatistics = null;
 
-    #[FormField(title: '行为统计')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '行为统计JSON'])]
     private ?array $behaviorStatistics = null;
 
-    #[FormField(title: '异常统计')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '异常统计JSON'])]
     private ?array $anomalyStatistics = null;
 
-    #[FormField(title: '设备统计')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '设备统计JSON'])]
     private ?array $deviceStatistics = null;
 
-    #[FormField(title: '进度统计')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '进度统计JSON'])]
     private ?array $progressStatistics = null;
 
-    #[FormField(title: '时长统计')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '时长统计JSON'])]
     private ?array $durationStatistics = null;
 
-    #[ListColumn(title: '总用户数')]
-    #[FormField(title: '总用户数')]
     #[ORM\Column(options: ['comment' => '总用户数', 'default' => 0])]
     private int $totalUsers = 0;
 
-    #[ListColumn(title: '活跃用户数')]
-    #[FormField(title: '活跃用户数')]
     #[ORM\Column(options: ['comment' => '活跃用户数', 'default' => 0])]
     private int $activeUsers = 0;
 
-    #[ListColumn(title: '总会话数')]
-    #[FormField(title: '总会话数')]
     #[ORM\Column(options: ['comment' => '总会话数', 'default' => 0])]
     private int $totalSessions = 0;
 
-    #[ListColumn(title: '总学习时长')]
-    #[FormField(title: '总学习时长')]
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 4, options: ['comment' => '总学习时长（秒）', 'default' => '0.0000'])]
     private string $totalDuration = '0.0000';
 
-    #[ListColumn(title: '有效学习时长')]
-    #[FormField(title: '有效学习时长')]
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 4, options: ['comment' => '有效学习时长（秒）', 'default' => '0.0000'])]
     private string $effectiveDuration = '0.0000';
 
-    #[ListColumn(title: '异常数量')]
-    #[FormField(title: '异常数量')]
     #[ORM\Column(options: ['comment' => '异常数量', 'default' => 0])]
     private int $anomalyCount = 0;
 
-    #[ListColumn(title: '完成率')]
-    #[FormField(title: '完成率')]
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true, options: ['comment' => '完成率（%）'])]
     private ?string $completionRate = null;
 
-    #[ListColumn(title: '平均学习效率')]
-    #[FormField(title: '平均学习效率')]
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 4, nullable: true, options: ['comment' => '平均学习效率'])]
     private ?string $averageEfficiency = null;
 
-    #[FormField(title: '扩展数据')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展数据JSON'])]
     private ?array $extendedData = null;
 

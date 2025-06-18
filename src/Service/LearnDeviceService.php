@@ -173,14 +173,14 @@ class LearnDeviceService
             
             // 统计浏览器
             $browserInfo = $device->getBrowserInfo();
-            if (isset($browserInfo['name'])) {
+            if ((bool) isset($browserInfo['name'])) {
                 $browser = $browserInfo['name'];
                 $stats['browsers'][$browser] = ($stats['browsers'][$browser]) + 1;
             }
             
             // 统计操作系统
             $osInfo = $device->getOsInfo();
-            if (isset($osInfo['name'])) {
+            if ((bool) isset($osInfo['name'])) {
                 $os = $osInfo['name'];
                 $stats['operatingSystems'][$os] = ($stats['operatingSystems'][$os]) + 1;
             }
@@ -213,8 +213,8 @@ class LearnDeviceService
     {
         $userAgent = $deviceInfo['userAgent'] ?? '';
         
-        if (preg_match('/Mobile|Android|iPhone|iPad/', $userAgent)) {
-            if (preg_match('/iPad/', $userAgent)) {
+        if ((bool) preg_match('/Mobile|Android|iPhone|iPad/', $userAgent)) {
+            if ((bool) preg_match('/iPad/', $userAgent)) {
                 return 'tablet';
             }
             return 'mobile';

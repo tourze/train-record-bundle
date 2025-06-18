@@ -50,7 +50,7 @@ class LearnBehaviorService
         $behavior->setBehaviorData($behaviorData);
         
         // 设置视频时间戳
-        if (isset($behaviorData['videoTimestamp'])) {
+        if ((bool) isset($behaviorData['videoTimestamp'])) {
             $behavior->setVideoTimestamp((float) $behaviorData['videoTimestamp']);
         } else {
             $behavior->setVideoTimestamp((float) $session->getCurrentDuration());
@@ -124,13 +124,13 @@ class LearnBehaviorService
         // 检测空闲时间
         if ($behaviorType === 'idle_start') {
             $behaviorData = $behavior->getBehaviorData();
-            if (isset($behaviorData['duration']) && $behaviorData['duration'] > self::SUSPICIOUS_THRESHOLDS['idle_duration']) {
+            if ((bool) isset($behaviorData['duration']) && $behaviorData['duration'] > self::SUSPICIOUS_THRESHOLDS['idle_duration']) {
                 $suspiciousReasons[] = '长时间无操作';
             }
         }
         
         // 标记可疑行为
-        if (count($suspiciousReasons) > 0) {
+        if ((bool) count($suspiciousReasons) > 0) {
             $behavior->setIsSuspicious(true);
             $behavior->setSuspiciousReason(implode(', ', $suspiciousReasons));
         }

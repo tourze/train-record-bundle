@@ -10,13 +10,7 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
@@ -27,8 +21,6 @@ use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
  * 管理跨设备的学习进度同步和有效学习时长计算。
  * 支持多设备学习进度同步、有效时长统计、学习轨迹记录等功能。
  */
-#[AsPermission(title: '学习进度管理')]
-#[Deletable]
 #[Exportable]
 #[ORM\Entity(repositoryClass: LearnProgressRepository::class)]
 #[ORM\Table(name: 'job_training_learn_progress', options: ['comment' => '学习进度管理'])]
@@ -39,8 +31,6 @@ use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
 class LearnProgress implements ApiArrayInterface, AdminArrayInterface
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -49,68 +39,43 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
     private ?string $id = null;
 
     #[IndexColumn]
-    #[ListColumn(title: '用户ID')]
-    #[FormField(title: '用户ID')]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => '用户ID'])]
     private string $userId;
 
-    #[ListColumn(title: '课程')]
-    #[FormField(title: '课程')]
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Course $course;
 
-    #[ListColumn(title: '课时')]
-    #[FormField(title: '课时')]
     #[ORM\ManyToOne(targetEntity: Lesson::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Lesson $lesson;
 
-    #[ListColumn(title: '进度百分比')]
-    #[FormField(title: '进度百分比')]
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, options: ['comment' => '进度百分比（0-100）', 'default' => '0.00'])]
     private string $progress = '0.00';
 
-    #[ListColumn(title: '已观看时长')]
-    #[FormField(title: '已观看时长')]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, options: ['comment' => '已观看时长（秒）', 'default' => '0.0000'])]
     private string $watchedDuration = '0.0000';
 
-    #[ListColumn(title: '有效学习时长')]
-    #[FormField(title: '有效学习时长')]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, options: ['comment' => '有效学习时长（秒）', 'default' => '0.0000'])]
     private string $effectiveDuration = '0.0000';
 
-    #[FormField(title: '已观看片段')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '已观看片段JSON'])]
     private ?array $watchedSegments = null;
 
-    #[FormField(title: '进度历史')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '进度历史JSON'])]
     private ?array $progressHistory = null;
 
-    #[BoolColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '是否完成')]
-    #[FormField(title: '是否完成')]
     #[ORM\Column(options: ['comment' => '是否完成', 'default' => false])]
     private bool $isCompleted = false;
 
-    #[ListColumn(title: '最后更新时间')]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后更新时间'])]
     private ?\DateTimeInterface $lastUpdateTime = null;
 
-    #[ListColumn(title: '最后更新设备')]
-    #[FormField(title: '最后更新设备')]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '最后更新设备指纹'])]
     private ?string $lastUpdateDevice = null;
 
-    #[ListColumn(title: '学习质量评分')]
-    #[FormField(title: '学习质量评分')]
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2, nullable: true, options: ['comment' => '学习质量评分（0-10）'])]
     private ?string $qualityScore = null;
 
-    #[FormField(title: '学习统计数据')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '学习统计数据JSON'])]
     private ?array $learningStats = null;
 
@@ -280,7 +245,7 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
         $history[] = $historyEntry;
         
         // 只保留最近100条记录
-        if (count($history) > 100) {
+        if ((bool) count($history) > 100) {
             $history = array_slice($history, -100);
         }
         

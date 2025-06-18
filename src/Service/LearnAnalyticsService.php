@@ -155,8 +155,8 @@ class LearnAnalyticsService
         ?string $courseId = null
     ): array {
         $filters = ['startDate' => $startDate, 'endDate' => $endDate];
-        if ($userId) $filters['userId'] = $userId;
-        if ($courseId) $filters['courseId'] = $courseId;
+        if ((bool) $userId) $filters['userId'] = $userId;
+        if ((bool) $courseId) $filters['courseId'] = $courseId;
 
         return [
             'totalSessions' => $this->sessionRepository->countByFilters($filters),
@@ -378,7 +378,7 @@ class LearnAnalyticsService
      */
     private function calculateMedian(array $values): float
     {
-        if (empty($values)) {
+        if ((bool) empty($values)) {
             return 0.0;
         }
 
@@ -398,7 +398,7 @@ class LearnAnalyticsService
      */
     private function calculatePercentiles(array $values): array
     {
-        if (empty($values)) {
+        if ((bool) empty($values)) {
             return array_fill_keys(self::PERCENTILE_THRESHOLDS, 0);
         }
 

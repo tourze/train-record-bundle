@@ -188,7 +188,7 @@ class EffectiveStudyTimeRecalculateCommand extends Command
             $criteria['course'] = $courseId;
         }
         
-        if ($onlyInvalid) {
+        if ((bool) $onlyInvalid) {
             return $this->recordRepository->findBy(['status' => 'invalid']);
         }
         
@@ -197,7 +197,7 @@ class EffectiveStudyTimeRecalculateCommand extends Command
             return $this->recordRepository->findByUserAndDate($userId, $targetDate);
         }
         
-        if (empty($criteria)) {
+        if ((bool) empty($criteria)) {
             // 如果没有指定条件，返回最近需要重新验证的记录
             $beforeDate = new \DateTimeImmutable('-7 days');
             return $this->recordRepository->findNeedingRevalidation($beforeDate);

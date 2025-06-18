@@ -4,6 +4,7 @@ namespace Tourze\TrainRecordBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainRecordBundle\Enum\InvalidTimeReason;
@@ -21,7 +22,7 @@ use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
 #[ORM\Index(name: 'idx_status_reason', columns: ['status', 'invalid_reason'])]
 #[ORM\Index(name: 'idx_course_lesson', columns: ['course_id', 'lesson_id'])]
 #[ORM\Index(name: 'idx_effective_duration', columns: ['effective_duration'])]
-class EffectiveStudyRecord
+class EffectiveStudyRecord implements Stringable
 {
     /**
      * 主键ID
@@ -66,13 +67,13 @@ class EffectiveStudyRecord
     /**
      * 开始时间
      */
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false, options: ['comment' => '开始时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '开始时间'])]
     private \DateTimeInterface $startTime;
 
     /**
      * 结束时间
      */
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false, options: ['comment' => '结束时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '结束时间'])]
     private \DateTimeInterface $endTime;
 
     /**
@@ -168,7 +169,7 @@ class EffectiveStudyRecord
     /**
      * 审核时间
      */
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '审核时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '审核时间'])]
     private ?\DateTimeInterface $reviewedAt = null;
 
     /**
@@ -186,13 +187,13 @@ class EffectiveStudyRecord
     /**
      * 创建时间
      */
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
     private ?\DateTimeInterface $createTime = null;
 
     /**
      * 更新时间
      */
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '更新时间'])]
     private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
@@ -631,5 +632,10 @@ class EffectiveStudyRecord
     {
         $this->updateTime = $updateTime;
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 } 

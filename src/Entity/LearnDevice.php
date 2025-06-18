@@ -12,14 +12,8 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Filter\Keyword;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 
 /**
@@ -28,8 +22,6 @@ use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
  * 管理学员的学习设备信息，支持多终端登录控制和设备识别。
  * 用于防止多设备同时学习、设备切换检测等防作弊功能。
  */
-#[AsPermission(title: '学习设备管理')]
-#[Deletable]
 #[Exportable]
 #[ORM\Entity(repositoryClass: LearnDeviceRepository::class)]
 #[ORM\Table(name: 'job_training_learn_device', options: ['comment' => '学习设备管理'])]
@@ -39,8 +31,6 @@ use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 class LearnDevice implements ApiArrayInterface, AdminArrayInterface
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -49,99 +39,59 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
     private ?string $id = null;
 
     #[IndexColumn]
-    #[ListColumn(title: '用户ID')]
-    #[FormField(title: '用户ID')]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => '用户ID'])]
     private string $userId;
 
     #[Keyword(inputWidth: 120, label: '设备指纹')]
-    #[ListColumn(title: '设备指纹')]
-    #[FormField(title: '设备指纹')]
     #[ORM\Column(length: 128, nullable: false, options: ['comment' => '设备指纹'])]
     private string $deviceFingerprint;
 
-    #[ListColumn(title: '设备名称')]
-    #[FormField(title: '设备名称')]
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '设备名称'])]
     private ?string $deviceName = null;
 
-    #[ListColumn(title: '设备类型')]
-    #[FormField(title: '设备类型')]
     #[ORM\Column(length: 50, nullable: true, options: ['comment' => '设备类型（PC/Mobile/Tablet）'])]
     private ?string $deviceType = null;
 
-    #[ListColumn(title: '操作系统')]
-    #[FormField(title: '操作系统')]
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '操作系统'])]
     private ?string $operatingSystem = null;
 
-    #[ListColumn(title: '浏览器')]
-    #[FormField(title: '浏览器')]
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '浏览器信息'])]
     private ?string $browser = null;
 
-    #[ListColumn(title: '屏幕分辨率')]
-    #[FormField(title: '屏幕分辨率')]
     #[ORM\Column(length: 20, nullable: true, options: ['comment' => '屏幕分辨率'])]
     private ?string $screenResolution = null;
 
-    #[ListColumn(title: '时区')]
-    #[FormField(title: '时区')]
     #[ORM\Column(length: 50, nullable: true, options: ['comment' => '时区'])]
     private ?string $timezone = null;
 
-    #[ListColumn(title: '语言')]
-    #[FormField(title: '语言')]
     #[ORM\Column(length: 20, nullable: true, options: ['comment' => '语言设置'])]
     private ?string $language = null;
 
-    #[FormField(title: '设备特征')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '设备特征JSON'])]
     private ?array $deviceFeatures = null;
 
-    #[BoolColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '是否激活')]
-    #[FormField(title: '是否激活')]
     #[ORM\Column(options: ['comment' => '是否激活', 'default' => true])]
     private bool $isActive = true;
 
-    #[BoolColumn]
-    #[ListColumn(title: '是否可信')]
-    #[FormField(title: '是否可信')]
     #[ORM\Column(options: ['comment' => '是否可信设备', 'default' => false])]
     private bool $isTrusted = false;
 
-    #[BoolColumn]
-    #[ListColumn(title: '是否被阻止')]
-    #[FormField(title: '是否被阻止')]
     #[ORM\Column(options: ['comment' => '是否被阻止', 'default' => false])]
     private bool $isBlocked = false;
 
-    #[ListColumn(title: '阻止原因')]
-    #[FormField(title: '阻止原因')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '阻止原因'])]
     private ?string $blockReason = null;
 
-    #[ListColumn(title: '首次使用时间')]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '首次使用时间'])]
     private ?\DateTimeInterface $firstUsedTime = null;
 
-    #[ListColumn(title: '最后使用时间')]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后使用时间'])]
     private ?\DateTimeInterface $lastUsedTime = null;
 
-    #[ListColumn(title: '使用次数')]
-    #[FormField(title: '使用次数')]
     #[ORM\Column(options: ['comment' => '使用次数', 'default' => 0])]
     private int $usageCount = 0;
 
-    #[ListColumn(title: '最后IP地址')]
-    #[FormField(title: '最后IP地址')]
     #[ORM\Column(length: 45, nullable: true, options: ['comment' => '最后使用的IP地址'])]
     private ?string $lastIpAddress = null;
 
-    #[FormField(title: '最后User-Agent')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '最后User-Agent'])]
     private ?string $lastUserAgent = null;
 

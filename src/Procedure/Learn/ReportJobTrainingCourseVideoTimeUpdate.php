@@ -97,7 +97,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
                 'pass' => true,
             ], ['id' => 'DESC']);
             if ($lastFaceDetect !== null) {
-                if (Carbon::now()->diffInSeconds($lastFaceDetect->getCreateTime()) > $lesson->getFaceDetectDuration()) {
+                if ((bool) Carbon::now()->diffInSeconds($lastFaceDetect->getCreateTime()) > $lesson->getFaceDetectDuration()) {
                     $needFace = true;
                 }
             } else {

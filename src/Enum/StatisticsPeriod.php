@@ -2,12 +2,21 @@
 
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\Itemable;
+use Tourze\EnumExtra\ItemTrait;
+use Tourze\EnumExtra\Labelable;
+use Tourze\EnumExtra\Selectable;
+use Tourze\EnumExtra\SelectTrait;
+
 /**
  * 统计周期枚举
  */
 enum StatisticsPeriod: string
-{
-    case DAILY = 'daily';           // 日统计
+ implements Itemable, Labelable, Selectable{
+    
+    use ItemTrait;
+    use SelectTrait;
+case DAILY = 'daily';           // 日统计
     case WEEKLY = 'weekly';         // 周统计
     case MONTHLY = 'monthly';       // 月统计
     case QUARTERLY = 'quarterly';   // 季度统计

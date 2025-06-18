@@ -9,14 +9,7 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainRecordBundle\Enum\BehaviorType;
 use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
 
@@ -26,8 +19,6 @@ use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
  * 记录学习过程中的所有用户行为，用于防作弊检测和学习分析。
  * 包括视频控制、窗口焦点、鼠标键盘活动、网络状态等各种行为。
  */
-#[AsPermission(title: '学习行为记录')]
-#[Deletable]
 #[Exportable]
 #[ORM\Entity(repositoryClass: LearnBehaviorRepository::class)]
 #[ORM\Table(name: 'job_training_learn_behavior', options: ['comment' => '学习行为记录'])]
@@ -36,8 +27,6 @@ use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
 #[ORM\Index(name: 'idx_video_timestamp', columns: ['video_timestamp'])]
 class LearnBehavior implements ApiArrayInterface, AdminArrayInterface
 {
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -45,60 +34,38 @@ class LearnBehavior implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ListColumn(title: '学习会话')]
-    #[FormField(title: '学习会话')]
     #[ORM\ManyToOne(targetEntity: LearnSession::class, inversedBy: 'learnBehaviors')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private LearnSession $session;
 
     #[IndexColumn]
-    #[ListColumn(title: '行为类型')]
-    #[FormField(title: '行为类型')]
     #[ORM\Column(length: 50, enumType: BehaviorType::class, options: ['comment' => '行为类型'])]
     private BehaviorType $behaviorType;
 
-    #[ListColumn(title: '行为数据')]
-    #[FormField(title: '行为数据')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '行为数据JSON'])]
     private ?array $behaviorData = null;
 
-    #[ListColumn(title: '视频时间戳')]
-    #[FormField(title: '视频时间戳')]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '视频时间戳（秒）'])]
     private ?string $videoTimestamp = null;
 
-    #[ListColumn(title: '设备指纹')]
-    #[FormField(title: '设备指纹')]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '设备指纹'])]
     private ?string $deviceFingerprint = null;
 
-    #[ListColumn(title: 'IP地址')]
-    #[FormField(title: 'IP地址')]
     #[ORM\Column(length: 45, nullable: true, options: ['comment' => 'IP地址'])]
     private ?string $ipAddress = null;
 
-    #[FormField(title: 'User-Agent')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => 'User-Agent'])]
     private ?string $userAgent = null;
 
-    #[BoolColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '可疑行为')]
-    #[FormField(title: '可疑行为')]
     #[ORM\Column(options: ['comment' => '是否可疑行为', 'default' => false])]
     private bool $isSuspicious = false;
 
-    #[ListColumn(title: '可疑原因')]
-    #[FormField(title: '可疑原因')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '可疑原因'])]
     private ?string $suspiciousReason = null;
 
     #[IndexColumn]
-    #[CreateTimeColumn]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn(title: '创建时间', order: 98, sorter: true)]
-    #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
     private ?\DateTimeInterface $createTime = null;
 
     public function getId(): ?string

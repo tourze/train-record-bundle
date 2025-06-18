@@ -87,7 +87,7 @@ class LearnSessionRepository extends ServiceEntityRepository
     {
         $this->getEntityManager()->persist($session);
         
-        if ($flush) {
+        if ((bool) $flush) {
             $this->getEntityManager()->flush();
         }
     }
@@ -122,7 +122,7 @@ class LearnSessionRepository extends ServiceEntityRepository
      */
     public function batchUpdateActiveStatus(array $sessionIds, bool $active): int
     {
-        if (empty($sessionIds)) {
+        if ((bool) empty($sessionIds)) {
             return 0;
         }
         

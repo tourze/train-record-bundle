@@ -10,13 +10,7 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
 use Tourze\TrainRecordBundle\Enum\AnomalyStatus;
 use Tourze\TrainRecordBundle\Enum\AnomalyType;
@@ -28,8 +22,6 @@ use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
  * 记录和管理学习过程中的异常情况，包括多设备登录、快速进度、
  * 窗口切换、空闲超时、人脸检测失败、网络异常等各种异常行为。
  */
-#[AsPermission(title: '学习异常管理')]
-#[Deletable]
 #[Exportable]
 #[ORM\Entity(repositoryClass: LearnAnomalyRepository::class)]
 #[ORM\Table(name: 'job_training_learn_anomaly', options: ['comment' => '学习异常记录'])]
@@ -40,8 +32,6 @@ use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
 class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -49,74 +39,47 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ListColumn(title: '学习会话')]
-    #[FormField(title: '学习会话')]
     #[ORM\ManyToOne(targetEntity: LearnSession::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private LearnSession $session;
 
     #[IndexColumn]
-    #[ListColumn(title: '异常类型')]
-    #[FormField(title: '异常类型')]
     #[ORM\Column(length: 50, enumType: AnomalyType::class, options: ['comment' => '异常类型'])]
     private AnomalyType $anomalyType;
 
-    #[ListColumn(title: '异常描述')]
-    #[FormField(title: '异常描述')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '异常描述'])]
     private ?string $anomalyDescription = null;
 
-    #[FormField(title: '异常数据')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '异常数据JSON'])]
     private ?array $anomalyData = null;
 
     #[IndexColumn]
-    #[ListColumn(title: '严重程度')]
-    #[FormField(title: '严重程度')]
     #[ORM\Column(length: 20, enumType: AnomalySeverity::class, options: ['comment' => '严重程度'])]
     private AnomalySeverity $severity;
 
     #[IndexColumn]
-    #[ListColumn(title: '状态')]
-    #[FormField(title: '状态')]
     #[ORM\Column(length: 20, enumType: AnomalyStatus::class, options: ['comment' => '状态', 'default' => 'detected'])]
     private AnomalyStatus $status = AnomalyStatus::DETECTED;
 
-    #[BoolColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '自动检测')]
-    #[FormField(title: '自动检测')]
     #[ORM\Column(options: ['comment' => '是否自动检测', 'default' => true])]
     private bool $isAutoDetected = true;
 
-    #[ListColumn(title: '解决方案')]
-    #[FormField(title: '解决方案')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '解决方案'])]
     private ?string $resolution = null;
 
-    #[ListColumn(title: '解决人')]
-    #[FormField(title: '解决人')]
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '解决人'])]
     private ?string $resolvedBy = null;
 
-    #[ListColumn(title: '检测时间')]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '检测时间'])]
     private ?\DateTimeInterface $detectedTime = null;
 
-    #[ListColumn(title: '解决时间')]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '解决时间'])]
     private ?\DateTimeInterface $resolvedTime = null;
 
-    #[ListColumn(title: '影响评分')]
-    #[FormField(title: '影响评分')]
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2, nullable: true, options: ['comment' => '影响评分（0-10）'])]
     private ?string $impactScore = null;
 
-    #[FormField(title: '相关证据')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '相关证据JSON'])]
     private ?array $evidence = null;
 
-    #[FormField(title: '处理备注')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '处理备注'])]
     private ?string $processingNotes = null;
 

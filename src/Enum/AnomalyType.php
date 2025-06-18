@@ -2,12 +2,21 @@
 
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\Itemable;
+use Tourze\EnumExtra\ItemTrait;
+use Tourze\EnumExtra\Labelable;
+use Tourze\EnumExtra\Selectable;
+use Tourze\EnumExtra\SelectTrait;
+
 /**
  * 学习异常类型枚举
  */
 enum AnomalyType: string
-{
-    case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
+ implements Itemable, Labelable, Selectable{
+    
+    use ItemTrait;
+    use SelectTrait;
+case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
     case RAPID_PROGRESS = 'rapid_progress';             // 快速进度异常
     case WINDOW_SWITCH = 'window_switch';               // 窗口切换异常
     case IDLE_TIMEOUT = 'idle_timeout';                 // 空闲超时

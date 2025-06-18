@@ -2,12 +2,21 @@
 
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\Itemable;
+use Tourze\EnumExtra\ItemTrait;
+use Tourze\EnumExtra\Labelable;
+use Tourze\EnumExtra\Selectable;
+use Tourze\EnumExtra\SelectTrait;
+
 /**
  * 异常严重程度枚举
  */
 enum AnomalySeverity: string
-{
-    case LOW = 'low';           // 低
+ implements Itemable, Labelable, Selectable{
+    
+    use ItemTrait;
+    use SelectTrait;
+case LOW = 'low';           // 低
     case MEDIUM = 'medium';     // 中
     case HIGH = 'high';         // 高
     case CRITICAL = 'critical'; // 严重

@@ -76,7 +76,7 @@ class EffectiveStudyTimeService
         // 初步验证
         $validation = $this->validateStudyTime($record, $behaviorData);
         
-        if ($validation['valid']) {
+        if ((bool) $validation['valid']) {
             // 计算有效时长
             $effectiveDuration = $this->calculateEffectiveTime($record, $behaviorData);
             $record->setEffectiveDuration($effectiveDuration);
@@ -212,7 +212,7 @@ class EffectiveStudyTimeService
         // 获取用户日限制配置
         $dailyLimit = $this->getUserDailyLimit($userId);
         
-        if (($currentDailyTime + $newEffectiveTime) > $dailyLimit) {
+        if ((bool) ($currentDailyTime + $newEffectiveTime) > $dailyLimit) {
             $exceededTime = ($currentDailyTime + $newEffectiveTime) - $dailyLimit;
             $validTime = max(0, $newEffectiveTime - $exceededTime);
             
@@ -268,7 +268,7 @@ class EffectiveStudyTimeService
         $browsingActions = ['browse_info', 'view_materials', 'take_test', 'quiz_attempt'];
         
         foreach ($behaviorData as $behavior) {
-            if (in_array($behavior['action'] ?? '', $browsingActions)) {
+            if ((bool) in_array($behavior['action'] ?? '', $browsingActions)) {
                 return true;
             }
         }
@@ -282,7 +282,7 @@ class EffectiveStudyTimeService
     private function hasAuthenticationFailure(array $behaviorData): bool
     {
         foreach ($behaviorData as $behavior) {
-            if (($behavior['action'] ?? '') === 'auth_failed') {
+            if ((bool) ($behavior['action'] ?? '') === 'auth_failed') {
                 return true;
             }
         }
@@ -334,7 +334,7 @@ class EffectiveStudyTimeService
     private function hasCompletedTest(array $behaviorData): bool
     {
         foreach ($behaviorData as $behavior) {
-            if (($behavior['action'] ?? '') === 'test_completed') {
+            if ((bool) ($behavior['action'] ?? '') === 'test_completed') {
                 return true;
             }
         }
@@ -385,7 +385,7 @@ class EffectiveStudyTimeService
         $totalBehaviors = count($behaviorData);
         
         foreach ($behaviorData as $behavior) {
-            if (in_array($behavior['action'] ?? '', ['click', 'scroll', 'key_press', 'video_control'])) {
+            if ((bool) in_array($behavior['action'] ?? '', ['click', 'scroll', 'key_press', 'video_control'])) {
                 $interactionCount++;
             }
         }
@@ -398,7 +398,7 @@ class EffectiveStudyTimeService
      */
     private function calculateContinuityRatio(array $behaviorData): float
     {
-        if (empty($behaviorData)) {
+        if ((bool) empty($behaviorData)) {
             return 0.0;
         }
         
@@ -535,7 +535,7 @@ class EffectiveStudyTimeService
         // 重新验证和计算
         $validation = $this->validateStudyTime($record, $behaviorData);
         
-        if ($validation['valid']) {
+        if ((bool) $validation['valid']) {
             $effectiveDuration = $this->calculateEffectiveTime($record, $behaviorData);
             $record->setEffectiveDuration($effectiveDuration);
             $record->setInvalidDuration($record->getTotalDuration() - $effectiveDuration);

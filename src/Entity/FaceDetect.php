@@ -7,15 +7,9 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
-use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
 
 /**
@@ -24,79 +18,51 @@ use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
  * 记录学习过程中的人脸检测结果，用于防作弊检测和学习监控。
  * 包括人脸检测置信度、检测时间、相似度评分等信息。
  */
-#[AsPermission(title: '人脸检测记录')]
-#[Deletable]
 #[Exportable]
 #[ORM\Entity(repositoryClass: FaceDetectRepository::class)]
-#[ORM\Table(name: 'face_detect')]
+#[ORM\Table(name: 'face_detect', options: ['comment' => '表描述'])]
 #[ORM\Index(name: 'idx_session_id', columns: ['session_id'])]
 #[ORM\Index(name: 'idx_create_time', columns: ['create_time'])]
 class FaceDetect implements AdminArrayInterface, ApiArrayInterface
 {
     #[ORM\Id]
-    #[ORM\Column(type: Types::BIGINT)]
+#[ORM\Column(type: Types::BIGINT, options: ['comment' => '字段说明'])]
     #[ORM\CustomIdGenerator(class: SnowflakeIdGenerator::class)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[Groups(['api', 'admin'])]
-    #[ListColumn]
-    #[ExportColumn]
     private string $id;
 
     #[ORM\ManyToOne(targetEntity: LearnSession::class, inversedBy: 'faceDetects')]
     #[ORM\JoinColumn(name: 'session_id', referencedColumnName: 'id', nullable: false)]
-    #[IndexColumn]
     #[Groups(['api', 'admin'])]
-    #[FormField]
-    #[ListColumn]
-    #[ExportColumn]
     private LearnSession $session;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+#[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '字段说明'])]
     #[Groups(['api', 'admin'])]
-    #[FormField]
-    #[ListColumn]
-    #[ExportColumn]
     private ?string $imageData = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
+#[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true, options: ['comment' => '字段说明'])]
     #[Groups(['api', 'admin'])]
-    #[FormField]
-    #[ListColumn]
-    #[ExportColumn]
     private ?string $confidence = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
+#[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true, options: ['comment' => '字段说明'])]
     #[Groups(['api', 'admin'])]
-    #[FormField]
-    #[ListColumn]
-    #[ExportColumn]
     private ?string $similarity = null;
 
-    #[ORM\Column(type: Types::JSON, nullable: true)]
+#[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '字段说明'])]
     #[Groups(['api', 'admin'])]
-    #[FormField]
-    #[ExportColumn]
     private ?array $detectResult = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+#[ORM\Column(type: Types::BOOLEAN, options: ['default' => false, 'comment' => '是否验证'])]
     #[Groups(['api', 'admin'])]
-    #[FormField]
-    #[ListColumn]
-    #[ExportColumn]
     private bool $isVerified = false;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+#[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '字段说明'])]
     #[Groups(['api', 'admin'])]
-    #[FormField]
-    #[ListColumn]
-    #[ExportColumn]
     private ?string $errorMessage = null;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['api', 'admin'])]
-    #[ListColumn]
-    #[ExportColumn]
     private \DateTimeInterface $createTime;
 
     public function getImageData(): ?string

@@ -11,7 +11,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
-use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
@@ -20,13 +19,7 @@ use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainClassroomBundle\Entity\Registration;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
@@ -37,8 +30,6 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
  *
  * 每次开始学习，就是一次会话，然后我们要监控是否作弊之类的行为，就是监控他单次会话内的行为
  */
-#[AsPermission(title: '学习记录')]
-#[Deletable]
 #[Exportable]
 #[ORM\Entity(repositoryClass: LearnSessionRepository::class)]
 #[ORM\Table(name: 'job_training_learn_session', options: ['comment' => '学习记录'])]
@@ -47,8 +38,6 @@ class
 LearnSession implements ApiArrayInterface, AdminArrayInterface
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -60,46 +49,28 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     #[ORM\JoinColumn(nullable: false)]
     private BizUser $student;
 
-    #[ListColumn(title: '报班')]
-    #[FormField(title: '报班')]
     #[ORM\ManyToOne(inversedBy: 'sessions')]
     #[ORM\JoinColumn(nullable: false)]
     private Registration $registration;
 
-    #[ListColumn(title: '课程')]
-    #[FormField(title: '课程')]
     #[ORM\ManyToOne]
     private Course $course;
 
-    #[ListColumn(title: '课时')]
-    #[FormField(title: '课时')]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private Lesson $lesson;
 
-    #[ListColumn]
-    #[FormField]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '首次学习时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '首次学习时间'])]
     private ?\DateTimeInterface $firstLearnTime = null;
 
-    #[ListColumn]
-    #[FormField]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后学习时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后学习时间'])]
     private ?\DateTimeInterface $lastLearnTime = null;
 
-    #[BoolColumn]
-    #[IndexColumn]
-    #[ListColumn]
-    #[ORM\Column(options: ['comment' => '是否完成'])]
     private bool $finished = false;
 
-    #[BoolColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '是否活跃')]
-    #[ORM\Column(options: ['comment' => '是否为活跃会话（正在学习中）', 'default' => false])]
     private bool $active = false;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '完成时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '完成时间'])]
     private ?\DateTimeInterface $finishTime = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '观看时间点'])]
@@ -109,7 +80,7 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     #[ORM\OneToMany(targetEntity: FaceDetect::class, mappedBy: 'session', orphanRemoval: true)]
     private Collection $faceDetects;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true)]
+#[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '字段说明'])]
     private string $totalDuration = '0.00';
 
     /**
@@ -125,27 +96,21 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     private Collection $learnBehaviors;
 
     #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
     private ?string $createdBy = null;
 
     #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
     #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
     private ?string $createdFromIp = null;
 
     #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
 
     #[CreateUserAgentColumn]
-    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '创建时UA'])]
     private ?string $createdFromUa = null;
 
     #[UpdateUserAgentColumn]
-    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '更新时UA'])]
     private ?string $updatedFromUa = null;
 
 

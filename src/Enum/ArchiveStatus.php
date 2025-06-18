@@ -2,12 +2,21 @@
 
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\Itemable;
+use Tourze\EnumExtra\ItemTrait;
+use Tourze\EnumExtra\Labelable;
+use Tourze\EnumExtra\Selectable;
+use Tourze\EnumExtra\SelectTrait;
+
 /**
  * 档案状态枚举
  */
 enum ArchiveStatus: string
-{
-    case ACTIVE = 'active';     // 活跃
+ implements Itemable, Labelable, Selectable{
+    
+    use ItemTrait;
+    use SelectTrait;
+case ACTIVE = 'active';     // 活跃
     case ARCHIVED = 'archived'; // 已归档
     case EXPIRED = 'expired';   // 已过期
 

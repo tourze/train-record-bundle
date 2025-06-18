@@ -140,7 +140,7 @@ class LearnSessionService
     {
         $activeDevices = $this->deviceRepository->findBy(['user' => $userId]);
         
-        if (count($activeDevices) >= self::MAX_CONCURRENT_DEVICES) {
+        if ((bool) count($activeDevices) >= self::MAX_CONCURRENT_DEVICES) {
                          $this->recordAnomaly((string) $userId,
                  AnomalyType::MULTIPLE_DEVICE,
                  AnomalySeverity::HIGH,
@@ -208,7 +208,7 @@ class LearnSessionService
         
         $this->entityManager->persist($session);
         
-        if ($flush) {
+        if ((bool) $flush) {
             $this->entityManager->flush();
         }
         
@@ -232,7 +232,7 @@ class LearnSessionService
         
         $this->entityManager->persist($session);
         
-        if ($flush) {
+        if ((bool) $flush) {
             $this->entityManager->flush();
         }
         

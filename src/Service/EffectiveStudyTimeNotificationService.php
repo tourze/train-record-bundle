@@ -313,7 +313,7 @@ class EffectiveStudyTimeNotificationService
         $lastSent = $this->cache->get($cacheKey, fn() => 0);
         
         // 避免频繁发送，至少间隔5分钟
-        if ((time() - $lastSent) < 300) {
+        if ((bool) (time() - $lastSent) < 300) {
             return false;
         }
         

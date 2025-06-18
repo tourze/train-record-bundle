@@ -2,12 +2,21 @@
 
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\Itemable;
+use Tourze\EnumExtra\ItemTrait;
+use Tourze\EnumExtra\Labelable;
+use Tourze\EnumExtra\Selectable;
+use Tourze\EnumExtra\SelectTrait;
+
 /**
  * 归档格式枚举
  */
 enum ArchiveFormat: string
-{
-    case JSON = 'json';     // JSON格式
+ implements Itemable, Labelable, Selectable{
+    
+    use ItemTrait;
+    use SelectTrait;
+case JSON = 'json';     // JSON格式
     case XML = 'xml';       // XML格式
     case PDF = 'pdf';       // PDF格式
     case ZIP = 'zip';       // ZIP压缩格式
@@ -141,7 +150,7 @@ enum ArchiveFormat: string
     public static function fromExtension(string $extension): ?self
     {
         $extension = strtolower($extension);
-        if (str_starts_with($extension, '.')) {
+        if ((bool) str_starts_with($extension, '.')) {
             $extension = substr($extension, 1);
         }
 

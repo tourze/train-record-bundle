@@ -109,7 +109,7 @@ class LearnArchiveCommand extends Command
 
         $io->title('学习档案管理');
 
-        if ($dryRun) {
+        if ((bool) $dryRun) {
             $io->note('运行在试运行模式，不会实际执行操作');
         }
 
@@ -336,7 +336,7 @@ class LearnArchiveCommand extends Command
             $io->text("验证档案: {$archiveId}");
             
             $result = $this->archiveService->verifyArchiveIntegrity($archiveId);
-            if ($result['isValid']) {
+            if ((bool) $result['isValid']) {
                 $verifiedCount = 1;
                 $io->success('档案验证通过');
             } else {
@@ -362,7 +362,7 @@ class LearnArchiveCommand extends Command
                     try {
                         $result = $this->archiveService->verifyArchiveIntegrity($archive->getId());
                         
-                        if ($result['isValid']) {
+                        if ((bool) $result['isValid']) {
                             $verifiedCount++;
                         } else {
                             $invalidCount++;

@@ -116,7 +116,7 @@ class LearnStatisticsCommand extends Command
         $io->title('学习统计生成');
 
         try {
-            if ($batchGenerate) {
+            if ((bool) $batchGenerate) {
                 $result = $this->batchGenerateStatistics($date, $period, $days, $save, $io);
             } else {
                 $result = $this->generateSingleStatistics(
@@ -193,7 +193,7 @@ class LearnStatisticsCommand extends Command
         $this->displayStatistics($statisticsData, $format, $io);
 
         // 保存到数据库
-        if ($save) {
+        if ((bool) $save) {
             $this->saveStatistics($statisticsType, $statisticsPeriod, $statisticsData, $userId ?? $courseId ?? 'global');
             $io->note('统计数据已保存到数据库');
         }
@@ -248,7 +248,7 @@ class LearnStatisticsCommand extends Command
 
                 $statisticsData = $this->generateStatisticsData($type, $startDate, $endDate);
 
-                if ($save) {
+                if ((bool) $save) {
                     $this->saveStatistics($type, $statisticsPeriod, $statisticsData, 'global');
                 }
 
@@ -331,7 +331,7 @@ class LearnStatisticsCommand extends Command
      */
     private function displayTableFormat(array $data, SymfonyStyle $io): void
     {
-        if (isset($data['overview'])) {
+        if ((bool) isset($data['overview'])) {
             $io->section('概览');
             $overview = $data['overview'];
             $rows = [];
@@ -341,17 +341,17 @@ class LearnStatisticsCommand extends Command
             $io->table(['指标', '数值'], $rows);
         }
 
-        if (isset($data['userMetrics'])) {
+        if ((bool) isset($data['userMetrics'])) {
             $io->section('用户指标');
             $this->displayMetricsTable($data['userMetrics'], $io);
         }
 
-        if (isset($data['courseMetrics'])) {
+        if ((bool) isset($data['courseMetrics'])) {
             $io->section('课程指标');
             $this->displayMetricsTable($data['courseMetrics'], $io);
         }
 
-        if (isset($data['behaviorAnalysis'])) {
+        if ((bool) isset($data['behaviorAnalysis'])) {
             $io->section('行为分析');
             $this->displayMetricsTable($data['behaviorAnalysis'], $io);
         }
@@ -364,7 +364,7 @@ class LearnStatisticsCommand extends Command
     {
         $rows = [];
         foreach ($metrics as $key => $value) {
-            if (is_array($value)) {
+            if ((bool) is_array($value)) {
                 $value = json_encode($value, JSON_UNESCAPED_UNICODE);
             }
             $rows[] = [ucfirst($key), is_numeric($value) ? number_format($value, 2) : $value];
@@ -389,7 +389,7 @@ class LearnStatisticsCommand extends Command
         foreach ($data as $key => $value) {
             $fullKey = ($prefix !== '') ? $prefix . '.' . $key : $key;
             
-            if (is_array($value)) {
+            if ((bool) is_array($value)) {
                 $this->outputCsvData($value, $io, $fullKey);
             } else {
                 $io->text(sprintf('%s,%s', $fullKey, $value));
@@ -454,7 +454,7 @@ class LearnStatisticsCommand extends Command
         foreach ($data as $key => $value) {
             $fullKey = ($prefix !== '') ? $prefix . '.' . $key : $key;
             
-            if (is_array($value)) {
+            if ((bool) is_array($value)) {
                 $this->writeCsvData($value, $handle, $fullKey);
             } else {
                 fputcsv($handle, [$fullKey, $value]);

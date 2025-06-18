@@ -5,14 +5,11 @@ namespace Tourze\TrainRecordBundle\Entity;
 use BizUserBundle\Entity\BizUser;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\TrainClassroomBundle\Entity\Registration;
 use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
@@ -20,7 +17,7 @@ use Tourze\TrainRecordBundle\Repository\LearnLogRepository;
 
 #[ORM\Entity(repositoryClass: LearnLogRepository::class)]
 #[ORM\Table(name: 'ims_job_training_learn_action_log', options: ['comment' => '学习轨迹'])]
-class LearnLog
+class LearnLog implements Stringable
 {
     #[Groups(['restful_read', 'api_tree', 'admin_curd', 'api_list'])]
     #[ORM\Id]
@@ -44,24 +41,17 @@ class LearnLog
     private LearnAction $action;
 
     #[CreateUserAgentColumn]
-    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '创建时UA'])]
     private ?string $createdFromUa = null;
 
     #[IndexColumn]
-    #[ListColumn(order: 98, sorter: true)]
-    #[ExportColumn]
-    #[CreateTimeColumn]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
     private ?\DateTimeInterface $createTime = null;
 
-    #[ListColumn(order: 99)]
-    #[CreateIpColumn]
     #[ORM\Column(length: 45, nullable: true, options: ['comment' => '创建时IP'])]
     private ?string $createdFromIp = null;
 
     #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
     private ?string $createdBy = null;
 
     public function getId(): ?int
@@ -171,5 +161,10 @@ class LearnLog
     public function getCreatedBy(): ?string
     {
         return $this->createdBy;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 }

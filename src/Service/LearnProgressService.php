@@ -168,7 +168,7 @@ class LearnProgressService
     {
         $progressList = $this->progressRepository->findByUserAndCourse($userId, $courseId);
         
-        if (empty($progressList)) {
+        if ((bool) empty($progressList)) {
             return [
                 'totalLessons' => 0,
                 'completedLessons' => 0,
@@ -225,7 +225,7 @@ class LearnProgressService
             ],
         ];
 
-        if (empty($progressList)) {
+        if ((bool) empty($progressList)) {
             return $statistics;
         }
 
@@ -327,7 +327,7 @@ class LearnProgressService
         ];
         
         // 保留最近100条记录
-        if (count($history) > 100) {
+        if ((bool) count($history) > 100) {
             $history = array_slice($history, -100);
         }
         

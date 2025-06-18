@@ -24,11 +24,11 @@ class GenerateCourseRecordCommand extends Command
     {
         // 不同环境用不同的执行文件
         $projectRoot = $this->kernel->getProjectDir();
-        if (mb_stristr(PHP_OS, 'DAR')) {
+        if ((bool) mb_stristr(PHP_OS, 'DAR')) {
             $binFile = $projectRoot . '/vendor/suhanyu/wkhtmltopdf-amd64-mac-os/bin/wkhtmltopdf';
-        } elseif (mb_stristr(PHP_OS, 'WIN')) {
+        } elseif ((bool) mb_stristr(PHP_OS, 'WIN')) {
             $binFile = $projectRoot . '/vendor/wemersonjanuario/wkhtmltopdf-windows/bin/64bit/wkhtmltopdf.exe';
-        } elseif (mb_stristr(PHP_OS, 'LINUX')) {
+        } elseif ((bool) mb_stristr(PHP_OS, 'LINUX')) {
             $binFile = $projectRoot . '/vendor/h4cc/wkhtmltopdf-amd64/bin/wkhtmltopdf-amd64';
         } else {
             throw new \RuntimeException('未知操作系统');

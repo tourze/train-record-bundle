@@ -215,7 +215,7 @@ class LearnArchiveService
         while (true) {
             $sessions = $this->sessionRepository->findExpiredSessions($cutoffDate, self::ARCHIVE_BATCH_SIZE, $offset);
             
-            if (empty($sessions)) {
+            if ((bool) empty($sessions)) {
                 break;
             }
 
@@ -398,7 +398,7 @@ class LearnArchiveService
      */
     private function calculateCompletionRate(array $sessions): float
     {
-        if (empty($sessions)) {
+        if ((bool) empty($sessions)) {
             return 0.0;
         }
 
@@ -425,7 +425,7 @@ class LearnArchiveService
     private function getMostCommonBehavior(array $behaviors): ?string
     {
         $stats = $this->calculateBehaviorStats($behaviors);
-        if (empty($stats)) {
+        if ((bool) empty($stats)) {
             return null;
         }
         return array_key_first(array_slice(arsort($stats) ? $stats : [], 0, 1, true));
@@ -528,7 +528,7 @@ class LearnArchiveService
     private function arrayToXml(array $data, \SimpleXMLElement $xml): void
     {
         foreach ($data as $key => $value) {
-            if (is_array($value)) {
+            if ((bool) is_array($value)) {
                 $subnode = $xml->addChild($key);
                 $this->arrayToXml($value, $subnode);
             } else {

@@ -90,11 +90,11 @@ class LearnAnomalyDetectCommand extends Command
 
         $io->title('学习异常检测');
 
-        if ($dryRun) {
+        if ((bool) $dryRun) {
             $io->note('运行在试运行模式，不会实际创建异常记录');
         }
 
-        if ($autoResolve) {
+        if ((bool) $autoResolve) {
             $io->note('启用自动解决轻微异常功能');
         }
 
@@ -361,7 +361,7 @@ class LearnAnomalyDetectCommand extends Command
             $anomalies = $this->anomalyService->detectMultipleDeviceAnomaly((string) $userId);
             $totalDetected += count($anomalies);
 
-            if ($autoResolve) {
+            if ((bool) $autoResolve) {
                 foreach ($anomalies as $anomaly) {
                     if ($anomaly->getSeverity() === AnomalySeverity::LOW) {
                         $this->anomalyService->resolveAnomaly(

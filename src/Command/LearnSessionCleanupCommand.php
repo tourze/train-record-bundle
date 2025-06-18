@@ -53,7 +53,7 @@ class LearnSessionCleanupCommand extends Command
 
         $io->title('清理无效的学习会话');
         
-        if ($dryRun) {
+        if ((bool) $dryRun) {
             $io->note('模拟运行模式：不会实际修改数据');
         }
 
@@ -63,7 +63,7 @@ class LearnSessionCleanupCommand extends Command
             // 查找超时的活跃会话
             $inactiveSessions = $this->sessionRepository->findInactiveActiveSessions($threshold);
             
-            if (empty($inactiveSessions)) {
+            if ((bool) empty($inactiveSessions)) {
                 $io->success('没有发现无效的学习会话');
                 return Command::SUCCESS;
             }

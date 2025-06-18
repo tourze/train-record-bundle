@@ -110,7 +110,7 @@ class LearnMonitorCommand extends Command
         }
 
         // 设置信号处理
-        if (function_exists('pcntl_signal')) {
+        if ((bool) function_exists('pcntl_signal')) {
             pcntl_signal(SIGTERM, [$this, 'handleSignal']);
             pcntl_signal(SIGINT, [$this, 'handleSignal']);
         }
@@ -145,7 +145,7 @@ class LearnMonitorCommand extends Command
                 sleep($interval);
 
                 // 处理信号
-                if (function_exists('pcntl_signal_dispatch')) {
+                if ((bool) function_exists('pcntl_signal_dispatch')) {
                     pcntl_signal_dispatch();
                 }
             }
@@ -371,7 +371,7 @@ class LearnMonitorCommand extends Command
             ]);
 
             // 自动解决
-            if ($autoResolve) {
+            if ((bool) $autoResolve) {
                 $this->performAutoResolve($data, $io, $quiet);
             }
         }
@@ -404,7 +404,7 @@ class LearnMonitorCommand extends Command
             }
         }
 
-        if ($resolvedCount > 0 && !$quiet) {
+        if ($resolvedCount > 0 && (bool) !$quiet) {
             $io->note("自动解决了 {$resolvedCount} 个轻微异常");
         }
     }
@@ -430,7 +430,7 @@ class LearnMonitorCommand extends Command
             $totalDuration += $session->getTotalDuration();
         }
 
-        if (count($sessions) > 0) {
+        if ((bool) count($sessions) > 0) {
             $details['avgDuration'] = round($totalDuration / count($sessions), 2);
         }
 

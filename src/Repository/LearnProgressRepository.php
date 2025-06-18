@@ -162,7 +162,7 @@ class LearnProgressRepository extends ServiceEntityRepository
     {
         $this->getEntityManager()->persist($progress);
         
-        if ($flush) {
+        if ((bool) $flush) {
             $this->getEntityManager()->flush();
         }
     }
