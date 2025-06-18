@@ -166,4 +166,47 @@ class LearnProgressRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * 根据课程查找学习进度
+     */
+    public function findByCourse(string $courseId): array
+    {
+        return $this->createQueryBuilder('lp')
+            ->andWhere('lp.course = :courseId')
+            ->setParameter('courseId', $courseId)
+            ->orderBy('lp.createTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 根据用户查找学习进度
+     */
+    public function findByUser(string $userId): array
+    {
+        return $this->createQueryBuilder('lp')
+            ->andWhere('lp.userId = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('lp.createTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 根据用户和日期范围查找学习进度
+     */
+    public function findByUserAndDateRange(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('lp')
+            ->andWhere('lp.userId = :userId')
+            ->andWhere('lp.createTime >= :startDate')
+            ->andWhere('lp.createTime <= :endDate')
+            ->setParameter('userId', $userId)
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('lp.createTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

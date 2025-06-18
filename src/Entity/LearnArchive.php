@@ -9,8 +9,6 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
@@ -135,14 +133,8 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后验证时间'])]
     private ?\DateTimeInterface $lastVerificationTime = null;
 
-    #[IndexColumn]
-    #[CreateTimeColumn]
-    #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn(title: '创建时间', order: 98, sorter: true)]
-    #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
-    #[ListColumn(title: '更新时间', order: 99, sorter: true)]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]public function __construct()
+
+    public function __construct()
     {
         $this->archiveDate = new \DateTimeImmutable();
         $this->expiryDate = new \DateTimeImmutable('+3 years'); // 3年保存期限
@@ -506,7 +498,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
             'needsVerification' => $this->needsVerification(),
             'archiveDate' => $this->archiveDate?->format('Y-m-d H:i:s'),
             'expiryDate' => $this->expiryDate?->format('Y-m-d H:i:s'),
-            'createTime' => $this->createTime?->format('Y-m-d H:i:s'),
+            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
         ];
     }
 
@@ -539,8 +531,8 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
             'archiveDate' => $this->archiveDate?->format('Y-m-d H:i:s'),
             'expiryDate' => $this->expiryDate?->format('Y-m-d H:i:s'),
             'lastVerificationTime' => $this->lastVerificationTime?->format('Y-m-d H:i:s'),
-            'createTime' => $this->createTime?->format('Y-m-d H:i:s'),
-            'updateTime' => $this->updateTime?->format('Y-m-d H:i:s'),
+            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
+            'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ];
     }
 } 

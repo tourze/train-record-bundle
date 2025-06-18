@@ -9,8 +9,6 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
@@ -138,14 +136,8 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展数据JSON'])]
     private ?array $extendedData = null;
 
-    #[IndexColumn]
-    #[CreateTimeColumn]
-    #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn(title: '创建时间', order: 98, sorter: true)]
-    #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
-    #[ListColumn(title: '更新时间', order: 99, sorter: true)]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]public function __construct()
+
+    public function __construct()
     {
         $this->statisticsDate = new \DateTimeImmutable();
     }
@@ -463,7 +455,7 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
             'anomalyRate' => $this->getAnomalyRate(),
             'completionRate' => $this->getCompletionRate(),
             'averageEfficiency' => $this->getAverageEfficiency(),
-            'createTime' => $this->createTime?->format('Y-m-d H:i:s'),
+            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
         ];
     }
 
@@ -498,8 +490,8 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
             'averageEfficiency' => $this->getAverageEfficiency(),
             'extendedData' => $this->extendedData,
             'summary' => $this->getSummary(),
-            'createTime' => $this->createTime?->format('Y-m-d H:i:s'),
-            'updateTime' => $this->updateTime?->format('Y-m-d H:i:s'),
+            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
+            'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ];
     }
 } 

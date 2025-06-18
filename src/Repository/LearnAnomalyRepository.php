@@ -181,4 +181,34 @@ class LearnAnomalyRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 根据日期范围查找异常
+     */
+    public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('la')
+            ->andWhere('la.detectedTime >= :startDate')
+            ->andWhere('la.detectedTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('la.detectedTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找未解决的异常
+     */
+    public function findUnresolved(): array
+    {
+        return $this->createQueryBuilder('la')
+            ->andWhere('la.status != :resolved AND la.status != :ignored')
+            ->setParameter('resolved', AnomalyStatus::RESOLVED)
+            ->setParameter('ignored', AnomalyStatus::IGNORED)
+            ->orderBy('la.severity', 'DESC')
+            ->addOrderBy('la.detectedTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

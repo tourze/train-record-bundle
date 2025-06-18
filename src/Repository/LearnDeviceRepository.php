@@ -116,4 +116,30 @@ class LearnDeviceRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * 查找活跃的设备
+     */
+    public function findActive(): array
+    {
+        return $this->createQueryBuilder('ld')
+            ->andWhere('ld.isActive = true')
+            ->andWhere('ld.isBlocked = false')
+            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 根据最后使用时间查找设备
+     */
+    public function findByLastSeenAfter(\DateTimeInterface $afterDate): array
+    {
+        return $this->createQueryBuilder('ld')
+            ->andWhere('ld.lastUsedTime > :afterDate')
+            ->setParameter('afterDate', $afterDate)
+            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

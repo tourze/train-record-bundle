@@ -76,4 +76,35 @@ class LearnBehaviorRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 根据日期范围查找行为记录
+     */
+    public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->andWhere('lb.createTime >= :startDate')
+            ->andWhere('lb.createTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('lb.createTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 根据日期范围查找可疑行为记录
+     */
+    public function findSuspiciousByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->andWhere('lb.createTime >= :startDate')
+            ->andWhere('lb.createTime <= :endDate')
+            ->andWhere('lb.isSuspicious = true')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('lb.createTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

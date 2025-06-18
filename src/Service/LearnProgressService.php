@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
@@ -22,7 +23,8 @@ class LearnProgressService
     private const EFFECTIVE_TIME_RATIO = 0.8;   // 有效时长比例阈值
 
     public function __construct(
-                private readonly LearnProgressRepository $progressRepository,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly LearnProgressRepository $progressRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LoggerInterface $logger,
     ) {
@@ -118,7 +120,7 @@ class LearnProgressService
     public function getUserProgress(string $userId, ?string $courseId = null): array
     {
         if ($courseId !== null) {
-            return $this->progressRepository->findByCourse($userId, $courseId);
+            return $this->progressRepository->findByUserAndCourse($userId, $courseId);
         }
         
         return $this->progressRepository->findByUser($userId);
@@ -163,7 +165,7 @@ class LearnProgressService
      */
     public function calculateCourseProgress(string $userId, string $courseId): array
     {
-        $progressList = $this->progressRepository->findByCourse($userId, $courseId);
+        $progressList = $this->progressRepository->findByUserAndCourse($userId, $courseId);
         
         if (empty($progressList)) {
             return [
@@ -361,5 +363,44 @@ class LearnProgressService
         ]);
 
         return true;
+    }
+
+    /**
+     * 重新计算有效学习时长
+     */
+    public function recalculateEffectiveTime(string $userId, ?string $courseId = null): int
+    {
+        $progressRecords = $courseId 
+            ? $this->progressRepository->findByUserAndCourse($userId, $courseId)
+            : $this->progressRepository->findByUser($userId);
+
+        $recalculatedCount = 0;
+        
+        foreach ($progressRecords as $progress) {
+            $sessions = $this->sessionRepository->findByUserAndLesson($userId, $progress->getLesson()->getId());
+            
+            $totalEffectiveTime = 0;
+            foreach ($sessions as $session) {
+                $totalEffectiveTime += $session->getEffectiveLearnTime() ?? 0;
+            }
+            
+            if ($progress->getEffectiveDuration() !== $totalEffectiveTime) {
+                $progress->setEffectiveDuration($totalEffectiveTime);
+                $this->entityManager->persist($progress);
+                $recalculatedCount++;
+            }
+        }
+        
+        if ($recalculatedCount > 0) {
+            $this->entityManager->flush();
+        }
+
+        $this->logger->info('有效学习时长重新计算完成', [
+            'userId' => $userId,
+            'courseId' => $courseId,
+            'recalculatedCount' => $recalculatedCount,
+        ]);
+
+        return $recalculatedCount;
     }
 } 

@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainRecordBundle\Entity\LearnArchive;
@@ -27,7 +28,8 @@ class LearnArchiveService
     private const ARCHIVE_FORMAT_PDF = 'pdf';      // PDF格式
 
     public function __construct(
-                private readonly LearnArchiveRepository $archiveRepository,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly LearnArchiveRepository $archiveRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly LearnAnomalyRepository $anomalyRepository,
@@ -549,6 +551,125 @@ class LearnArchiveService
         $content .= json_encode($data['behaviorSummary'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $content .= "\n\n异常汇总:\n";
         $content .= json_encode($data['anomalySummary'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        
+        return $content;
+    }
+
+    /**
+     * 导出档案为指定格式
+     */
+    public function exportArchive(string $archiveId, string $format): string
+    {
+        $archive = $this->archiveRepository->find($archiveId);
+        if ($archive === null) {
+            throw new \InvalidArgumentException('档案不存在');
+        }
+
+        $exportPath = $this->archiveStoragePath . '/export_' . $archiveId . '_' . time() . '.' . $format;
+        
+        switch ($format) {
+            case 'json':
+                $content = $this->exportAsJson($archive);
+                break;
+            case 'xml':
+                $content = $this->exportAsXml($archive);
+                break;
+            case 'pdf':
+                $content = $this->exportAsPdf($archive);
+                break;
+            default:
+                throw new \InvalidArgumentException('不支持的导出格式: ' . $format);
+        }
+
+        if (!is_dir(dirname($exportPath))) {
+            mkdir(dirname($exportPath), 0755, true);
+        }
+        
+        file_put_contents($exportPath, $content);
+
+        $this->logger->info('档案已导出', [
+            'archiveId' => $archiveId,
+            'format' => $format,
+            'exportPath' => $exportPath,
+        ]);
+
+        return $exportPath;
+    }
+
+    /**
+     * 获取即将过期的档案
+     */
+    public function getExpiringArchives(int $daysBeforeExpiry = 30): array
+    {
+        $thresholdDate = (new \DateTimeImmutable())->modify("+{$daysBeforeExpiry} days");
+        
+        return $this->archiveRepository->createQueryBuilder('la')
+            ->andWhere('la.expiryDate <= :threshold')
+            ->andWhere('la.archiveStatus = :active')
+            ->setParameter('threshold', $thresholdDate)
+            ->setParameter('active', ArchiveStatus::ACTIVE)
+            ->orderBy('la.expiryDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 导出为JSON格式
+     */
+    private function exportAsJson(LearnArchive $archive): string
+    {
+        $data = [
+            'id' => $archive->getId(),
+            'userId' => $archive->getUserId(),
+            'courseId' => $archive->getCourse()?->getId(),
+            'archiveDate' => $archive->getArchiveDate()?->format('Y-m-d H:i:s'),
+            'expiryDate' => $archive->getExpiryDate()?->format('Y-m-d H:i:s'),
+            'status' => $archive->getArchiveStatus()?->value,
+            'format' => $archive->getArchiveFormat()?->value,
+            'sessionSummary' => $archive->getSessionSummary(),
+            'behaviorSummary' => $archive->getBehaviorSummary(),
+            'anomalySummary' => $archive->getAnomalySummary(),
+            'totalEffectiveTime' => $archive->getTotalEffectiveTime(),
+            'totalSessions' => $archive->getTotalSessions(),
+        ];
+        
+        return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * 导出为XML格式
+     */
+    private function exportAsXml(LearnArchive $archive): string
+    {
+        $xml = new \SimpleXMLElement('<archive/>');
+        $xml->addChild('id', $archive->getId());
+        $xml->addChild('userId', $archive->getUserId());
+        $xml->addChild('courseId', (string)$archive->getCourse()?->getId());
+        $xml->addChild('archiveDate', $archive->getArchiveDate()?->format('Y-m-d H:i:s'));
+        $xml->addChild('expiryDate', $archive->getExpiryDate()?->format('Y-m-d H:i:s'));
+        $xml->addChild('status', (string)$archive->getArchiveStatus()?->value);
+        $xml->addChild('format', (string)$archive->getArchiveFormat()?->value);
+        $xml->addChild('totalEffectiveTime', (string)$archive->getTotalEffectiveTime());
+        $xml->addChild('totalSessions', (string)$archive->getTotalSessions());
+        
+        return $xml->asXML() ?: '';
+    }
+
+    /**
+     * 导出为PDF格式（简化版本）
+     */
+    private function exportAsPdf(LearnArchive $archive): string
+    {
+        // 这里应该使用PDF生成库，暂时返回文本内容
+        $content = "学习档案导出\n";
+        $content .= "==================\n";
+        $content .= "档案ID: " . $archive->getId() . "\n";
+        $content .= "用户ID: " . $archive->getUserId() . "\n";
+        $content .= "课程ID: " . $archive->getCourse()?->getId() . "\n";
+        $content .= "归档时间: " . $archive->getArchiveDate()?->format('Y-m-d H:i:s') . "\n";
+        $content .= "过期时间: " . $archive->getExpiryDate()?->format('Y-m-d H:i:s') . "\n";
+        $content .= "总有效时长: " . $archive->getTotalEffectiveTime() . " 秒\n";
+        $content .= "总会话数: " . $archive->getTotalSessions() . "\n";
         
         return $content;
     }

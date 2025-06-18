@@ -61,6 +61,19 @@ class LearnArchiveRepository extends ServiceEntityRepository
     }
 
     /**
+     * 根据状态查找档案
+     */
+    public function findByStatus(ArchiveStatus $status): array
+    {
+        return $this->createQueryBuilder('la')
+            ->andWhere('la.archiveStatus = :status')
+            ->setParameter('status', $status)
+            ->orderBy('la.createTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * 统计档案信息
      */
     public function getArchiveStats(): array

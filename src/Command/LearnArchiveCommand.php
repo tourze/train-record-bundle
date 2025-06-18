@@ -491,7 +491,7 @@ class LearnArchiveCommand extends Command
     private function getCompletedSessions(?string $userId, ?string $courseId): array
     {
         // 简化实现，实际应该查询已完成的会话
-        return $this->sessionRepository->findCompletedSessions($userId, $courseId);
+        return $this->sessionRepository->findCompletedSessions();
     }
 
     /**

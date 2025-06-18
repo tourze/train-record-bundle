@@ -177,4 +177,64 @@ class LearnSessionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 查找已完成的会话
+     * 
+     * @return LearnSession[]
+     */
+    public function findCompletedSessions(): array
+    {
+        return $this->createQueryBuilder('ls')
+            ->where('ls.finished = :finished')
+            ->setParameter('finished', true)
+            ->orderBy('ls.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找活跃的会话
+     * 
+     * @return LearnSession[]
+     */
+    public function findActiveSessions(): array
+    {
+        return $this->createQueryBuilder('ls')
+            ->where('ls.active = :active')
+            ->andWhere('ls.finished = :finished')
+            ->setParameter('active', true)
+            ->setParameter('finished', false)
+            ->orderBy('ls.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 根据用户和课时查找会话
+     * 
+     * @param string $userId 用户ID
+     * @param string $lessonId 课时ID
+     * @return LearnSession[]
+     */
+    public function findByUserAndLesson(string $userId, string $lessonId): array
+    {
+        return $this->createQueryBuilder('ls')
+            ->leftJoin('ls.student', 's')
+            ->where('s.id = :userId')
+            ->andWhere('ls.lesson = :lessonId')
+            ->setParameter('userId', $userId)
+            ->setParameter('lessonId', $lessonId)
+            ->orderBy('ls.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 刷新实体管理器
+     */
+    public function flush(): void
+    {
+        $this->getEntityManager()->flush();
+    }
 }
