@@ -68,7 +68,8 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(options: ['comment' => '是否完成', 'default' => false])]
     private bool $isCompleted = false;
 
-    private ?\DateTimeInterface $lastUpdateTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后更新时间'])]
+    private ?\DateTimeImmutable $lastUpdateTime = null;
 
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '最后更新设备指纹'])]
     private ?string $lastUpdateDevice = null;
@@ -184,12 +185,12 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getLastUpdateTime(): ?\DateTimeInterface
+    public function getLastUpdateTime(): ?\DateTimeImmutable
     {
         return $this->lastUpdateTime;
     }
 
-    public function setLastUpdateTime(?\DateTimeInterface $lastUpdateTime): static
+    public function setLastUpdateTime(?\DateTimeImmutable $lastUpdateTime): static
     {
         $this->lastUpdateTime = $lastUpdateTime;
         return $this;
@@ -337,7 +338,7 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
     /**
      * 检查是否需要同步
      */
-    public function needsSync(\DateTimeInterface $lastSyncTime): bool
+    public function needsSync(\DateTimeImmutable $lastSyncTime): bool
     {
         return $this->lastUpdateTime && $this->lastUpdateTime > $lastSyncTime;
     }

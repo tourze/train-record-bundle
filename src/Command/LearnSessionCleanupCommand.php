@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 #[AsCommand(
-    name: 'train:learn-session:cleanup',
+    name: self::NAME,
     description: '清理无效的学习会话（3分钟内未更新的活跃会话）',
 )]
 class LearnSessionCleanupCommand extends Command

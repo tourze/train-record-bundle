@@ -22,14 +22,20 @@ class LearnDeviceRepository extends ServiceEntityRepository
     /**
      * 查找用户的活跃设备
      */
-    public function findActiveByUser(string $userId): array
+    public function findActiveByUser(string $userId, ?\DateTimeInterface $threshold = null): array
     {
-        return $this->createQueryBuilder('ld')
+        $qb = $this->createQueryBuilder('ld')
             ->andWhere('ld.userId = :userId')
             ->andWhere('ld.isActive = true')
             ->andWhere('ld.isBlocked = false')
-            ->setParameter('userId', $userId)
-            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->setParameter('userId', $userId);
+        
+        if ($threshold !== null) {
+            $qb->andWhere('ld.lastUsedTime >= :threshold')
+               ->setParameter('threshold', $threshold);
+        }
+        
+        return $qb->orderBy('ld.lastUsedTime', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -138,6 +144,32 @@ class LearnDeviceRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('ld')
             ->andWhere('ld.lastUsedTime > :afterDate')
             ->setParameter('afterDate', $afterDate)
+            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 根据用户ID和设备指纹查找设备
+     */
+    public function findByUserAndFingerprint(string $userId, string $deviceFingerprint): ?LearnDevice
+    {
+        return $this->createQueryBuilder('ld')
+            ->andWhere('ld.userId = :userId')
+            ->andWhere('ld.deviceFingerprint = :deviceFingerprint')
+            ->setParameter('userId', $userId)
+            ->setParameter('deviceFingerprint', $deviceFingerprint)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * 查找用户的所有设备
+     */
+    public function findByUser(string $userId): array
+    {
+        return $this->createQueryBuilder('ld')
+            ->andWhere('ld.userId = :userId')
             ->orderBy('ld.lastUsedTime', 'DESC')
             ->getQuery()
             ->getResult();

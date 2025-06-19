@@ -70,9 +70,11 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '解决人'])]
     private ?string $resolvedBy = null;
 
-    private ?\DateTimeInterface $detectedTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '检测时间'])]
+    private ?\DateTimeImmutable $detectedTime = null;
 
-    private ?\DateTimeInterface $resolvedTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '解决时间'])]
+    private ?\DateTimeImmutable $resolvedTime = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2, nullable: true, options: ['comment' => '影响评分（0-10）'])]
     private ?string $impactScore = null;
@@ -193,23 +195,23 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getDetectedTime(): ?\DateTimeInterface
+    public function getDetectedTime(): ?\DateTimeImmutable
     {
         return $this->detectedTime;
     }
 
-    public function setDetectedTime(?\DateTimeInterface $detectedTime): static
+    public function setDetectedTime(?\DateTimeImmutable $detectedTime): static
     {
         $this->detectedTime = $detectedTime;
         return $this;
     }
 
-    public function getResolvedTime(): ?\DateTimeInterface
+    public function getResolvedTime(): ?\DateTimeImmutable
     {
         return $this->resolvedTime;
     }
 
-    public function setResolvedTime(?\DateTimeInterface $resolvedTime): static
+    public function setResolvedTime(?\DateTimeImmutable $resolvedTime): static
     {
         $this->resolvedTime = $resolvedTime;
         return $this;

@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Entity\LearnDevice;
 use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
@@ -16,7 +17,8 @@ class LearnDeviceService
     private const DEVICE_ACTIVE_THRESHOLD = 3600; // 设备活跃阈值（1小时）
     
     public function __construct(
-                private readonly LearnDeviceRepository $deviceRepository,
+        private readonly LearnDeviceRepository $deviceRepository,
+        private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -36,24 +38,29 @@ class LearnDeviceService
             $device = new LearnDevice();
             $device->setUserId($userId);
             $device->setDeviceFingerprint($deviceFingerprint);
-            $device->setFirstSeenTime(new \DateTimeImmutable());
-            $device->setSessionCount(0);
-            $device->setSuspiciousCount(0);
+            $device->setFirstUsedTime(new \DateTimeImmutable());
+            $device->setUsageCount(0);
+            // Initialize suspicious count removed - not in entity
             $device->setIsTrusted(false);
         }
         
         // 更新设备信息
         $device->setDeviceType($this->detectDeviceType($deviceInfo));
-        $device->setDeviceInfo($deviceInfo['device'] ?? []);
-        $device->setBrowserInfo($deviceInfo['browser'] ?? []);
-        $device->setOsInfo($deviceInfo['os'] ?? []);
-        $device->setLastSeenTime(new \DateTimeImmutable());
+        $device->setDeviceFeatures($deviceInfo['device'] ?? []);
+        if (isset($deviceInfo['browser']['name'])) {
+            $device->setBrowser($deviceInfo['browser']['name']);
+        }
+        if (isset($deviceInfo['os']['name'])) {
+            $device->setOperatingSystem($deviceInfo['os']['name']);
+        }
+        $device->setLastUsedTime(new \DateTimeImmutable());
         $device->setIsActive(true);
         
         // 增加会话计数
-        $device->setSessionCount($device->getSessionCount() + 1);
+        $device->setUsageCount($device->getUsageCount() + 1);
         
-        $this->deviceRepository->save($device);
+        $this->entityManager->persist($device);
+        $this->entityManager->flush();
         
         $this->logger->info('设备已注册', [
             'userId' => $userId,
@@ -92,7 +99,8 @@ class LearnDeviceService
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
         if ($device !== null) {
             $device->setIsTrusted(true);
-            $this->deviceRepository->save($device);
+            $this->entityManager->persist($device);
+        $this->entityManager->flush();
             
             $this->logger->info('设备已标记为受信任', [
                 'userId' => $userId,
@@ -108,14 +116,11 @@ class LearnDeviceService
     {
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
         if ($device !== null) {
-            $device->setSuspiciousCount($device->getSuspiciousCount() + 1);
+            // 记录可疑活动 - 直接取消信任
+            $device->setIsTrusted(false);
             
-            // 如果可疑活动过多，取消信任
-            if ($device->getSuspiciousCount() >= 5) {
-                $device->setIsTrusted(false);
-            }
-            
-            $this->deviceRepository->save($device);
+            $this->entityManager->persist($device);
+            $this->entityManager->flush();
             
             $this->logger->warning('记录设备可疑活动', [
                 'userId' => $userId,
@@ -133,7 +138,8 @@ class LearnDeviceService
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
         if ($device !== null) {
             $device->setIsActive(false);
-            $this->deviceRepository->save($device);
+            $this->entityManager->persist($device);
+        $this->entityManager->flush();
             
             $this->logger->info('设备已停用', [
                 'userId' => $userId,

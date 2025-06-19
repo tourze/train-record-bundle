@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Twig\Environment;
 
-#[AsCommand(name: 'job-training:generate-course-record', description: '学成学时证明')]
+#[AsCommand(name: self::NAME, description: '学成学时证明')]
 class GenerateCourseRecordCommand extends Command
 {
     protected const NAME = 'job-training:generate-course-record';

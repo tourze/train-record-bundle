@@ -47,7 +47,7 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
 
     #[IndexColumn]
     #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '统计日期'])]
-    private \DateTimeInterface $statisticsDate;
+    private \DateTimeImmutable $statisticsDate;
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '用户统计JSON'])]
     private ?array $userStatistics = null;
@@ -130,12 +130,12 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getStatisticsDate(): \DateTimeInterface
+    public function getStatisticsDate(): \DateTimeImmutable
     {
         return $this->statisticsDate;
     }
 
-    public function setStatisticsDate(\DateTimeInterface $statisticsDate): static
+    public function setStatisticsDate(\DateTimeImmutable $statisticsDate): static
     {
         $this->statisticsDate = $statisticsDate;
         return $this;

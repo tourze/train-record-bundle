@@ -82,9 +82,11 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '阻止原因'])]
     private ?string $blockReason = null;
 
-    private ?\DateTimeInterface $firstUsedTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '首次使用时间'])]
+    private ?\DateTimeImmutable $firstUsedTime = null;
 
-    private ?\DateTimeInterface $lastUsedTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后使用时间'])]
+    private ?\DateTimeImmutable $lastUsedTime = null;
 
     #[ORM\Column(options: ['comment' => '使用次数', 'default' => 0])]
     private int $usageCount = 0;
@@ -273,23 +275,23 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getFirstUsedTime(): ?\DateTimeInterface
+    public function getFirstUsedTime(): ?\DateTimeImmutable
     {
         return $this->firstUsedTime;
     }
 
-    public function setFirstUsedTime(?\DateTimeInterface $firstUsedTime): static
+    public function setFirstUsedTime(?\DateTimeImmutable $firstUsedTime): static
     {
         $this->firstUsedTime = $firstUsedTime;
         return $this;
     }
 
-    public function getLastUsedTime(): ?\DateTimeInterface
+    public function getLastUsedTime(): ?\DateTimeImmutable
     {
         return $this->lastUsedTime;
     }
 
-    public function setLastUsedTime(?\DateTimeInterface $lastUsedTime): static
+    public function setLastUsedTime(?\DateTimeImmutable $lastUsedTime): static
     {
         $this->lastUsedTime = $lastUsedTime;
         return $this;

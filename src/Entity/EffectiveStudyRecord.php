@@ -5,6 +5,7 @@ namespace Tourze\TrainRecordBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainRecordBundle\Enum\InvalidTimeReason;
@@ -24,6 +25,8 @@ use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
 #[ORM\Index(name: 'idx_effective_duration', columns: ['effective_duration'])]
 class EffectiveStudyRecord implements Stringable
 {
+    use TimestampableAware;
+
     /**
      * 主键ID
      */
@@ -62,19 +65,19 @@ class EffectiveStudyRecord implements Stringable
      * 学习日期
      */
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: false, options: ['comment' => '学习日期'])]
-    private \DateTimeInterface $studyDate;
+    private \DateTimeImmutable $studyDate;
 
     /**
      * 开始时间
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '开始时间'])]
-    private \DateTimeInterface $startTime;
+    private \DateTimeImmutable $startTime;
 
     /**
      * 结束时间
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '结束时间'])]
-    private \DateTimeInterface $endTime;
+    private \DateTimeImmutable $endTime;
 
     /**
      * 总时长（秒）
@@ -170,7 +173,7 @@ class EffectiveStudyRecord implements Stringable
      * 审核时间
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '审核时间'])]
-    private ?\DateTimeInterface $reviewedAt = null;
+    private ?\DateTimeImmutable $reviewedAt = null;
 
     /**
      * 是否计入日累计时长
@@ -183,18 +186,6 @@ class EffectiveStudyRecord implements Stringable
      */
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否已通知学员', 'default' => false])]
     private bool $studentNotified = false;
-
-    /**
-     * 创建时间
-     */
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    /**
-     * 更新时间
-     */
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -252,34 +243,34 @@ class EffectiveStudyRecord implements Stringable
         return $this;
     }
 
-    public function getStudyDate(): \DateTimeInterface
+    public function getStudyDate(): \DateTimeImmutable
     {
         return $this->studyDate;
     }
 
-    public function setStudyDate(\DateTimeInterface $studyDate): static
+    public function setStudyDate(\DateTimeImmutable $studyDate): static
     {
         $this->studyDate = $studyDate;
         return $this;
     }
 
-    public function getStartTime(): \DateTimeInterface
+    public function getStartTime(): \DateTimeImmutable
     {
         return $this->startTime;
     }
 
-    public function setStartTime(\DateTimeInterface $startTime): static
+    public function setStartTime(\DateTimeImmutable $startTime): static
     {
         $this->startTime = $startTime;
         return $this;
     }
 
-    public function getEndTime(): \DateTimeInterface
+    public function getEndTime(): \DateTimeImmutable
     {
         return $this->endTime;
     }
 
-    public function setEndTime(\DateTimeInterface $endTime): static
+    public function setEndTime(\DateTimeImmutable $endTime): static
     {
         $this->endTime = $endTime;
         return $this;
@@ -450,12 +441,12 @@ class EffectiveStudyRecord implements Stringable
         return $this;
     }
 
-    public function getReviewedAt(): ?\DateTimeInterface
+    public function getReviewedAt(): ?\DateTimeImmutable
     {
         return $this->reviewedAt;
     }
 
-    public function setReviewedAt(?\DateTimeInterface $reviewedAt): static
+    public function setReviewedAt(?\DateTimeImmutable $reviewedAt): static
     {
         $this->reviewedAt = $reviewedAt;
         return $this;
@@ -610,28 +601,6 @@ class EffectiveStudyRecord implements Stringable
             $rate >= 0.4 => '较差',
             default => '很差',
         };
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(?\DateTimeInterface $createTime): static
-    {
-        $this->createTime = $createTime;
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): static
-    {
-        $this->updateTime = $updateTime;
-        return $this;
     }
 
     public function __toString(): string

@@ -13,7 +13,7 @@ use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
 use Tourze\TrainRecordBundle\Service\EffectiveStudyTimeService;
 
 #[AsCommand(
-    name: 'effective-study-time:recalculate',
+    name: self::NAME,
     description: '重新计算有效学时记录'
 )]
 class EffectiveStudyTimeRecalculateCommand extends Command

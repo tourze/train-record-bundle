@@ -61,17 +61,17 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     private Lesson $lesson;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '首次学习时间'])]
-    private ?\DateTimeInterface $firstLearnTime = null;
+    private ?\DateTimeImmutable $firstLearnTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后学习时间'])]
-    private ?\DateTimeInterface $lastLearnTime = null;
+    private ?\DateTimeImmutable $lastLearnTime = null;
 
     private bool $finished = false;
 
     private bool $active = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '完成时间'])]
-    private ?\DateTimeInterface $finishTime = null;
+    private ?\DateTimeImmutable $finishTime = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '观看时间点'])]
     private string $currentDuration = '0.00';
@@ -230,12 +230,12 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getFirstLearnTime(): ?\DateTimeInterface
+    public function getFirstLearnTime(): ?\DateTimeImmutable
     {
         return $this->firstLearnTime;
     }
 
-    public function setFirstLearnTime(?\DateTimeInterface $firstLearnTime): static
+    public function setFirstLearnTime(?\DateTimeImmutable $firstLearnTime): static
     {
         $this->firstLearnTime = $firstLearnTime;
         if (null === $this->getRegistration()->getFirstLearnTime()) {
@@ -245,12 +245,12 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getLastLearnTime(): ?\DateTimeInterface
+    public function getLastLearnTime(): ?\DateTimeImmutable
     {
         return $this->lastLearnTime;
     }
 
-    public function setLastLearnTime(?\DateTimeInterface $lastLearnTime): static
+    public function setLastLearnTime(?\DateTimeImmutable $lastLearnTime): static
     {
         $this->lastLearnTime = $lastLearnTime;
         $this->getRegistration()->setLastLearnTime($lastLearnTime);
@@ -270,12 +270,12 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getFinishTime(): ?\DateTimeInterface
+    public function getFinishTime(): ?\DateTimeImmutable
     {
         return $this->finishTime;
     }
 
-    public function setFinishTime(?\DateTimeInterface $finishTime): static
+    public function setFinishTime(?\DateTimeImmutable $finishTime): static
     {
         $this->finishTime = $finishTime;
 

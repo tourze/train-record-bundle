@@ -207,7 +207,7 @@ class LearnArchiveService
     /**
      * 批量归档过期记录
      */
-    public function batchArchiveExpiredRecords(\DateTimeInterface $cutoffDate): int
+    public function batchArchiveExpiredRecords(\DateTimeImmutable $cutoffDate): int
     {
         $archivedCount = 0;
         $offset = 0;

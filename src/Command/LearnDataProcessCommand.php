@@ -14,7 +14,7 @@ use Tourze\TrainRecordBundle\Service\LearnBehaviorService;
 use Tourze\TrainRecordBundle\Service\LearnProgressService;
 
 #[AsCommand(
-    name: 'learn:data:process',
+    name: self::NAME,
     description: '处理学习数据，计算有效学习时长'
 )]
 class LearnDataProcessCommand extends Command

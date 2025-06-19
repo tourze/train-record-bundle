@@ -15,7 +15,7 @@ use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
 use Tourze\TrainRecordBundle\Service\LearnAnalyticsService;
 
 #[AsCommand(
-    name: 'learn:statistics',
+    name: self::NAME,
     description: '生成学习统计数据'
 )]
 class LearnStatisticsCommand extends Command
@@ -465,7 +465,7 @@ class LearnStatisticsCommand extends Command
     /**
      * 生成全局用户统计（简化实现）
      */
-    private function generateGlobalUserStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    private function generateGlobalUserStatistics(\DateTimeImmutable $startDate, \DateTimeInterface $endDate): array
     {
         return [
             'overview' => [
@@ -480,7 +480,7 @@ class LearnStatisticsCommand extends Command
     /**
      * 生成全局课程统计（简化实现）
      */
-    private function generateGlobalCourseStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    private function generateGlobalCourseStatistics(\DateTimeImmutable $startDate, \DateTimeInterface $endDate): array
     {
         return [
             'overview' => [
@@ -495,7 +495,7 @@ class LearnStatisticsCommand extends Command
     /**
      * 生成行为统计（简化实现）
      */
-    private function generateBehaviorStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId): array
+    private function generateBehaviorStatistics(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId): array
     {
         return [
             'overview' => [
@@ -509,7 +509,7 @@ class LearnStatisticsCommand extends Command
     /**
      * 生成异常统计（简化实现）
      */
-    private function generateAnomalyStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId): array
+    private function generateAnomalyStatistics(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId): array
     {
         return [
             'overview' => [
@@ -523,7 +523,7 @@ class LearnStatisticsCommand extends Command
     /**
      * 生成设备统计（简化实现）
      */
-    private function generateDeviceStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId): array
+    private function generateDeviceStatistics(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId): array
     {
         return [
             'overview' => [
@@ -537,7 +537,7 @@ class LearnStatisticsCommand extends Command
     /**
      * 生成进度统计（简化实现）
      */
-    private function generateProgressStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
+    private function generateProgressStatistics(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
     {
         return [
             'overview' => [
@@ -551,7 +551,7 @@ class LearnStatisticsCommand extends Command
     /**
      * 生成时长统计（简化实现）
      */
-    private function generateDurationStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
+    private function generateDurationStatistics(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
     {
         return [
             'overview' => [

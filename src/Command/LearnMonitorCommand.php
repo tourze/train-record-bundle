@@ -16,7 +16,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 use Tourze\TrainRecordBundle\Service\LearnAnomalyService;
 
 #[AsCommand(
-    name: 'learn:monitor',
+    name: self::NAME,
     description: '实时监控学习状态和系统健康'
 )]
 class LearnMonitorCommand extends Command

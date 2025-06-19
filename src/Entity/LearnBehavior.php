@@ -66,7 +66,7 @@ class LearnBehavior implements ApiArrayInterface, AdminArrayInterface
     #[IndexColumn]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
+    private ?\DateTimeImmutable $createTime = null;
 
     public function getId(): ?string
     {
@@ -179,12 +179,12 @@ class LearnBehavior implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getCreateTime(): ?\DateTimeInterface
+    public function getCreateTime(): ?\DateTimeImmutable
     {
         return $this->createTime;
     }
 
-    public function setCreateTime(?\DateTimeInterface $createTime): static
+    public function setCreateTime(?\DateTimeImmutable $createTime): static
     {
         $this->createTime = $createTime;
         return $this;

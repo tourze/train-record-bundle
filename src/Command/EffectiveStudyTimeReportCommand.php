@@ -13,7 +13,7 @@ use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
 use Tourze\TrainRecordBundle\Service\EffectiveStudyTimeService;
 
 #[AsCommand(
-    name: 'effective-study-time:report',
+    name: self::NAME,
     description: '生成有效学时统计报告'
 )]
 class EffectiveStudyTimeReportCommand extends Command
@@ -202,7 +202,7 @@ class EffectiveStudyTimeReportCommand extends Command
     /**
      * 生成整体报告
      */
-    private function generateOverallReport(\DateTimeInterface $startDate, \DateTimeInterface $endDate, bool $includeDetails): array
+    private function generateOverallReport(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, bool $includeDetails): array
     {
         // 无效原因统计
         $invalidStats = $this->recordRepository->getInvalidReasonStats($startDate, $endDate);

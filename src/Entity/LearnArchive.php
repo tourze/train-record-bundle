@@ -69,11 +69,12 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(length: 10, enumType: ArchiveFormat::class, options: ['comment' => '归档格式', 'default' => 'json'])]
     private ArchiveFormat $archiveFormat = ArchiveFormat::JSON;
 
-    private ?\DateTimeInterface $archiveDate = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '归档日期'])]
+    private ?\DateTimeImmutable $archiveDate = null;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '过期日期（3年后）'])]
-    private ?\DateTimeInterface $expiryDate = null;
+    private ?\DateTimeImmutable $expiryDate = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '归档文件路径'])]
     private ?string $archivePath = null;
@@ -93,7 +94,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '验证结果JSON'])]
     private ?array $verificationResult = null;
 
-    private ?\DateTimeInterface $lastVerificationTime = null;
+    private ?\DateTimeImmutable $lastVerificationTime = null;
 
 
     public function __construct()
@@ -206,23 +207,23 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getArchiveDate(): ?\DateTimeInterface
+    public function getArchiveDate(): ?\DateTimeImmutable
     {
         return $this->archiveDate;
     }
 
-    public function setArchiveDate(?\DateTimeInterface $archiveDate): static
+    public function setArchiveDate(?\DateTimeImmutable $archiveDate): static
     {
         $this->archiveDate = $archiveDate;
         return $this;
     }
 
-    public function getExpiryDate(): ?\DateTimeInterface
+    public function getExpiryDate(): ?\DateTimeImmutable
     {
         return $this->expiryDate;
     }
 
-    public function setExpiryDate(?\DateTimeInterface $expiryDate): static
+    public function setExpiryDate(?\DateTimeImmutable $expiryDate): static
     {
         $this->expiryDate = $expiryDate;
         return $this;
@@ -294,12 +295,12 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    public function getLastVerificationTime(): ?\DateTimeInterface
+    public function getLastVerificationTime(): ?\DateTimeImmutable
     {
         return $this->lastVerificationTime;
     }
 
-    public function setLastVerificationTime(?\DateTimeInterface $lastVerificationTime): static
+    public function setLastVerificationTime(?\DateTimeImmutable $lastVerificationTime): static
     {
         $this->lastVerificationTime = $lastVerificationTime;
         return $this;

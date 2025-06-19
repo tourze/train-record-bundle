@@ -14,7 +14,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 use Tourze\TrainRecordBundle\Service\LearnAnomalyService;
 
 #[AsCommand(
-    name: 'learn:anomaly:detect',
+    name: self::NAME,
     description: '批量检测学习异常'
 )]
 class LearnAnomalyDetectCommand extends Command

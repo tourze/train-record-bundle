@@ -16,7 +16,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 use Tourze\TrainRecordBundle\Service\LearnArchiveService;
 
 #[AsCommand(
-    name: 'learn:archive',
+    name: self::NAME,
     description: '归档完成的学习记录'
 )]
 class LearnArchiveCommand extends Command

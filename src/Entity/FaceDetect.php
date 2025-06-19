@@ -62,8 +62,9 @@ class FaceDetect implements AdminArrayInterface, ApiArrayInterface
     private ?string $errorMessage = null;
 
     #[CreateTimeColumn]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '创建时间'])]
     #[Groups(['api', 'admin'])]
-    private \DateTimeInterface $createTime;
+    private \DateTimeImmutable $createTime;
 
     public function getImageData(): ?string
     {
@@ -165,12 +166,12 @@ class FaceDetect implements AdminArrayInterface, ApiArrayInterface
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeInterface
+    public function getCreateTime(): \DateTimeImmutable
     {
         return $this->createTime;
     }
 
-    public function setCreateTime(\DateTimeInterface $createTime): static
+    public function setCreateTime(\DateTimeImmutable $createTime): static
     {
         $this->createTime = $createTime;
         return $this;

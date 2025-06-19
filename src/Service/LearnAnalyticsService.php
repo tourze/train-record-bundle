@@ -526,10 +526,10 @@ class LearnAnalyticsService
     private function groupAnomaliesByStatus(array $anomalies): array { return []; }
     private function calculateAnomalyResolutionStats(array $anomalies): array { return []; }
     private function analyzeAnomalyTrends(array $anomalies): array { return []; }
-    private function analyzeSessionTrends(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
-    private function analyzeProgressTrends(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
-    private function analyzeEngagementTrends(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
-    private function analyzeQualityTrends(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
+    private function analyzeSessionTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
+    private function analyzeProgressTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
+    private function analyzeEngagementTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
+    private function analyzeQualityTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
     private function calculateUserPerformanceMetrics(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
     private function analyzeUserBehaviorPatterns(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
     private function analyzeUserProgress(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
