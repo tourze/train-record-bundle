@@ -98,31 +98,31 @@ class LearnBehaviorService
         $suspiciousReasons = [];
         
         // 检测窗口失焦频率
-        if ($behaviorType === 'window_blur') {
-            $blurCount = $this->countBehaviorType($recentBehaviors, 'window_blur');
+        if ($behaviorType === BehaviorType::WINDOW_BLUR) {
+            $blurCount = $this->countBehaviorType($recentBehaviors, BehaviorType::WINDOW_BLUR);
             if ($blurCount >= self::SUSPICIOUS_THRESHOLDS['window_blur_count']) {
                 $suspiciousReasons[] = '频繁切换窗口';
             }
         }
         
         // 检测快速拖拽
-        if ($behaviorType === 'seek') {
-            $seekCount = $this->countBehaviorType($recentBehaviors, 'seek');
+        if ($behaviorType === BehaviorType::SEEK) {
+            $seekCount = $this->countBehaviorType($recentBehaviors, BehaviorType::SEEK);
             if ($seekCount >= self::SUSPICIOUS_THRESHOLDS['rapid_seek_count']) {
                 $suspiciousReasons[] = '频繁拖拽进度';
             }
         }
         
         // 检测鼠标离开频率
-        if ($behaviorType === 'mouse_leave') {
-            $leaveCount = $this->countBehaviorType($recentBehaviors, 'mouse_leave');
+        if ($behaviorType === BehaviorType::MOUSE_LEAVE) {
+            $leaveCount = $this->countBehaviorType($recentBehaviors, BehaviorType::MOUSE_LEAVE);
             if ($leaveCount >= self::SUSPICIOUS_THRESHOLDS['mouse_leave_count']) {
                 $suspiciousReasons[] = '频繁鼠标离开';
             }
         }
         
         // 检测空闲时间
-        if ($behaviorType === 'idle_start') {
+        if ($behaviorType === BehaviorType::IDLE_START) {
             $behaviorData = $behavior->getBehaviorData();
             if ((bool) isset($behaviorData['duration']) && $behaviorData['duration'] > self::SUSPICIOUS_THRESHOLDS['idle_duration']) {
                 $suspiciousReasons[] = '长时间无操作';

@@ -107,4 +107,48 @@ class LearnBehaviorRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 查找会话的最近行为记录
+     */
+    public function findRecentBySession(string $sessionId, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->andWhere('lb.session = :sessionId')
+            ->setParameter('sessionId', $sessionId)
+            ->orderBy('lb.createTime', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找用户在指定日期范围内的行为记录
+     */
+    public function findByUserAndDateRange(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->andWhere('lb.userId = :userId')
+            ->andWhere('lb.createTime >= :startDate')
+            ->andWhere('lb.createTime <= :endDate')
+            ->setParameter('userId', $userId)
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('lb.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找指定会话的所有行为记录
+     */
+    public function findBySession(string $sessionId): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->andWhere('lb.session = :sessionId')
+            ->setParameter('sessionId', $sessionId)
+            ->orderBy('lb.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

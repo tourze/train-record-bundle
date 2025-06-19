@@ -546,4 +546,65 @@ class LearnAnalyticsService
     private function calculateLearningPace(array $sessions): string { return 'moderate'; }
     private function identifyLearningStrengths(array $sessions, array $behaviors): array { return []; }
     private function identifyLearningChallenges(array $sessions, array $behaviors): array { return []; }
+
+    /**
+     * 生成用户分析报告
+     */
+    public function generateUserAnalytics(
+        string $userId, 
+        \DateTimeInterface $startDate, 
+        \DateTimeInterface $endDate
+    ): array {
+        return [
+            'userId' => $userId,
+            'period' => [
+                'start' => $startDate->format('Y-m-d H:i:s'),
+                'end' => $endDate->format('Y-m-d H:i:s'),
+            ],
+            'performance' => $this->calculateUserPerformanceMetrics($userId, $startDate, $endDate),
+            'behavior' => $this->analyzeUserBehaviorPatterns($userId, $startDate, $endDate),
+            'progress' => $this->analyzeUserProgress($userId, $startDate, $endDate),
+            'recommendations' => $this->generateUserRecommendations($userId, $startDate, $endDate),
+        ];
+    }
+
+    /**
+     * 生成课程分析报告
+     */
+    public function generateCourseAnalytics(
+        string $courseId, 
+        \DateTimeInterface $startDate, 
+        \DateTimeInterface $endDate
+    ): array {
+        return [
+            'courseId' => $courseId,
+            'period' => [
+                'start' => $startDate->format('Y-m-d H:i:s'),
+                'end' => $endDate->format('Y-m-d H:i:s'),
+            ],
+            'enrollment' => $this->getCourseEnrollmentStats($courseId, $startDate, $endDate),
+            'completion' => $this->analyzeCourseCompletion($courseId, $startDate, $endDate),
+            'engagement' => $this->calculateCourseEngagement($courseId, $startDate, $endDate),
+            'difficulty' => $this->analyzeCoursedifficulty($courseId, $startDate, $endDate),
+            'learners' => $this->segmentCourseLearners($courseId, $startDate, $endDate),
+        ];
+    }
+
+    /**
+     * 生成系统分析报告
+     */
+    public function generateSystemAnalytics(
+        \DateTimeInterface $startDate, 
+        \DateTimeInterface $endDate
+    ): array {
+        return [
+            'period' => [
+                'start' => $startDate->format('Y-m-d H:i:s'),
+                'end' => $endDate->format('Y-m-d H:i:s'),
+            ],
+            'overall' => $this->generateLearningReport($startDate, $endDate),
+            'trends' => $this->generateTrendAnalysis($startDate, $endDate),
+            'anomalies' => $this->generateAnomalyStats($startDate, $endDate),
+        ];
+    }
 } 

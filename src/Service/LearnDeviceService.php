@@ -88,7 +88,7 @@ class LearnDeviceService
     public function isDeviceTrusted(string $userId, string $deviceFingerprint): bool
     {
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
-        return $device && $device->isTrusted();
+        return $device !== null && $device->isTrusted();
     }
 
     /**
@@ -125,7 +125,7 @@ class LearnDeviceService
             $this->logger->warning('记录设备可疑活动', [
                 'userId' => $userId,
                 'deviceFingerprint' => $deviceFingerprint,
-                'suspiciousCount' => $device->getSuspiciousCount(),
+                'reason' => $reason,
             ]);
         }
     }
