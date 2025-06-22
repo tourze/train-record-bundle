@@ -9,8 +9,6 @@ use Tourze\TrainRecordBundle\Entity\LearnSession;
 use Tourze\TrainRecordBundle\Enum\InvalidTimeReason;
 use Tourze\TrainRecordBundle\Enum\StudyTimeStatus;
 use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
-use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
-use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
  * 有效学时管理服务
@@ -36,9 +34,7 @@ class EffectiveStudyTimeService
     private const CACHE_PREFIX_USER_CONFIG = 'user_study_config_';
     
     public function __construct(
-                private readonly EffectiveStudyRecordRepository $recordRepository,
-        private readonly LearnSessionRepository $sessionRepository,
-        private readonly LearnBehaviorRepository $behaviorRepository,
+        private readonly EffectiveStudyRecordRepository $recordRepository,
         private readonly CacheInterface $cache,
         private readonly LoggerInterface $logger,
     ) {
@@ -46,7 +42,7 @@ class EffectiveStudyTimeService
 
     /**
      * 处理学时认定
-     * 
+     *
      * @param LearnSession $session 学习会话
      * @param \DateTimeInterface $startTime 开始时间
      * @param \DateTimeInterface $endTime 结束时间
@@ -63,13 +59,13 @@ class EffectiveStudyTimeService
     ): EffectiveStudyRecord {
         // 创建有效学时记录
         $record = new EffectiveStudyRecord();
-        $record->setUserId($session->getStudent()->getId());
+        $record->setUserId((string) $session->getStudent()->getId());
         $record->setSession($session);
         $record->setCourse($session->getCourse());
         $record->setLesson($session->getLesson());
-        $record->setStudyDate(\DateTime::createFromInterface($startTime)->setTime(0, 0, 0));
-        $record->setStartTime($startTime);
-        $record->setEndTime($endTime);
+        $record->setStudyDate(\DateTimeImmutable::createFromInterface($startTime)->setTime(0, 0, 0));
+        $record->setStartTime(\DateTimeImmutable::createFromInterface($startTime));
+        $record->setEndTime(\DateTimeImmutable::createFromInterface($endTime));
         $record->setTotalDuration($totalDuration);
         $record->setBehaviorStats($behaviorData);
 
@@ -282,7 +278,7 @@ class EffectiveStudyTimeService
     private function hasAuthenticationFailure(array $behaviorData): bool
     {
         foreach ($behaviorData as $behavior) {
-            if ((bool) ($behavior['action'] ?? '') === 'auth_failed') {
+            if (($behavior['action'] ?? '') === 'auth_failed') {
                 return true;
             }
         }
@@ -334,7 +330,7 @@ class EffectiveStudyTimeService
     private function hasCompletedTest(array $behaviorData): bool
     {
         foreach ($behaviorData as $behavior) {
-            if ((bool) ($behavior['action'] ?? '') === 'test_completed') {
+            if (($behavior['action'] ?? '') === 'test_completed') {
                 return true;
             }
         }

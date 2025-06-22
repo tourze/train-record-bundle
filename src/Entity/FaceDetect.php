@@ -8,8 +8,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
+use Tourze\DoctrineTimestampBundle\Traits\CreateTimeAware;
 use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
 
 /**
@@ -18,19 +17,20 @@ use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
  * 记录学习过程中的人脸检测结果，用于防作弊检测和学习监控。
  * 包括人脸检测置信度、检测时间、相似度评分等信息。
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: FaceDetectRepository::class)]
 #[ORM\Table(name: 'face_detect', options: ['comment' => '表描述'])]
 #[ORM\Index(name: 'idx_session_id', columns: ['session_id'])]
 #[ORM\Index(name: 'idx_create_time', columns: ['create_time'])]
-class FaceDetect implements AdminArrayInterface, ApiArrayInterface
+class FaceDetect implements AdminArrayInterface, ApiArrayInterface, \Stringable
 {
+    use CreateTimeAware;
+    
     #[ORM\Id]
 #[ORM\Column(type: Types::BIGINT, options: ['comment' => '字段说明'])]
     #[ORM\CustomIdGenerator(class: SnowflakeIdGenerator::class)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[Groups(['api', 'admin'])]
-    private string $id;
+    private ?string $id = null;
 
     #[ORM\ManyToOne(targetEntity: LearnSession::class, inversedBy: 'faceDetects')]
     #[ORM\JoinColumn(name: 'session_id', referencedColumnName: 'id', nullable: false)]
@@ -61,10 +61,6 @@ class FaceDetect implements AdminArrayInterface, ApiArrayInterface
     #[Groups(['api', 'admin'])]
     private ?string $errorMessage = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '创建时间'])]
-    #[Groups(['api', 'admin'])]
-    private \DateTimeImmutable $createTime;
 
     public function getImageData(): ?string
     {
@@ -106,7 +102,12 @@ class FaceDetect implements AdminArrayInterface, ApiArrayInterface
         ];
     }
 
-    public function getId(): string
+    public function __construct()
+    {
+        $this->createTime = new \DateTimeImmutable();
+    }
+    
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -166,16 +167,6 @@ class FaceDetect implements AdminArrayInterface, ApiArrayInterface
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeImmutable
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(\DateTimeImmutable $createTime): static
-    {
-        $this->createTime = $createTime;
-        return $this;
-    }
 
     public function retrieveApiArray(): array
     {
@@ -191,5 +182,10 @@ class FaceDetect implements AdminArrayInterface, ApiArrayInterface
             'is_verified' => $this->isVerified(),
             'create_time' => $this->getCreateTime()->format('c'),
         ];
+    }
+    
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 }

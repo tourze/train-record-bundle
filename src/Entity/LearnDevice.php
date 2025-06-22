@@ -12,7 +12,6 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\EasyAdmin\Attribute\Filter\Keyword;
 use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 
@@ -22,7 +21,6 @@ use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
  * 管理学员的学习设备信息，支持多终端登录控制和设备识别。
  * 用于防止多设备同时学习、设备切换检测等防作弊功能。
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: LearnDeviceRepository::class)]
 #[ORM\Table(name: 'job_training_learn_device', options: ['comment' => '学习设备管理'])]
 #[ORM\UniqueConstraint(name: 'uniq_device_fingerprint', columns: ['device_fingerprint'])]

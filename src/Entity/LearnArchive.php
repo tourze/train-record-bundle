@@ -10,7 +10,6 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainRecordBundle\Enum\ArchiveFormat;
 use Tourze\TrainRecordBundle\Enum\ArchiveStatus;
@@ -22,7 +21,6 @@ use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
  * 管理学习记录的归档，满足3年保存期限要求。
  * 支持多种归档格式、完整性验证、自动过期清理等功能。
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: LearnArchiveRepository::class)]
 #[ORM\Table(name: 'job_training_learn_archive', options: ['comment' => '学习档案管理'])]
 #[ORM\UniqueConstraint(name: 'uniq_user_course', columns: ['user_id', 'course_id'])]

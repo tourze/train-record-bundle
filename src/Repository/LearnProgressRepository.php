@@ -154,7 +154,7 @@ class LearnProgressRepository extends ServiceEntityRepository
 
     /**
      * 更新学习进度
-     * 
+     *
      * @param LearnProgress $progress
      * @param bool $flush
      */

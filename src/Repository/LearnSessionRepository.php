@@ -21,7 +21,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 查找学员的活跃学习会话
-     * 
+     *
      * @param mixed $student 学员实体
      * @return LearnSession[]
      */
@@ -40,7 +40,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 查找学员在其他课程的活跃会话
-     * 
+     *
      * @param mixed $student 学员实体
      * @param string $currentLessonId 当前课时ID
      * @return LearnSession[]
@@ -62,7 +62,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 将学员的所有活跃会话设置为非活跃
-     * 
+     *
      * @param mixed $student 学员实体
      * @return int 更新的记录数
      */
@@ -94,7 +94,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 查找超时的活跃会话（指定分钟内未更新）
-     * 
+     *
      * @param int $thresholdMinutes 超时阈值（分钟）
      * @return LearnSession[]
      */
@@ -115,7 +115,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 批量更新会话活跃状态
-     * 
+     *
      * @param array $sessionIds 会话ID数组
      * @param bool $active 活跃状态
      * @return int 更新的记录数
@@ -138,7 +138,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 根据用户和日期范围查找会话
-     * 
+     *
      * @param string $userId 用户ID
      * @param \DateTimeInterface $startDate 开始日期
      * @param \DateTimeInterface $endDate 结束日期
@@ -161,7 +161,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 根据日期范围查找会话
-     * 
+     *
      * @param \DateTimeInterface $startDate 开始日期
      * @param \DateTimeInterface $endDate 结束日期
      * @return LearnSession[]
@@ -180,7 +180,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 查找已完成的会话
-     * 
+     *
      * @return LearnSession[]
      */
     public function findCompletedSessions(): array
@@ -195,7 +195,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 查找活跃的会话
-     * 
+     *
      * @return LearnSession[]
      */
     public function findActiveSessions(): array
@@ -212,7 +212,7 @@ class LearnSessionRepository extends ServiceEntityRepository
 
     /**
      * 根据用户和课时查找会话
-     * 
+     *
      * @param string $userId 用户ID
      * @param string $lessonId 课时ID
      * @return LearnSession[]

@@ -198,9 +198,9 @@ class LearnArchiveService
         $content = file_get_contents($archivePath);
         
         return match ($archive->getArchiveFormat()) {
-            self::ARCHIVE_FORMAT_JSON => json_decode($content, true),
-            self::ARCHIVE_FORMAT_XML => $this->parseXmlContent($content),
-            default => ['raw_content' => $content],
+            ArchiveFormat::JSON => json_decode($content, true),
+            ArchiveFormat::XML => $this->parseXmlContent($content),
+            ArchiveFormat::PDF, ArchiveFormat::ZIP => ['raw_content' => $content],
         };
     }
 

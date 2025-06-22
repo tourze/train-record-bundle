@@ -112,7 +112,7 @@ class LearnDeviceService
     /**
      * 记录可疑活动
      */
-    public function recordSuspiciousActivity(string $userId, string $deviceFingerprint): void
+    public function recordSuspiciousActivity(string $userId, string $deviceFingerprint, string $reason = '未知原因'): void
     {
         $device = $this->deviceRepository->findByUserAndFingerprint($userId, $deviceFingerprint);
         if ($device !== null) {

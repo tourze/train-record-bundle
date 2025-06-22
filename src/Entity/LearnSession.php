@@ -19,7 +19,6 @@ use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainClassroomBundle\Entity\Registration;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
@@ -30,7 +29,6 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
  *
  * 每次开始学习，就是一次会话，然后我们要监控是否作弊之类的行为，就是监控他单次会话内的行为
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: LearnSessionRepository::class)]
 #[ORM\Table(name: 'job_training_learn_session', options: ['comment' => '学习记录'])]
 #[ORM\UniqueConstraint(name: 'job_training_learn_session_idx_uniq', columns: ['registration_id', 'lesson_id'])]

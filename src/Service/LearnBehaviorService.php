@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Entity\LearnBehavior;
 use Tourze\TrainRecordBundle\Entity\LearnSession;
@@ -25,8 +26,9 @@ class LearnBehaviorService
     ];
 
     public function __construct(
-                private readonly LearnBehaviorRepository $behaviorRepository,
+        private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly LearnSessionRepository $sessionRepository,
+        private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -51,9 +53,9 @@ class LearnBehaviorService
         
         // 设置视频时间戳
         if ((bool) isset($behaviorData['videoTimestamp'])) {
-            $behavior->setVideoTimestamp((float) $behaviorData['videoTimestamp']);
+            $behavior->setVideoTimestamp((string) $behaviorData['videoTimestamp']);
         } else {
-            $behavior->setVideoTimestamp((float) $session->getCurrentDuration());
+            $behavior->setVideoTimestamp((string) $session->getCurrentDuration());
         }
         
         // 设置设备信息
@@ -99,7 +101,7 @@ class LearnBehaviorService
         
         // 检测窗口失焦频率
         if ($behaviorType === BehaviorType::WINDOW_BLUR) {
-            $blurCount = $this->countBehaviorType($recentBehaviors, BehaviorType::WINDOW_BLUR);
+            $blurCount = $this->countBehaviorType($recentBehaviors, BehaviorType::WINDOW_BLUR->value);
             if ($blurCount >= self::SUSPICIOUS_THRESHOLDS['window_blur_count']) {
                 $suspiciousReasons[] = '频繁切换窗口';
             }
@@ -107,7 +109,7 @@ class LearnBehaviorService
         
         // 检测快速拖拽
         if ($behaviorType === BehaviorType::SEEK) {
-            $seekCount = $this->countBehaviorType($recentBehaviors, BehaviorType::SEEK);
+            $seekCount = $this->countBehaviorType($recentBehaviors, BehaviorType::SEEK->value);
             if ($seekCount >= self::SUSPICIOUS_THRESHOLDS['rapid_seek_count']) {
                 $suspiciousReasons[] = '频繁拖拽进度';
             }
@@ -115,7 +117,7 @@ class LearnBehaviorService
         
         // 检测鼠标离开频率
         if ($behaviorType === BehaviorType::MOUSE_LEAVE) {
-            $leaveCount = $this->countBehaviorType($recentBehaviors, BehaviorType::MOUSE_LEAVE);
+            $leaveCount = $this->countBehaviorType($recentBehaviors, BehaviorType::MOUSE_LEAVE->value);
             if ($leaveCount >= self::SUSPICIOUS_THRESHOLDS['mouse_leave_count']) {
                 $suspiciousReasons[] = '频繁鼠标离开';
             }
@@ -244,7 +246,7 @@ class LearnBehaviorService
      */
     private function countBehaviorType(array $behaviors, string $behaviorType): int
     {
-        return count(array_filter($behaviors, fn($behavior) => $behavior->getBehaviorType() === $behaviorType));
+        return count(array_filter($behaviors, fn($behavior) => $behavior->getBehaviorType()->value === $behaviorType));
     }
 
     /**

@@ -10,7 +10,6 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainRecordBundle\Enum\StatisticsPeriod;
 use Tourze\TrainRecordBundle\Enum\StatisticsType;
 use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
@@ -21,7 +20,6 @@ use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
  * 存储各种维度的学习统计数据，支持按日、周、月等不同周期统计。
  * 包括用户统计、课程统计、行为统计、异常统计、设备统计等。
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: LearnStatisticsRepository::class)]
 #[ORM\Table(name: 'job_training_learn_statistics', options: ['comment' => '学习统计'])]
 #[ORM\UniqueConstraint(name: 'uniq_type_period_date', columns: ['statistics_type', 'statistics_period', 'statistics_date'])]

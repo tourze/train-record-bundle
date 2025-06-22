@@ -9,7 +9,6 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainRecordBundle\Enum\BehaviorType;
 use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
 
@@ -19,7 +18,6 @@ use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
  * 记录学习过程中的所有用户行为，用于防作弊检测和学习分析。
  * 包括视频控制、窗口焦点、鼠标键盘活动、网络状态等各种行为。
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: LearnBehaviorRepository::class)]
 #[ORM\Table(name: 'job_training_learn_behavior', options: ['comment' => '学习行为记录'])]
 #[ORM\Index(name: 'idx_session_behavior_time', columns: ['session_id', 'behavior_type', 'create_time'])]

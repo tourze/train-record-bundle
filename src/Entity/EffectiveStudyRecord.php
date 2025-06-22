@@ -27,17 +27,11 @@ class EffectiveStudyRecord implements Stringable
 {
     use TimestampableAware;
 
-    /**
-     * 主键ID
-     */
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 64, nullable: false, options: ['comment' => '主键ID'])]
     private ?string $id = null;
 
-    /**
-     * 用户ID（学员ID）
-     */
-    #[ORM\Column(type: Types::STRING, length: 64, nullable: false, options: ['comment' => '用户ID'])]
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: false, options: ['comment' => '用户ID（学员ID）'])]
     private string $userId;
 
     /**
@@ -61,129 +55,66 @@ class EffectiveStudyRecord implements Stringable
     #[ORM\JoinColumn(name: 'lesson_id', referencedColumnName: 'id', nullable: false)]
     private Lesson $lesson;
 
-    /**
-     * 学习日期
-     */
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: false, options: ['comment' => '学习日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: false, options: ['comment' => '学习日期'])]
     private \DateTimeImmutable $studyDate;
 
-    /**
-     * 开始时间
-     */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '开始时间'])]
     private \DateTimeImmutable $startTime;
 
-    /**
-     * 结束时间
-     */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '结束时间'])]
     private \DateTimeImmutable $endTime;
 
-    /**
-     * 总时长（秒）
-     */
     #[ORM\Column(type: Types::FLOAT, nullable: false, options: ['comment' => '总时长（秒）'])]
     private float $totalDuration;
 
-    /**
-     * 有效时长（秒）
-     */
     #[ORM\Column(type: Types::FLOAT, nullable: false, options: ['comment' => '有效时长（秒）'])]
     private float $effectiveDuration;
 
-    /**
-     * 无效时长（秒）
-     */
     #[ORM\Column(type: Types::FLOAT, nullable: false, options: ['comment' => '无效时长（秒）'])]
     private float $invalidDuration;
 
-    /**
-     * 学时状态
-     */
     #[ORM\Column(type: Types::STRING, length: 32, nullable: false, enumType: StudyTimeStatus::class, options: ['comment' => '学时状态'])]
     private StudyTimeStatus $status;
 
-    /**
-     * 无效原因（如果状态为无效）
-     */
-    #[ORM\Column(type: Types::STRING, length: 64, nullable: true, enumType: InvalidTimeReason::class, options: ['comment' => '无效原因'])]
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true, enumType: InvalidTimeReason::class, options: ['comment' => '无效原因（如果状态为无效）'])]
     private ?InvalidTimeReason $invalidReason = null;
 
-    /**
-     * 详细说明
-     */
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '详细说明'])]
     private ?string $description = null;
 
-    /**
-     * 学习质量评分（0-10分）
-     */
-    #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '学习质量评分'])]
+    #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '学习质量评分（0-10分）'])]
     private ?float $qualityScore = null;
 
-    /**
-     * 专注度评分（0-1）
-     */
-    #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '专注度评分'])]
+    #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '专注度评分（0-1）'])]
     private ?float $focusScore = null;
 
-    /**
-     * 交互活跃度评分（0-1）
-     */
-    #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '交互活跃度评分'])]
+    #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '交互活跃度评分（0-1）'])]
     private ?float $interactionScore = null;
 
-    /**
-     * 学习连续性评分（0-1）
-     */
-    #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '学习连续性评分'])]
+    #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '学习连续性评分（0-1）'])]
     private ?float $continuityScore = null;
 
-    /**
-     * 证据数据（JSON格式）
-     */
-    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '证据数据'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '证据数据（JSON格式）'])]
     private ?array $evidenceData = null;
 
-    /**
-     * 行为统计数据（JSON格式）
-     */
-    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '行为统计数据'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '行为统计数据（JSON格式）'])]
     private ?array $behaviorStats = null;
 
-    /**
-     * 验证结果数据（JSON格式）
-     */
-    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '验证结果数据'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '验证结果数据（JSON格式）'])]
     private ?array $validationResult = null;
 
-    /**
-     * 审核意见
-     */
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '审核意见'])]
     private ?string $reviewComment = null;
 
-    /**
-     * 审核人
-     */
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true, options: ['comment' => '审核人'])]
     private ?string $reviewedBy = null;
 
-    /**
-     * 审核时间
-     */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '审核时间'])]
     private ?\DateTimeImmutable $reviewedAt = null;
 
-    /**
-     * 是否计入日累计时长
-     */
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否计入日累计时长', 'default' => true])]
     private bool $includeInDailyTotal = true;
 
-    /**
-     * 是否已通知学员
-     */
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否已通知学员', 'default' => false])]
     private bool $studentNotified = false;
 

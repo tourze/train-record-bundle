@@ -10,7 +10,6 @@ use Tourze\TrainRecordBundle\Entity\EffectiveStudyRecord;
 use Tourze\TrainRecordBundle\Entity\LearnProgress;
 use Tourze\TrainRecordBundle\Enum\StudyTimeStatus;
 use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
-use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
  * 学习进度服务
@@ -26,7 +25,6 @@ class LearnProgressService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly LearnProgressRepository $progressRepository,
-        private readonly LearnSessionRepository $sessionRepository,
         private readonly LoggerInterface $logger,
     ) {
     }

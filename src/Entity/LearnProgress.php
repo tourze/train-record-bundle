@@ -10,7 +10,6 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
@@ -21,7 +20,6 @@ use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
  * 管理跨设备的学习进度同步和有效学习时长计算。
  * 支持多设备学习进度同步、有效时长统计、学习轨迹记录等功能。
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: LearnProgressRepository::class)]
 #[ORM\Table(name: 'job_training_learn_progress', options: ['comment' => '学习进度管理'])]
 #[ORM\UniqueConstraint(name: 'uniq_user_lesson', columns: ['user_id', 'lesson_id'])]

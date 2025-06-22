@@ -10,7 +10,6 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
 use Tourze\TrainRecordBundle\Enum\AnomalyStatus;
 use Tourze\TrainRecordBundle\Enum\AnomalyType;
@@ -22,14 +21,13 @@ use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
  * 记录和管理学习过程中的异常情况，包括多设备登录、快速进度、
  * 窗口切换、空闲超时、人脸检测失败、网络异常等各种异常行为。
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: LearnAnomalyRepository::class)]
 #[ORM\Table(name: 'job_training_learn_anomaly', options: ['comment' => '学习异常记录'])]
 #[ORM\Index(name: 'idx_session_anomaly', columns: ['session_id', 'anomaly_type'])]
 #[ORM\Index(name: 'idx_severity_status', columns: ['severity', 'status'])]
 #[ORM\Index(name: 'idx_detected_time', columns: ['detected_time'])]
 #[ORM\Index(name: 'idx_auto_detected', columns: ['is_auto_detected'])]
-class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
+class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
@@ -306,7 +304,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
      */
     public function getProcessingDuration(): ?int
     {
-        if (!$this->resolvedTime || !$this->detectedTime) {
+        if ($this->resolvedTime === null || $this->detectedTime === null) {
             return null;
         }
         
@@ -337,7 +335,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
         $sessionInfo = sprintf(
             '会话[%s] 学员[%s] 课时[%s]',
             $this->session->getId(),
-            $this->session->getStudent()->getRealName() ?? '未知',
+            $this->session->getStudent()->getId() ?? '未知',
             $this->session->getLesson()->getTitle()
         );
         
@@ -354,7 +352,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
         return [
             'id' => $this->id,
             'sessionId' => $this->session->getId(),
-            'studentName' => $this->session->getStudent()->getRealName() ?? '未知',
+            'studentName' => $this->session->getStudent()->getId() ?? '未知',
             'lessonTitle' => $this->session->getLesson()->getTitle(),
             'anomalyType' => $this->anomalyType->value,
             'anomalyTypeLabel' => $this->anomalyType->getLabel(),
@@ -379,7 +377,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
         return [
             'id' => $this->id,
             'sessionId' => $this->session->getId(),
-            'studentName' => $this->session->getStudent()->getRealName() ?? '未知',
+            'studentName' => $this->session->getStudent()->getId() ?? '未知',
             'lessonTitle' => $this->session->getLesson()->getTitle(),
             'anomalyType' => $this->anomalyType->value,
             'anomalyTypeLabel' => $this->anomalyType->getLabel(),
@@ -404,5 +402,10 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface
             'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
             'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ];
+    }
+    
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 } 

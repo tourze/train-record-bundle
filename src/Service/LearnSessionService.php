@@ -171,7 +171,7 @@ class LearnSessionService
 
     /**
      * 检查学员是否有其他活跃的学习会话
-     * 
+     *
      * @param mixed $student 学员实体
      * @param string $lessonId 当前要学习的课时ID
      * @throws \RuntimeException 如果存在其他活跃会话
@@ -197,7 +197,7 @@ class LearnSessionService
 
     /**
      * 设置学习会话为活跃状态
-     * 
+     *
      * @param LearnSession $session 学习会话
      * @param bool $flush 是否立即刷新到数据库
      */
@@ -221,7 +221,7 @@ class LearnSessionService
 
     /**
      * 设置学习会话为非活跃状态
-     * 
+     *
      * @param LearnSession $session 学习会话
      * @param bool $flush 是否立即刷新到数据库
      */
