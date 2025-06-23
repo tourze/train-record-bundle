@@ -410,17 +410,4 @@ class EffectiveStudyTimeNotificationService
         });
     }
 
-    /**
-     * 获取用户通知偏好（预留接口）
-     */
-    private function getUserNotificationPreferences(string $userId): array
-    {
-        // 这里可以从用户设置中获取通知偏好
-        return [
-            'realtime_enabled' => true,
-            'quality_feedback_enabled' => true,
-            'result_notification_enabled' => true,
-            'channels' => ['websocket', 'system_message'],
-        ];
-    }
 } 

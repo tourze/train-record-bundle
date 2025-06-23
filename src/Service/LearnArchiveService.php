@@ -4,7 +4,7 @@ namespace Tourze\TrainRecordBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Tourze\TrainCourseBundle\Entity\Course;
+use Tourze\TrainCourseBundle\Repository\CourseRepository;
 use Tourze\TrainRecordBundle\Entity\LearnArchive;
 use Tourze\TrainRecordBundle\Enum\ArchiveFormat;
 use Tourze\TrainRecordBundle\Enum\ArchiveStatus;
@@ -33,6 +33,7 @@ class LearnArchiveService
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly LearnAnomalyRepository $anomalyRepository,
+        private readonly CourseRepository $courseRepository,
         private readonly LoggerInterface $logger,
         private readonly string $archiveStoragePath = '/var/archives/learn_records',
     ) {
@@ -46,7 +47,7 @@ class LearnArchiveService
         string $courseId,
         string $format = self::ARCHIVE_FORMAT_JSON
     ): LearnArchive {
-        $course = $this->entityManager->getRepository(Course::class)->find($courseId);
+        $course = $this->courseRepository->find($courseId);
         if ($course === null) {
             throw new \InvalidArgumentException('课程不存在');
         }
@@ -213,7 +214,7 @@ class LearnArchiveService
         $offset = 0;
 
         while (true) {
-            $sessions = $this->sessionRepository->findExpiredSessions($cutoffDate, self::ARCHIVE_BATCH_SIZE, $offset);
+            $sessions = $this->sessionRepository->findExpiredSessions($cutoffDate);
             
             if ((bool) empty($sessions)) {
                 break;
@@ -221,7 +222,7 @@ class LearnArchiveService
 
             foreach ($sessions as $session) {
                 try {
-                    $userId = $session->getStudent()->getId();
+                    $userId = $session->getStudent()->getUserIdentifier();
                     $courseId = $session->getCourse()->getId();
 
                     // 检查是否已有档案
@@ -293,9 +294,9 @@ class LearnArchiveService
     public function getArchiveStatistics(): array
     {
         return [
-            'totalArchives' => $this->archiveRepository->countByStatus('active'),
-            'expiredArchives' => $this->archiveRepository->countByStatus('expired'),
-            'archivedArchives' => $this->archiveRepository->countByStatus('archived'),
+            'totalArchives' => $this->archiveRepository->countByStatus(ArchiveStatus::ACTIVE),
+            'expiredArchives' => $this->archiveRepository->countByStatus(ArchiveStatus::EXPIRED),
+            'archivedArchives' => $this->archiveRepository->countByStatus(ArchiveStatus::ARCHIVED),
             'totalStorageSize' => $this->calculateTotalStorageSize(),
             'formatDistribution' => $this->archiveRepository->getFormatDistribution(),
             'monthlyArchiveCount' => $this->archiveRepository->getMonthlyArchiveCount(),
@@ -322,8 +323,8 @@ class LearnArchiveService
             'totalTime' => array_sum(array_map(fn($s) => $s->getTotalDuration(), $sessions)),
             'completionRate' => $this->calculateCompletionRate($sessions),
             'averageSessionTime' => count($sessions) > 0 ? array_sum(array_map(fn($s) => $s->getTotalDuration(), $sessions)) / count($sessions) : 0,
-            'firstLearnTime' => ($sessions !== null) ? min(array_map(fn($s) => $s->getFirstLearnTime(), $sessions))->format('Y-m-d H:i:s') : null,
-            'lastLearnTime' => ($sessions !== null) ? max(array_map(fn($s) => $s->getLastLearnTime(), $sessions))->format('Y-m-d H:i:s') : null,
+            'firstLearnTime' => !empty($sessions) ? min(array_map(fn($s) => $s->getFirstLearnTime(), $sessions))->format('Y-m-d H:i:s') : null,
+            'lastLearnTime' => !empty($sessions) ? max(array_map(fn($s) => $s->getLastLearnTime(), $sessions))->format('Y-m-d H:i:s') : null,
         ];
 
         // 行为汇总
@@ -428,7 +429,8 @@ class LearnArchiveService
         if ((bool) empty($stats)) {
             return null;
         }
-        return array_key_first(array_slice(arsort($stats) ? $stats : [], 0, 1, true));
+        arsort($stats);
+        return array_key_first(array_slice($stats, 0, 1, true));
     }
 
     /**
@@ -621,11 +623,11 @@ class LearnArchiveService
         $data = [
             'id' => $archive->getId(),
             'userId' => $archive->getUserId(),
-            'courseId' => $archive->getCourse()?->getId(),
+            'courseId' => $archive->getCourse()->getId(),
             'archiveDate' => $archive->getArchiveDate()?->format('Y-m-d H:i:s'),
             'expiryDate' => $archive->getExpiryDate()?->format('Y-m-d H:i:s'),
-            'status' => $archive->getArchiveStatus()?->value,
-            'format' => $archive->getArchiveFormat()?->value,
+            'status' => $archive->getArchiveStatus()->value,
+            'format' => $archive->getArchiveFormat()->value,
             'sessionSummary' => $archive->getSessionSummary(),
             'behaviorSummary' => $archive->getBehaviorSummary(),
             'anomalySummary' => $archive->getAnomalySummary(),
@@ -644,11 +646,11 @@ class LearnArchiveService
         $xml = new \SimpleXMLElement('<archive/>');
         $xml->addChild('id', $archive->getId());
         $xml->addChild('userId', $archive->getUserId());
-        $xml->addChild('courseId', (string)$archive->getCourse()?->getId());
+        $xml->addChild('courseId', (string)$archive->getCourse()->getId());
         $xml->addChild('archiveDate', $archive->getArchiveDate()?->format('Y-m-d H:i:s'));
         $xml->addChild('expiryDate', $archive->getExpiryDate()?->format('Y-m-d H:i:s'));
-        $xml->addChild('status', (string)$archive->getArchiveStatus()?->value);
-        $xml->addChild('format', (string)$archive->getArchiveFormat()?->value);
+        $xml->addChild('status', (string)$archive->getArchiveStatus()->value);
+        $xml->addChild('format', (string)$archive->getArchiveFormat()->value);
         $xml->addChild('totalEffectiveTime', (string)$archive->getTotalEffectiveTime());
         $xml->addChild('totalSessions', (string)$archive->getTotalSessions());
         
@@ -665,7 +667,7 @@ class LearnArchiveService
         $content .= "==================\n";
         $content .= "档案ID: " . $archive->getId() . "\n";
         $content .= "用户ID: " . $archive->getUserId() . "\n";
-        $content .= "课程ID: " . $archive->getCourse()?->getId() . "\n";
+        $content .= "课程ID: " . $archive->getCourse()->getId() . "\n";
         $content .= "归档时间: " . $archive->getArchiveDate()?->format('Y-m-d H:i:s') . "\n";
         $content .= "过期时间: " . $archive->getExpiryDate()?->format('Y-m-d H:i:s') . "\n";
         $content .= "总有效时长: " . $archive->getTotalEffectiveTime() . " 秒\n";

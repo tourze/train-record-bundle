@@ -27,7 +27,7 @@ use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
 #[ORM\Index(name: 'idx_archive_status', columns: ['archive_status'])]
 #[ORM\Index(name: 'idx_expiry_date', columns: ['expiry_date'])]
 #[ORM\Index(name: 'idx_archive_date', columns: ['archive_date'])]
-class LearnArchive implements ApiArrayInterface, AdminArrayInterface
+class LearnArchive implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
@@ -251,7 +251,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
 
     public function getFileSize(): ?int
     {
-        return $this->fileSize ? (int) $this->fileSize : null;
+        return $this->fileSize !== null ? (int) $this->fileSize : null;
     }
 
     public function setFileSize(?int $fileSize): static
@@ -262,7 +262,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
 
     public function getCompressionRatio(): ?float
     {
-        return $this->compressionRatio ? (float) $this->compressionRatio : null;
+        return $this->compressionRatio !== null ? (float) $this->compressionRatio : null;
     }
 
     public function setCompressionRatio(?float $compressionRatio): static
@@ -328,7 +328,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
      */
     public function verifyIntegrity(): bool
     {
-        if (!$this->archivePath || !$this->archiveHash) {
+        if ($this->archivePath === null || $this->archiveHash === null) {
             return false;
         }
 
@@ -357,7 +357,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
      */
     public function isExpired(): bool
     {
-        if (!$this->expiryDate) {
+        if ($this->expiryDate === null) {
             return false;
         }
 
@@ -369,7 +369,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
      */
     public function needsVerification(): bool
     {
-        if (!$this->lastVerificationTime) {
+        if ($this->lastVerificationTime === null) {
             return true;
         }
 
@@ -385,7 +385,7 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
      */
     public function getRemainingDays(): ?int
     {
-        if (!$this->expiryDate) {
+        if ($this->expiryDate === null) {
             return null;
         }
 
@@ -495,5 +495,14 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface
             'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
             'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ];
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('学习档案[%s] - 用户:%s 课程:%s', 
+            $this->id ?? '未知',
+            $this->userId ?? '未知',
+            $this->course->getTitle()
+        );
     }
 } 

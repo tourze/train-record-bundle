@@ -2,7 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -66,7 +66,7 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
 
         if (!$learnSession->isFinished()) {
             // 记录最后学习时间
-            $learnSession->setLastLearnTime(Carbon::now());
+            $learnSession->setLastLearnTime(CarbonImmutable::now());
             // 将会话设置为活跃状态
             $learnSession->setActive(true);
             $this->sessionRepository->save($learnSession);
@@ -81,7 +81,7 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
         $this->doctrineService->asyncInsert($log);
 
         // 当一个学员开始播放视频了，我们就标记他正在学习
-        $cache = $this->cache->getItem("student_learning_{$student->getId()}");
+        $cache = $this->cache->getItem("student_learning_{$student->getUserIdentifier()}");
         $cache->set($learnSession->getId());
         $cache->expiresAfter(60 * 60 * 24);
         $this->cache->save($cache);

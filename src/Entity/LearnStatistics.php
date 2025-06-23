@@ -25,7 +25,7 @@ use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
 #[ORM\UniqueConstraint(name: 'uniq_type_period_date', columns: ['statistics_type', 'statistics_period', 'statistics_date'])]
 #[ORM\Index(name: 'idx_type_period', columns: ['statistics_type', 'statistics_period'])]
 #[ORM\Index(name: 'idx_statistics_date', columns: ['statistics_date'])]
-class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
+class LearnStatistics implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
@@ -44,7 +44,7 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
     private StatisticsPeriod $statisticsPeriod;
 
     #[IndexColumn]
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '统计日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '统计日期'])]
     private \DateTimeImmutable $statisticsDate;
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '用户统计JSON'])]
@@ -284,7 +284,7 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
 
     public function getCompletionRate(): ?float
     {
-        return $this->completionRate ? (float) $this->completionRate : null;
+        return $this->completionRate !== null ? (float) $this->completionRate : null;
     }
 
     public function setCompletionRate(?float $completionRate): static
@@ -295,7 +295,7 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
 
     public function getAverageEfficiency(): ?float
     {
-        return $this->averageEfficiency ? (float) $this->averageEfficiency : null;
+        return $this->averageEfficiency !== null ? (float) $this->averageEfficiency : null;
     }
 
     public function setAverageEfficiency(?float $averageEfficiency): static
@@ -452,5 +452,15 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface
             'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
             'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ];
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('学习统计[%s] - 类型:%s 周期:%s 日期:%s', 
+            $this->id ?? '未知',
+            $this->statisticsType->getLabel(),
+            $this->statisticsPeriod->getLabel(),
+            $this->statisticsDate->format('Y-m-d')
+        );
     }
 } 

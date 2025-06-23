@@ -2,11 +2,11 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use BizUserBundle\Entity\BizUser;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
@@ -39,7 +39,7 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
     public function execute(): array
     {
         $student = $this->security->getUser();
-        if (!$student instanceof BizUser) {
+        if (!$student instanceof UserInterface) {
             throw new ApiException('用户类型错误');
         }
 
@@ -52,13 +52,13 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
         }
         $registration = $learnSession->getRegistration();
 
-        $this->cache->deleteItem("student_learning_{$student->getId()}");
+        $this->cache->deleteItem("student_learning_{$student->getUserIdentifier()}");
 
         $lesson = $learnSession->getLesson();
 
         if (!$learnSession->isFinished()) {
             // 记录最后学习时间，同时比较为完成
-            $learnSession->setLastLearnTime(Carbon::now());
+            $learnSession->setLastLearnTime(CarbonImmutable::now());
             $learnSession->setFinished(true);
             $learnSession->setCurrentDuration($learnSession->getTotalDuration());
             // 将会话设置为非活跃状态

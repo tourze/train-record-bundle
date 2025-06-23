@@ -4,11 +4,11 @@ namespace Tourze\TrainRecordBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Tourze\TrainCourseBundle\Entity\Course;
-use Tourze\TrainCourseBundle\Entity\Lesson;
-use Tourze\TrainRecordBundle\Entity\EffectiveStudyRecord;
+use Tourze\TrainCourseBundle\Repository\CourseRepository;
+use Tourze\TrainCourseBundle\Repository\LessonRepository;
 use Tourze\TrainRecordBundle\Entity\LearnProgress;
 use Tourze\TrainRecordBundle\Enum\StudyTimeStatus;
+use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
 use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
 
 /**
@@ -25,6 +25,9 @@ class LearnProgressService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly LearnProgressRepository $progressRepository,
+        private readonly CourseRepository $courseRepository,
+        private readonly LessonRepository $lessonRepository,
+        private readonly EffectiveStudyRecordRepository $effectiveStudyRecordRepository,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -44,8 +47,8 @@ class LearnProgressService
         
         if ($progress === null) {
             // 获取课程和课时实体
-            $course = $this->entityManager->getRepository(Course::class)->find($courseId);
-            $lesson = $this->entityManager->getRepository(Lesson::class)->find($lessonId);
+            $course = $this->courseRepository->find($courseId);
+            $lesson = $this->lessonRepository->find($lessonId);
             
             if ($course === null || $lesson === null) {
                 throw new \InvalidArgumentException('课程或课时不存在');
@@ -377,7 +380,7 @@ class LearnProgressService
         
         foreach ($progressRecords as $progress) {
             // 从有效学时记录中计算总有效时长
-            $effectiveRecords = $this->entityManager->getRepository(EffectiveStudyRecord::class)
+            $effectiveRecords = $this->effectiveStudyRecordRepository
                 ->findBy([
                     'userId' => $userId,
                     'lesson' => $progress->getLesson(),

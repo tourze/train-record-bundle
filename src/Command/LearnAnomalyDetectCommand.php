@@ -282,7 +282,7 @@ class LearnAnomalyDetectCommand extends Command
             switch ($anomalyType) {
                 case 'multiple_device':
                     $session = $this->sessionRepository->find($sessionId);
-                    $userId = $session->getStudent()->getId();
+                    $userId = $session->getStudent()->getUserIdentifier();
                     $anomalies = $this->anomalyService->detectMultipleDeviceAnomaly((string) $userId);
                     $detected = count($anomalies);
                     break;
@@ -357,7 +357,7 @@ class LearnAnomalyDetectCommand extends Command
         // 单独检测多设备异常（需要用户ID）
         if (!$dryRun) {
             $session = $this->sessionRepository->find($sessionId);
-            $userId = $session->getStudent()->getId();
+            $userId = $session->getStudent()->getUserIdentifier();
             $anomalies = $this->anomalyService->detectMultipleDeviceAnomaly((string) $userId);
             $totalDetected += count($anomalies);
 

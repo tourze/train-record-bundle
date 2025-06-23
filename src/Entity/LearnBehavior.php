@@ -23,7 +23,7 @@ use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
 #[ORM\Index(name: 'idx_session_behavior_time', columns: ['session_id', 'behavior_type', 'create_time'])]
 #[ORM\Index(name: 'idx_suspicious', columns: ['is_suspicious', 'create_time'])]
 #[ORM\Index(name: 'idx_video_timestamp', columns: ['video_timestamp'])]
-class LearnBehavior implements ApiArrayInterface, AdminArrayInterface
+class LearnBehavior implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
@@ -248,7 +248,7 @@ class LearnBehavior implements ApiArrayInterface, AdminArrayInterface
         return [
             'id' => $this->getId(),
             'sessionId' => $this->getSession()->getId(),
-            'studentName' => $this->getSession()->getStudent()->getRealName() ?? '未知',
+            'studentName' => $this->getSession()->getStudent()->getUserIdentifier(),
             'lessonTitle' => $this->getSession()->getLesson()->getTitle(),
             'behaviorType' => $this->getBehaviorType()->value,
             'behaviorLabel' => $this->getBehaviorType()->getLabel(),
@@ -261,5 +261,14 @@ class LearnBehavior implements ApiArrayInterface, AdminArrayInterface
             'suspiciousReason' => $this->getSuspiciousReason(),
             'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
         ];
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('学习行为[%s] - 类型:%s 时间:%s', 
+            $this->id ?? '未知',
+            $this->behaviorType->getLabel(),
+            $this->createTime?->format('Y-m-d H:i:s') ?? '未知'
+        );
     }
 } 

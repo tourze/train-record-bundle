@@ -26,7 +26,7 @@ use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
 #[ORM\Index(name: 'idx_user_course', columns: ['user_id', 'course_id'])]
 #[ORM\Index(name: 'idx_progress_status', columns: ['is_completed', 'progress'])]
 #[ORM\Index(name: 'idx_last_update', columns: ['last_update_time'])]
-class LearnProgress implements ApiArrayInterface, AdminArrayInterface
+class LearnProgress implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
@@ -207,7 +207,7 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
 
     public function getQualityScore(): ?float
     {
-        return $this->qualityScore ? (float) $this->qualityScore : null;
+        return $this->qualityScore !== null ? (float) $this->qualityScore : null;
     }
 
     public function setQualityScore(?float $qualityScore): static
@@ -338,7 +338,7 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
      */
     public function needsSync(\DateTimeImmutable $lastSyncTime): bool
     {
-        return $this->lastUpdateTime && $this->lastUpdateTime > $lastSyncTime;
+        return $this->lastUpdateTime !== null && $this->lastUpdateTime > $lastSyncTime;
     }
 
     public function retrieveApiArray(): array
@@ -384,5 +384,15 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface
             'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
             'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ];
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('学习进度[%s] - 用户:%s 课程:%s 进度:%d%%', 
+            $this->id ?? '未知',
+            $this->userId ?? '未知',
+            $this->course->getTitle(),
+            $this->getProgress()
+        );
     }
 } 

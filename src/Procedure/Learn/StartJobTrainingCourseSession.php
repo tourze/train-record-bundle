@@ -2,7 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
@@ -73,7 +73,7 @@ class StartJobTrainingCourseSession extends LockableProcedure
             throw new ApiException('找不到课时信息[2]');
         }
 
-        $startTime = Carbon::now();
+        $startTime = CarbonImmutable::now();
 
         // 检查是否有其他活跃的学习会话（跨课程检查）
         $otherActiveSessions = $this->sessionRepository->findOtherActiveSessionsByStudent($student, $this->lessonId);
@@ -119,7 +119,7 @@ class StartJobTrainingCourseSession extends LockableProcedure
         
         // 设置会话为活跃状态
         $learnSession->setActive(true);
-        $learnSession->setSupplier($registration->getSupplier());
+        // Remove setSupplier call as it's not a method on LearnSession
         $learnSession->setCourse($course);
         $learnSession->setLastLearnTime($startTime);
         $this->sessionRepository->save($learnSession);

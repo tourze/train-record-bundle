@@ -2,7 +2,7 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
@@ -46,7 +46,7 @@ class ReportJobTrainingCourseVideoPause extends LockableProcedure
 
         if (!$learnSession->isFinished()) {
             // 记录最后学习时间
-            $learnSession->setLastLearnTime(Carbon::now());
+            $learnSession->setLastLearnTime(CarbonImmutable::now());
             // 将会话设置为非活跃状态
             $learnSession->setActive(false);
             $this->sessionRepository->save($learnSession);

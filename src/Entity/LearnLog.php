@@ -2,14 +2,13 @@
 
 namespace Tourze\TrainRecordBundle\Entity;
 
-use BizUserBundle\Entity\BizUser;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
+use Tourze\DoctrineUserBundle\Traits\CreatedByAware;
 use Tourze\TrainClassroomBundle\Entity\Registration;
 use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
@@ -19,6 +18,7 @@ use Tourze\TrainRecordBundle\Repository\LearnLogRepository;
 #[ORM\Table(name: 'ims_job_training_learn_action_log', options: ['comment' => '学习轨迹'])]
 class LearnLog implements Stringable
 {
+    use CreatedByAware;
     #[Groups(['restful_read', 'api_tree', 'admin_curd', 'api_list'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -28,8 +28,8 @@ class LearnLog implements Stringable
     #[ORM\ManyToOne(inversedBy: 'learnLogs')]
     private ?LearnSession $learnSession = null;
 
-    #[ORM\ManyToOne]
-    private ?BizUser $student = null;
+    #[ORM\ManyToOne(targetEntity: 'BizUserBundle\Entity\BizUser')]
+    private $student = null;
 
     #[ORM\ManyToOne(inversedBy: 'learnLogs')]
     private ?Registration $registration = null;
@@ -51,8 +51,6 @@ class LearnLog implements Stringable
     #[ORM\Column(length: 45, nullable: true, options: ['comment' => '创建时IP'])]
     private ?string $createdFromIp = null;
 
-    #[CreatedByColumn]
-    private ?string $createdBy = null;
 
     public function getId(): ?int
     {
@@ -71,12 +69,12 @@ class LearnLog implements Stringable
         return $this;
     }
 
-    public function getStudent(): ?BizUser
+    public function getStudent()
     {
         return $this->student;
     }
 
-    public function setStudent(?BizUser $student): static
+    public function setStudent($student): static
     {
         $this->student = $student;
 
@@ -153,15 +151,6 @@ class LearnLog implements Stringable
         $this->createdFromIp = $createdFromIp;
     }
 
-    public function setCreatedBy(?string $createdBy): void
-    {
-        $this->createdBy = $createdBy;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
 
     public function __toString(): string
     {

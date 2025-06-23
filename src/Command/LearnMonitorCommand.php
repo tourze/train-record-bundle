@@ -422,7 +422,7 @@ class LearnMonitorCommand extends Command
 
         $totalDuration = 0;
         foreach ($sessions as $session) {
-            $userId = $session->getStudent()->getId();
+            $userId = $session->getStudent()->getUserIdentifier();
             $courseId = $session->getCourse()->getId();
 
             $details['byUser'][$userId] = ($details['byUser'][$userId]) + 1;

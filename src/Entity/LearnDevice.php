@@ -12,7 +12,6 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
 use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 
 /**
@@ -26,7 +25,7 @@ use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 #[ORM\UniqueConstraint(name: 'uniq_device_fingerprint', columns: ['device_fingerprint'])]
 #[ORM\Index(name: 'idx_user_device', columns: ['user_id', 'is_active'])]
 #[ORM\Index(name: 'idx_last_used', columns: ['last_used_time'])]
-class LearnDevice implements ApiArrayInterface, AdminArrayInterface
+class LearnDevice implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
@@ -40,7 +39,6 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => '用户ID'])]
     private string $userId;
 
-    #[Keyword(inputWidth: 120, label: '设备指纹')]
     #[ORM\Column(length: 128, nullable: false, options: ['comment' => '设备指纹'])]
     private string $deviceFingerprint;
 
@@ -101,17 +99,11 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
     #[ORM\OneToMany(mappedBy: 'device', targetEntity: LearnSession::class)]
     private Collection $learnSessions;
 
-    /**
-     * @var Collection<int, LearnBehavior>
-     */
-    #[ORM\OneToMany(mappedBy: 'device', targetEntity: LearnBehavior::class)]
-    private Collection $learnBehaviors;
 
 
     public function __construct()
     {
         $this->learnSessions = new ArrayCollection();
-        $this->learnBehaviors = new ArrayCollection();
     }
 
     public function getId(): ?string
@@ -357,34 +349,7 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, LearnBehavior>
-     */
-    public function getLearnBehaviors(): Collection
-    {
-        return $this->learnBehaviors;
-    }
-
-    public function addLearnBehavior(LearnBehavior $learnBehavior): static
-    {
-        if (!$this->learnBehaviors->contains($learnBehavior)) {
-            $this->learnBehaviors->add($learnBehavior);
-            $learnBehavior->setDevice($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLearnBehavior(LearnBehavior $learnBehavior): static
-    {
-        if ($this->learnBehaviors->removeElement($learnBehavior)) {
-            if ($learnBehavior->getDevice() === $this) {
-                $learnBehavior->setDevice(null);
-            }
-        }
-
-        return $this;
-    }/**
+/**
      * 更新设备使用信息
      */
     public function updateUsage(?string $ipAddress = null, ?string $userAgent = null): static
@@ -464,15 +429,15 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
     {
         $parts = [];
         
-        if ($this->deviceName) {
+        if ($this->deviceName !== null) {
             $parts[] = $this->deviceName;
         }
         
-        if ($this->operatingSystem) {
+        if ($this->operatingSystem !== null) {
             $parts[] = $this->operatingSystem;
         }
         
-        if ($this->browser) {
+        if ($this->browser !== null) {
             $parts[] = $this->browser;
         }
         
@@ -525,5 +490,14 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface
             'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
             'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ];
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('学习设备[%s] - %s %s', 
+            $this->id ?? '未知',
+            $this->deviceName ?? '未命名设备',
+            $this->isActive ? '(活跃)' : '(未激活)'
+        );
     }
 } 

@@ -503,10 +503,10 @@ class LearnArchiveCommand extends Command
         $groups = [];
         
         foreach ($sessions as $session) {
-            $key = $session->getStudent()->getId() . '_' . $session->getCourse()->getId();
+            $key = $session->getStudent()->getUserIdentifier() . '_' . $session->getCourse()->getId();
             if (!isset($groups[$key])) {
                 $groups[$key] = [
-                    'userId' => $session->getStudent()->getId(),
+                    'userId' => $session->getStudent()->getUserIdentifier(),
                     'courseId' => $session->getCourse()->getId(),
                 ];
             }

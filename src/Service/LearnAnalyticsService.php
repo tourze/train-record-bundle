@@ -16,9 +16,6 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 class LearnAnalyticsService
 {
     // 分析配置常量
-    private const DEFAULT_TIME_ZONE = 'Asia/Shanghai';
-    private const CACHE_TTL = 3600;                    // 缓存时间（秒）
-    private const BATCH_SIZE = 1000;                   // 批量处理大小
     private const PERCENTILE_THRESHOLDS = [25, 50, 75, 90, 95]; // 百分位阈值
 
     public function __construct(
@@ -125,7 +122,7 @@ class LearnAnalyticsService
     {
         $now = new \DateTimeImmutable();
         $today = (clone $now)->setTime(0, 0, 0);
-        $thisHour = (clone $now)->setTime($now->format('H'), 0, 0);
+        $thisHour = (clone $now)->setTime((int)$now->format('H'), 0, 0);
 
         return [
             'timestamp' => $now->format('Y-m-d H:i:s'),
@@ -163,7 +160,7 @@ class LearnAnalyticsService
             'totalUsers' => $this->sessionRepository->countUniqueUsersByFilters($filters),
             'totalCourses' => $this->sessionRepository->countUniqueCoursesByFilters($filters),
             'totalLearningTime' => $this->sessionRepository->sumDurationByFilters($filters),
-            'averageSessionTime' => $this->sessionRepository->avgDurationByFilters($filters),
+            'averageSessionTime' => $this->sessionRepository->avgDurationByFilters($filters) ?? 0.0,
             'completionRate' => $this->progressRepository->calculateCompletionRateByFilters($filters),
             'activeUsers' => $this->sessionRepository->countActiveUsersByFilters($filters),
             'newUsers' => $this->sessionRepository->countNewUsersByFilters($filters),
@@ -179,7 +176,10 @@ class LearnAnalyticsService
         ?string $userId = null,
         ?string $courseId = null
     ): array {
-        $sessions = $this->sessionRepository->findByDateRangeAndFilters($startDate, $endDate, $userId, $courseId);
+        $filters = [];
+        if ($userId !== null) $filters['userId'] = $userId;
+        if ($courseId !== null) $filters['courseId'] = $courseId;
+        $sessions = $this->sessionRepository->findByDateRangeAndFilters($startDate, $endDate, $filters);
         
         $durations = array_map(fn($s) => $s->getTotalDuration(), $sessions);
         $dailyStats = $this->groupSessionsByDay($sessions);
@@ -210,7 +210,10 @@ class LearnAnalyticsService
         ?string $userId = null,
         ?string $courseId = null
     ): array {
-        $progressRecords = $this->progressRepository->findByDateRangeAndFilters($startDate, $endDate, $userId, $courseId);
+        $filters = [];
+        if ($userId !== null) $filters['userId'] = $userId;
+        if ($courseId !== null) $filters['courseId'] = $courseId;
+        $progressRecords = $this->progressRepository->findByDateRangeAndFilters($startDate, $endDate, $filters);
         
         $progressValues = array_map(fn($p) => $p->getProgress(), $progressRecords);
         $effectiveTimes = array_map(fn($p) => $p->getEffectiveDuration(), $progressRecords);
@@ -242,7 +245,10 @@ class LearnAnalyticsService
         ?string $userId = null,
         ?string $courseId = null
     ): array {
-        $behaviors = $this->behaviorRepository->findByDateRangeAndFilters($startDate, $endDate, $userId, $courseId);
+        $filters = [];
+        if ($userId !== null) $filters['userId'] = $userId;
+        if ($courseId !== null) $filters['courseId'] = $courseId;
+        $behaviors = $this->behaviorRepository->findByDateRangeAndFilters($startDate, $endDate, $filters);
         
         return [
             'totalBehaviors' => count($behaviors),
@@ -263,7 +269,10 @@ class LearnAnalyticsService
         ?string $userId = null,
         ?string $courseId = null
     ): array {
-        $anomalies = $this->anomalyRepository->findByDateRangeAndFilters($startDate, $endDate, $userId, $courseId);
+        $filters = [];
+        if ($userId !== null) $filters['userId'] = $userId;
+        if ($courseId !== null) $filters['courseId'] = $courseId;
+        $anomalies = $this->anomalyRepository->findByDateRangeAndFilters($startDate, $endDate, $filters);
         
         return [
             'totalAnomalies' => count($anomalies),
@@ -284,11 +293,14 @@ class LearnAnalyticsService
         ?string $userId = null,
         ?string $courseId = null
     ): array {
+        $startDateImmutable = $startDate instanceof \DateTimeImmutable ? $startDate : \DateTimeImmutable::createFromInterface($startDate);
+        $endDateImmutable = $endDate instanceof \DateTimeImmutable ? $endDate : \DateTimeImmutable::createFromInterface($endDate);
+        
         return [
-            'sessionTrends' => $this->analyzeSessionTrends($startDate, $endDate, $userId, $courseId),
-            'progressTrends' => $this->analyzeProgressTrends($startDate, $endDate, $userId, $courseId),
-            'engagementTrends' => $this->analyzeEngagementTrends($startDate, $endDate, $userId, $courseId),
-            'qualityTrends' => $this->analyzeQualityTrends($startDate, $endDate, $userId, $courseId),
+            'sessionTrends' => $this->analyzeSessionTrends($startDateImmutable, $endDateImmutable, $userId, $courseId),
+            'progressTrends' => $this->analyzeProgressTrends($startDateImmutable, $endDateImmutable, $userId, $courseId),
+            'engagementTrends' => $this->analyzeEngagementTrends($startDateImmutable, $endDateImmutable, $userId, $courseId),
+            'qualityTrends' => $this->analyzeQualityTrends($startDateImmutable, $endDateImmutable, $userId, $courseId),
         ];
     }
 
@@ -309,7 +321,7 @@ class LearnAnalyticsService
             'endDate' => $endDate,
             'userId' => $userId,
             'courseId' => $courseId,
-        ]);
+        ]) ?? 0.0;
 
         if ($avgSessionTime > 3600) { // 超过1小时
             $insights[] = [
@@ -387,9 +399,9 @@ class LearnAnalyticsService
         $middle = floor($count / 2);
 
         if ($count % 2 === 0) {
-            return ($values[$middle - 1] + $values[$middle]) / 2;
+            return ($values[(int)$middle - 1] + $values[(int)$middle]) / 2;
         } else {
-            return $values[$middle];
+            return $values[(int)$middle];
         }
     }
 
@@ -412,9 +424,9 @@ class LearnAnalyticsService
             $upper = ceil($index);
 
             if ($lower === $upper) {
-                $percentiles[$percentile] = $values[$lower];
+                $percentiles[$percentile] = $values[(int)$lower];
             } else {
-                $percentiles[$percentile] = $values[$lower] + ($index - $lower) * ($values[$upper] - $values[$lower]);
+                $percentiles[$percentile] = $values[(int)$lower] + ($index - $lower) * ($values[(int)$upper] - $values[(int)$lower]);
             }
         }
 

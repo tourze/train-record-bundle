@@ -74,7 +74,7 @@ class LearnSessionCleanupCommand extends Command
             foreach ($inactiveSessions as $session) {
                 $table[] = [
                     $session->getId(),
-                    $session->getStudent()->getNickName() ?? $session->getStudent()->getId(),
+                    $session->getStudent()->getUserIdentifier(),
                     $session->getCourse()->getTitle(),
                     $session->getLesson()->getTitle(),
                     $session->getLastLearnTime()->format('Y-m-d H:i:s'),
@@ -99,7 +99,7 @@ class LearnSessionCleanupCommand extends Command
                         
                         $this->logger->info('清理无效学习会话', [
                             'session_id' => $session->getId(),
-                            'student_id' => $session->getStudent()->getId(),
+                            'student_id' => $session->getStudent()->getUserIdentifier(),
                             'lesson_id' => $session->getLesson()->getId(),
                             'last_update' => $session->getLastLearnTime()->format('Y-m-d H:i:s'),
                         ]);

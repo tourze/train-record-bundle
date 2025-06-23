@@ -214,7 +214,7 @@ class LearnSessionService
         
         $this->logger->info('学习会话已激活', [
             'session_id' => $session->getId(),
-            'student_id' => $session->getStudent()->getId(),
+            'student_id' => $session->getStudent()->getUserIdentifier(),
             'lesson_id' => $session->getLesson()->getId(),
         ]);
     }
@@ -238,7 +238,7 @@ class LearnSessionService
         
         $this->logger->info('学习会话已停用', [
             'session_id' => $session->getId(),
-            'student_id' => $session->getStudent()->getId(),
+            'student_id' => $session->getStudent()->getUserIdentifier(),
             'lesson_id' => $session->getLesson()->getId(),
         ]);
     }
@@ -255,7 +255,7 @@ class LearnSessionService
         // 检查播放速度异常
         if ($realTimeDiff > 0 && ($timeDiff / $realTimeDiff) > self::SUSPICIOUS_SPEED_THRESHOLD) {
             $this->recordAnomaly(
-                (string) $session->getStudent()->getId(),
+                (string) $session->getStudent()->getUserIdentifier(),
                 AnomalyType::RAPID_PROGRESS,
                 AnomalySeverity::MEDIUM,
                 '检测到异常播放速度',
@@ -273,7 +273,7 @@ class LearnSessionService
      */
     private function syncProgressAcrossDevices(LearnSession $session, float $currentTime): void
     {
-        $userId = $session->getStudent()->getId();
+        $userId = $session->getStudent()->getUserIdentifier();
         $lessonId = $session->getLesson()->getId();
         
         // 更新进度记录
@@ -312,7 +312,7 @@ class LearnSessionService
     {
         // 简化实现，直接记录异常
         $this->recordAnomaly(
-            (string) $session->getStudent()->getId(),
+            (string) $session->getStudent()->getUserIdentifier(),
             AnomalyType::WINDOW_SWITCH,
             AnomalySeverity::LOW,
             '检测到窗口切换行为',
@@ -327,7 +327,7 @@ class LearnSessionService
     {
         // 简化实现，直接记录异常
         $this->recordAnomaly(
-            (string) $session->getStudent()->getId(),
+            (string) $session->getStudent()->getUserIdentifier(),
             AnomalyType::SUSPICIOUS_BEHAVIOR,
             AnomalySeverity::LOW,
             '检测到鼠标离开学习区域',
@@ -342,7 +342,7 @@ class LearnSessionService
     {
         // 简化实现，直接记录异常
         $this->recordAnomaly(
-            (string) $session->getStudent()->getId(),
+            (string) $session->getStudent()->getUserIdentifier(),
             AnomalyType::RAPID_PROGRESS,
             AnomalySeverity::MEDIUM,
             '检测到快速拖拽行为',
@@ -391,7 +391,7 @@ class LearnSessionService
     {
         // 暂时移除缓存功能
         /*
-        $userId = $session->getStudent()->getId();
+        $userId = $session->getStudent()->getUserIdentifier();
         
         // 清理相关缓存
         $this->cache->delete(self::CACHE_PREFIX_LEARNING . $userId);

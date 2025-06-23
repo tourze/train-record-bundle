@@ -2,11 +2,11 @@
 
 namespace Tourze\TrainRecordBundle\Entity;
 
-use BizUserBundle\Entity\BizUser;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
@@ -17,8 +17,7 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainClassroomBundle\Entity\Registration;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
@@ -32,10 +31,10 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 #[ORM\Entity(repositoryClass: LearnSessionRepository::class)]
 #[ORM\Table(name: 'job_training_learn_session', options: ['comment' => '学习记录'])]
 #[ORM\UniqueConstraint(name: 'job_training_learn_session_idx_uniq', columns: ['registration_id', 'lesson_id'])]
-class
-LearnSession implements ApiArrayInterface, AdminArrayInterface
+class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
+    use BlameableAware;
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -45,7 +44,7 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private BizUser $student;
+    private UserInterface $student;
 
     #[ORM\ManyToOne(inversedBy: 'sessions')]
     #[ORM\JoinColumn(nullable: false)]
@@ -74,6 +73,10 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '观看时间点'])]
     private string $currentDuration = '0.00';
 
+    #[ORM\ManyToOne(targetEntity: LearnDevice::class, inversedBy: 'learnSessions')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?LearnDevice $device = null;
+
     #[Ignore]
     #[ORM\OneToMany(targetEntity: FaceDetect::class, mappedBy: 'session', orphanRemoval: true)]
     private Collection $faceDetects;
@@ -93,11 +96,6 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
     #[ORM\OneToMany(targetEntity: LearnBehavior::class, mappedBy: 'session', orphanRemoval: true)]
     private Collection $learnBehaviors;
 
-    #[CreatedByColumn]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    private ?string $updatedBy = null;
 
     #[CreateIpColumn]
     private ?string $createdFromIp = null;
@@ -192,12 +190,12 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
         return $this->updatedFromUa;
     }
 
-    public function getStudent(): BizUser
+    public function getStudent(): UserInterface
     {
         return $this->student;
     }
 
-    public function setStudent(BizUser $student): static
+    public function setStudent(UserInterface $student): static
     {
         $this->student = $student;
 
@@ -348,13 +346,7 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
 
     public function removeFaceDetect(FaceDetect $faceDetect): static
     {
-        if ($this->faceDetects->removeElement($faceDetect)) {
-            // set the owning side to null (unless already changed)
-            if ($faceDetect->getSession() === $this) {
-                $faceDetect->setSession(null);
-            }
-        }
-
+        $this->faceDetects->removeElement($faceDetect);
         return $this;
     }
 
@@ -435,13 +427,27 @@ LearnSession implements ApiArrayInterface, AdminArrayInterface
 
     public function removeLearnBehavior(LearnBehavior $learnBehavior): static
     {
-        if ($this->learnBehaviors->removeElement($learnBehavior)) {
-            // set the owning side to null (unless already changed)
-            if ($learnBehavior->getSession() === $this) {
-                $learnBehavior->setSession(null);
-            }
-        }
-
+        $this->learnBehaviors->removeElement($learnBehavior);
         return $this;
+    }
+
+    public function getDevice(): ?LearnDevice
+    {
+        return $this->device;
+    }
+
+    public function setDevice(?LearnDevice $device): static
+    {
+        $this->device = $device;
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('学习会话[%s] - 学生:%s 课程:%s', 
+            $this->id ?? '未知',
+            $this->getStudent()->getUserIdentifier(),
+            $this->lesson->getTitle()
+        );
     }
 }

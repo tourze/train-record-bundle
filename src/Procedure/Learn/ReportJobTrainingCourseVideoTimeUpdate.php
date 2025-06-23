@@ -2,7 +2,8 @@
 
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -38,7 +39,8 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
         private readonly FaceDetectRepository $faceDetectRepository,
         #[Autowire(service: 'cache.app')] private readonly AdapterInterface $cache,
         private readonly DoctrineService $doctrineService,
-            ) {
+        private readonly EntityManagerInterface $entityManager,
+    ) {
     }
 
     public function execute(): array
@@ -54,7 +56,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
         }
 
         // 检查学习是否合法
-        $cache = $this->cache->getItem("student_learning_{$student->getId()}");
+        $cache = $this->cache->getItem("student_learning_{$student->getUserIdentifier()}");
         if ($cache->isHit()) {
             $learningSessionId = $cache->get();
             if ($learningSessionId !== $learnSession->getId()) {
@@ -68,14 +70,14 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
 
         // 上次的进度比今次大，是允许的
         // 今次的进度比上次大太多就不允许咯
-        if (($this->currentTime - $learnSession->getCurrentDuration()) > 30) {
+        if (((float)$this->currentTime - (float)$learnSession->getCurrentDuration()) > 30) {
             $this->entityManager->remove($learnSession);
             $this->entityManager->flush();
             throw new ApiException('环境异常，请重新学习', -652);
         }
 
         // 记录最后学习时间和观看位置
-        $learnSession->setLastLearnTime(Carbon::now());
+        $learnSession->setLastLearnTime(CarbonImmutable::now());
         $learnSession->setCurrentDuration($this->currentTime);
         $learnSession->setTotalDuration($this->duration);
         $this->sessionRepository->save($learnSession);
@@ -97,7 +99,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
                 'pass' => true,
             ], ['id' => 'DESC']);
             if ($lastFaceDetect !== null) {
-                if ((bool) Carbon::now()->diffInSeconds($lastFaceDetect->getCreateTime()) > $lesson->getFaceDetectDuration()) {
+                if ((bool) CarbonImmutable::now()->diffInSeconds($lastFaceDetect->getCreateTime()) > $lesson->getFaceDetectDuration()) {
                     $needFace = true;
                 }
             } else {
@@ -106,7 +108,7 @@ class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
                 }
             }
 
-            if ($needFace !== null) {
+            if ($needFace) {
                 return [
                     'sessionId' => $learnSession->getId(),
                     'nextAction' => 'face-detect', // 告诉前端需要人脸识别

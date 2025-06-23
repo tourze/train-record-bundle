@@ -237,4 +237,263 @@ class LearnSessionRepository extends ServiceEntityRepository
     {
         $this->getEntityManager()->flush();
     }
+
+    /**
+     * 根据用户ID和课程ID查找学习会话
+     */
+    public function findByUserAndCourse(string $userId, string $courseId): array
+    {
+        return $this->createQueryBuilder('ls')
+            ->leftJoin('ls.registration', 'r')
+            ->leftJoin('ls.lesson', 'l')
+            ->leftJoin('l.course', 'c')
+            ->where('r.userId = :userId')
+            ->andWhere('c.id = :courseId')
+            ->setParameter('userId', $userId)
+            ->setParameter('courseId', $courseId)
+            ->orderBy('ls.createTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找已过期的会话
+     */
+    public function findExpiredSessions(\DateTimeInterface $expireTime): array
+    {
+        return $this->createQueryBuilder('ls')
+            ->where('ls.lastLearnTime IS NOT NULL')
+            ->andWhere('ls.lastLearnTime < :expireTime')
+            ->andWhere('ls.finished = false')
+            ->setParameter('expireTime', $expireTime)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 按过滤条件计算平均时长
+     */
+    public function avgDurationByFilters(array $filters): ?float
+    {
+        $qb = $this->createQueryBuilder('ls')
+            ->select('AVG(ls.totalDuration) as avgDuration');
+            
+        $this->applyFilters($qb, $filters);
+        
+        $result = $qb->getQuery()->getSingleScalarResult();
+        return $result !== null ? (float) $result : null;
+    }
+
+    /**
+     * 统计指定时间后的活跃会话数
+     */
+    public function countActiveSessionsSince(\DateTimeInterface $since): int
+    {
+        return $this->createQueryBuilder('ls')
+            ->select('COUNT(ls.id)')
+            ->where('ls.createTime >= :since')
+            ->andWhere('ls.active = true')
+            ->setParameter('since', $since)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * 应用过滤条件
+     */
+    private function applyFilters($qb, array $filters): void
+    {
+        if (isset($filters['startTime'])) {
+            $qb->andWhere('ls.createTime >= :startTime')
+               ->setParameter('startTime', $filters['startTime']);
+        }
+        
+        if (isset($filters['endTime'])) {
+            $qb->andWhere('ls.createTime <= :endTime')
+               ->setParameter('endTime', $filters['endTime']);
+        }
+        
+        if (isset($filters['courseId'])) {
+            $qb->leftJoin('ls.lesson', 'l')
+               ->andWhere('l.course = :courseId')
+               ->setParameter('courseId', $filters['courseId']);
+        }
+    }
+
+    /**
+     * 按过滤条件统计会话数
+     */
+    public function countByFilters(array $filters): int
+    {
+        $qb = $this->createQueryBuilder('ls')
+            ->select('COUNT(ls.id)');
+            
+        $this->applyFilters($qb, $filters);
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * 按过滤条件统计唯一课程数
+     */
+    public function countUniqueCoursesByFilters(array $filters): int
+    {
+        $qb = $this->createQueryBuilder('ls')
+            ->select('COUNT(DISTINCT c.id)')
+            ->leftJoin('ls.lesson', 'l')
+            ->leftJoin('l.course', 'c');
+            
+        $this->applyFilters($qb, $filters);
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * 按过滤条件统计总时长
+     */
+    public function sumDurationByFilters(array $filters): float
+    {
+        $qb = $this->createQueryBuilder('ls')
+            ->select('SUM(ls.totalDuration)');
+            
+        $this->applyFilters($qb, $filters);
+        
+        $result = $qb->getQuery()->getSingleScalarResult();
+        return $result !== null ? (float) $result : 0.0;
+    }
+
+    /**
+     * 按过滤条件统计活跃用户数
+     */
+    public function countActiveUsersByFilters(array $filters): int
+    {
+        $qb = $this->createQueryBuilder('ls')
+            ->select('COUNT(DISTINCT r.userId)')
+            ->leftJoin('ls.registration', 'r')
+            ->where('ls.active = true');
+            
+        $this->applyFilters($qb, $filters);
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * 按过滤条件统计新用户数
+     */
+    public function countNewUsersByFilters(array $filters): int
+    {
+        $qb = $this->createQueryBuilder('ls')
+            ->select('COUNT(DISTINCT r.userId)')
+            ->leftJoin('ls.registration', 'r');
+            
+        // 只统计首次学习的用户
+        if (isset($filters['startTime'])) {
+            $subQb = $this->createQueryBuilder('ls2')
+                ->select('r2.userId')
+                ->leftJoin('ls2.registration', 'r2')
+                ->where('ls2.createTime < :startTime')
+                ->groupBy('r2.userId');
+                
+            $qb->where($qb->expr()->notIn('r.userId', $subQb->getDQL()));
+        }
+            
+        $this->applyFilters($qb, $filters);
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * 按日期范围和过滤条件查找会话
+     */
+    public function findByDateRangeAndFilters(\DateTimeInterface $startDate, \DateTimeInterface $endDate, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('ls')
+            ->where('ls.createTime >= :startDate')
+            ->andWhere('ls.createTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate);
+            
+        $this->applyFilters($qb, $filters);
+        
+        return $qb->orderBy('ls.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 按日期范围统计会话数量
+     */
+    public function countByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
+    {
+        return $this->createQueryBuilder('ls')
+            ->select('COUNT(ls.id)')
+            ->where('ls.createTime >= :startDate')
+            ->andWhere('ls.createTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * 按日期范围统计唯一用户数
+     */
+    public function countUniqueUsersByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
+    {
+        return $this->createQueryBuilder('ls')
+            ->select('COUNT(DISTINCT ls.student)')
+            ->where('ls.createTime >= :startDate')
+            ->andWhere('ls.createTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * 按日期范围统计总时长
+     */
+    public function sumDurationByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): float
+    {
+        $result = $this->createQueryBuilder('ls')
+            ->select('SUM(ls.totalDuration)')
+            ->where('ls.createTime >= :startDate')
+            ->andWhere('ls.createTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+            
+        return (float) ($result ?? 0);
+    }
+
+    /**
+     * 按过滤条件统计唯一用户数
+     */
+    public function countUniqueUsersByFilters(array $filters): int
+    {
+        $qb = $this->createQueryBuilder('ls')
+            ->select('COUNT(DISTINCT ls.student)');
+            
+        $this->applyFilters($qb, $filters);
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * 获取当前在线用户数
+     */
+    public function getCurrentOnlineUsers(): int
+    {
+        $threshold = new \DateTimeImmutable('-15 minutes');
+        
+        return $this->createQueryBuilder('ls')
+            ->select('COUNT(DISTINCT ls.student)')
+            ->where('ls.active = :active')
+            ->andWhere('ls.lastLearnTime >= :threshold')
+            ->setParameter('active', true)
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

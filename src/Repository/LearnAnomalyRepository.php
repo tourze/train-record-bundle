@@ -211,4 +211,53 @@ class LearnAnomalyRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 根据用户ID和课程ID查找异常记录
+     */
+    public function findByUserAndCourse(string $userId, string $courseId): array
+    {
+        return $this->createQueryBuilder('la')
+            ->leftJoin('la.session', 's')
+            ->leftJoin('s.registration', 'r')
+            ->leftJoin('s.lesson', 'l')
+            ->leftJoin('l.course', 'c')
+            ->where('r.userId = :userId')
+            ->andWhere('c.id = :courseId')
+            ->setParameter('userId', $userId)
+            ->setParameter('courseId', $courseId)
+            ->orderBy('la.detectedTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 按日期范围和过滤条件查找异常
+     */
+    public function findByDateRangeAndFilters(\DateTimeInterface $startDate, \DateTimeInterface $endDate, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('la')
+            ->where('la.detectedTime >= :startDate')
+            ->andWhere('la.detectedTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate);
+            
+        if (isset($filters['courseId'])) {
+            $qb->leftJoin('la.session', 's')
+               ->leftJoin('s.lesson', 'l')
+               ->andWhere('l.course = :courseId')
+               ->setParameter('courseId', $filters['courseId']);
+        }
+        
+        if (isset($filters['userId'])) {
+            $qb->leftJoin('la.session', 's2')
+               ->leftJoin('s2.registration', 'r')
+               ->andWhere('r.userId = :userId')
+               ->setParameter('userId', $filters['userId']);
+        }
+        
+        return $qb->orderBy('la.detectedTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

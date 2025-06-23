@@ -217,7 +217,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface, \Stringabl
 
     public function getImpactScore(): ?float
     {
-        return $this->impactScore ? (float) $this->impactScore : null;
+        return $this->impactScore !== null ? (float) $this->impactScore : null;
     }
 
     public function setImpactScore(?float $impactScore): static
@@ -335,7 +335,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         $sessionInfo = sprintf(
             '会话[%s] 学员[%s] 课时[%s]',
             $this->session->getId(),
-            $this->session->getStudent()->getId() ?? '未知',
+            $this->session->getStudent()->getUserIdentifier(),
             $this->session->getLesson()->getTitle()
         );
         
@@ -352,7 +352,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return [
             'id' => $this->id,
             'sessionId' => $this->session->getId(),
-            'studentName' => $this->session->getStudent()->getId() ?? '未知',
+            'studentName' => $this->session->getStudent()->getUserIdentifier(),
             'lessonTitle' => $this->session->getLesson()->getTitle(),
             'anomalyType' => $this->anomalyType->value,
             'anomalyTypeLabel' => $this->anomalyType->getLabel(),
@@ -377,7 +377,7 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return [
             'id' => $this->id,
             'sessionId' => $this->session->getId(),
-            'studentName' => $this->session->getStudent()->getId() ?? '未知',
+            'studentName' => $this->session->getStudent()->getUserIdentifier(),
             'lessonTitle' => $this->session->getLesson()->getTitle(),
             'anomalyType' => $this->anomalyType->value,
             'anomalyTypeLabel' => $this->anomalyType->getLabel(),

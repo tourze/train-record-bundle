@@ -9,6 +9,7 @@ use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\TrainClassroomBundle\Repository\RegistrationRepository;
+use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 #[MethodDoc('获取学员的学习明细')]
 #[MethodExpose('GetJobTrainingLearnSessionDetail')]
@@ -21,6 +22,7 @@ class GetJobTrainingLearnSessionDetail extends BaseProcedure
     public function __construct(
         private readonly Security $security,
         private readonly RegistrationRepository $registrationRepository,
+        private readonly LearnSessionRepository $learnSessionRepository,
     ) {
     }
 
@@ -34,7 +36,8 @@ class GetJobTrainingLearnSessionDetail extends BaseProcedure
         ]);
 
         $list = [];
-        foreach ($registration->getSessions() as $session) {
+        $sessions = $this->learnSessionRepository->findBy(['registration' => $registration]);
+        foreach ($sessions as $session) {
             $list[] = $session->retrieveApiArray();
         }
 

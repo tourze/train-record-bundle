@@ -151,4 +151,53 @@ class LearnBehaviorRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 根据用户ID和课程ID查找学习行为
+     */
+    public function findByUserAndCourse(string $userId, string $courseId): array
+    {
+        return $this->createQueryBuilder('lb')
+            ->leftJoin('lb.session', 's')
+            ->leftJoin('s.registration', 'r')
+            ->leftJoin('s.lesson', 'l')
+            ->leftJoin('l.course', 'c')
+            ->where('r.userId = :userId')
+            ->andWhere('c.id = :courseId')
+            ->setParameter('userId', $userId)
+            ->setParameter('courseId', $courseId)
+            ->orderBy('lb.createTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 按日期范围和过滤条件查找行为
+     */
+    public function findByDateRangeAndFilters(\DateTimeInterface $startDate, \DateTimeInterface $endDate, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('lb')
+            ->where('lb.createTime >= :startDate')
+            ->andWhere('lb.createTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate);
+            
+        if (isset($filters['courseId'])) {
+            $qb->leftJoin('lb.session', 's')
+               ->leftJoin('s.lesson', 'l')
+               ->andWhere('l.course = :courseId')
+               ->setParameter('courseId', $filters['courseId']);
+        }
+        
+        if (isset($filters['userId'])) {
+            $qb->leftJoin('lb.session', 's2')
+               ->leftJoin('s2.registration', 'r')
+               ->andWhere('r.userId = :userId')
+               ->setParameter('userId', $filters['userId']);
+        }
+        
+        return $qb->orderBy('lb.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

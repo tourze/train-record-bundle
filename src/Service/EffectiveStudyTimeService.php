@@ -25,12 +25,10 @@ class EffectiveStudyTimeService
     // 默认配置常量
     private const DEFAULT_DAILY_LIMIT = 8 * 3600;           // 日学时上限（8小时）
     private const DEFAULT_INTERACTION_TIMEOUT = 300;       // 交互超时（5分钟）
-    private const DEFAULT_MIN_SEGMENT_DURATION = 60;       // 最小有效时段（1分钟）
     private const DEFAULT_QUALITY_THRESHOLD = 6.0;         // 质量评分阈值
     private const DEFAULT_FOCUS_THRESHOLD = 0.7;           // 专注度阈值
     
     // 缓存键前缀
-    private const CACHE_PREFIX_DAILY_TIME = 'daily_study_time_';
     private const CACHE_PREFIX_USER_CONFIG = 'user_study_config_';
     
     public function __construct(
@@ -59,7 +57,7 @@ class EffectiveStudyTimeService
     ): EffectiveStudyRecord {
         // 创建有效学时记录
         $record = new EffectiveStudyRecord();
-        $record->setUserId((string) $session->getStudent()->getId());
+        $record->setUserId((string) $session->getStudent()->getUserIdentifier());
         $record->setSession($session);
         $record->setCourse($session->getCourse());
         $record->setLesson($session->getLesson());

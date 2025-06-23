@@ -209,4 +209,74 @@ class LearnProgressRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 按过滤条件计算完成率
+     */
+    public function calculateCompletionRateByFilters(array $filters): float
+    {
+        $qb = $this->createQueryBuilder('lp')
+            ->select('COUNT(lp.id) as total, SUM(CASE WHEN lp.isCompleted = true THEN 1 ELSE 0 END) as completed');
+            
+        if (isset($filters['courseId'])) {
+            $qb->andWhere('lp.course = :courseId')
+               ->setParameter('courseId', $filters['courseId']);
+        }
+        
+        if (isset($filters['userId'])) {
+            $qb->andWhere('lp.userId = :userId')
+               ->setParameter('userId', $filters['userId']);
+        }
+        
+        $result = $qb->getQuery()->getSingleResult();
+        
+        if ($result['total'] == 0) {
+            return 0.0;
+        }
+        
+        return (float) ($result['completed'] / $result['total']) * 100;
+    }
+
+    /**
+     * 按日期范围和过滤条件查找进度
+     */
+    public function findByDateRangeAndFilters(\DateTimeInterface $startDate, \DateTimeInterface $endDate, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('lp')
+            ->where('lp.createTime >= :startDate')
+            ->andWhere('lp.createTime <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate);
+            
+        if (isset($filters['courseId'])) {
+            $qb->andWhere('lp.course = :courseId')
+               ->setParameter('courseId', $filters['courseId']);
+        }
+        
+        if (isset($filters['userId'])) {
+            $qb->andWhere('lp.userId = :userId')
+               ->setParameter('userId', $filters['userId']);
+        }
+        
+        return $qb->orderBy('lp.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 按日期范围统计完成数
+     */
+    public function countCompletionsByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
+    {
+        return $this->createQueryBuilder('lp')
+            ->select('COUNT(lp.id)')
+            ->where('lp.isCompleted = :completed')
+            ->andWhere('lp.createTime >= :startDate')
+            ->andWhere('lp.createTime <= :endDate')
+            ->setParameter('completed', true)
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 } 
