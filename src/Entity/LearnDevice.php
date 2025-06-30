@@ -10,13 +10,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 
 /**
  * 学习设备管理实体
- * 
+ *
  * 管理学员的学习设备信息，支持多终端登录控制和设备识别。
  * 用于防止多设备同时学习、设备切换检测等防作弊功能。
  */
@@ -28,12 +28,7 @@ use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 class LearnDevice implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => '用户ID'])]
@@ -104,11 +99,6 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface, \Stringable
     public function __construct()
     {
         $this->learnSessions = new ArrayCollection();
-    }
-
-    public function getId(): ?string
-    {
-        return $this->id;
     }
 
     public function getUserId(): string
@@ -441,7 +431,8 @@ class LearnDevice implements ApiArrayInterface, AdminArrayInterface, \Stringable
             $parts[] = $this->browser;
         }
         
-        return implode(' / ', $parts) ?: '未知设备';
+        $result = implode(' / ', $parts);
+        return $result !== '' ? $result : '未知设备';
     }
 
     public function retrieveApiArray(): array

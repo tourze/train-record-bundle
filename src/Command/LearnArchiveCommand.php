@@ -11,6 +11,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Tourze\TrainRecordBundle\Enum\ArchiveFormat;
 use Tourze\TrainRecordBundle\Enum\ArchiveStatus;
+use Tourze\TrainRecordBundle\Exception\InvalidArgumentException;
+use Tourze\TrainRecordBundle\Exception\TrainRecordException;
+use Tourze\TrainRecordBundle\Exception\UnsupportedActionException;
 use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 use Tourze\TrainRecordBundle\Service\LearnArchiveService;
@@ -120,7 +123,7 @@ class LearnArchiveCommand extends Command
                 'verify' => $this->verifyArchives($archiveId, $userId, $courseId, $batchSize, $io),
                 'export' => $this->exportArchives($archiveId, $format, $exportPath, $dryRun, $io),
                 'cleanup' => $this->cleanupArchives($daysBeforeExpiry, $dryRun, $io),
-                default => throw new \InvalidArgumentException("不支持的操作类型: {$action}")
+                default => throw new UnsupportedActionException("不支持的操作类型: {$action}")
             };
 
             $io->success($result['message']);
@@ -413,7 +416,7 @@ class LearnArchiveCommand extends Command
         $io->section('导出档案');
 
         if ($archiveId === null) {
-            throw new \InvalidArgumentException('导出操作需要指定档案ID');
+            throw new InvalidArgumentException('导出操作需要指定档案ID');
         }
 
         $io->text("导出档案: {$archiveId}，格式: {$format}");
@@ -424,7 +427,7 @@ class LearnArchiveCommand extends Command
             if ($exportPath !== null && $exportPath !== $filePath) {
                 // 复制到指定路径
                 if (!copy($filePath, $exportPath)) {
-                    throw new \RuntimeException("无法复制文件到: {$exportPath}");
+                    throw new TrainRecordException("无法复制文件到: {$exportPath}");
                 }
                 $filePath = $exportPath;
             }

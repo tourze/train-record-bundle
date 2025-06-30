@@ -10,7 +10,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
  * 学习分析服务
- * 
+ *
  * 负责学习数据的统计分析，生成各种维度的报表和洞察
  */
 class LearnAnalyticsService

@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainRecordBundle\Enum\ArchiveFormat;
@@ -17,7 +17,7 @@ use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
 
 /**
  * 学习档案管理实体
- * 
+ *
  * 管理学习记录的归档，满足3年保存期限要求。
  * 支持多种归档格式、完整性验证、自动过期清理等功能。
  */
@@ -30,12 +30,7 @@ use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
 class LearnArchive implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => '用户ID'])]
@@ -101,10 +96,6 @@ class LearnArchive implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         $this->expiryDate = new \DateTimeImmutable('+3 years'); // 3年保存期限
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getUserId(): string
     {

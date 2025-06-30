@@ -8,12 +8,13 @@ use Tourze\TrainCourseBundle\Repository\CourseRepository;
 use Tourze\TrainCourseBundle\Repository\LessonRepository;
 use Tourze\TrainRecordBundle\Entity\LearnProgress;
 use Tourze\TrainRecordBundle\Enum\StudyTimeStatus;
+use Tourze\TrainRecordBundle\Exception\InvalidArgumentException;
 use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
 use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
 
 /**
  * 学习进度服务
- * 
+ *
  * 负责管理跨设备的学习进度同步和有效学习时长计算
  */
 class LearnProgressService
@@ -51,7 +52,7 @@ class LearnProgressService
             $lesson = $this->lessonRepository->find($lessonId);
             
             if ($course === null || $lesson === null) {
-                throw new \InvalidArgumentException('课程或课时不存在');
+                throw new InvalidArgumentException('课程或课时不存在');
             }
             
             $progress = new LearnProgress();

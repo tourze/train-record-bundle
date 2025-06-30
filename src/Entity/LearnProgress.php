@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
@@ -16,7 +16,7 @@ use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
 
 /**
  * 学习进度管理实体
- * 
+ *
  * 管理跨设备的学习进度同步和有效学习时长计算。
  * 支持多设备学习进度同步、有效时长统计、学习轨迹记录等功能。
  */
@@ -29,12 +29,7 @@ use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
 class LearnProgress implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => '用户ID'])]
@@ -78,11 +73,6 @@ class LearnProgress implements ApiArrayInterface, AdminArrayInterface, \Stringab
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '学习统计数据JSON'])]
     private ?array $learningStats = null;
 
-
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getUserId(): string
     {

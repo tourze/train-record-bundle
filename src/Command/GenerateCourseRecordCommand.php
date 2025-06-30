@@ -7,6 +7,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Tourze\TrainRecordBundle\Exception\UnsupportedOperatingSystemException;
 use Twig\Environment;
 
 #[AsCommand(name: self::NAME, description: '学成学时证明')]
@@ -31,7 +32,7 @@ class GenerateCourseRecordCommand extends Command
         } elseif ((bool) mb_stristr(PHP_OS, 'LINUX')) {
             $binFile = $projectRoot . '/vendor/h4cc/wkhtmltopdf-amd64/bin/wkhtmltopdf-amd64';
         } else {
-            throw new \RuntimeException('未知操作系统');
+            throw new UnsupportedOperatingSystemException('未知操作系统');
         }
 
         $outputFile = __DIR__ . '/output.pdf';

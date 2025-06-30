@@ -8,6 +8,7 @@ use Tourze\TrainCourseBundle\Repository\CourseRepository;
 use Tourze\TrainRecordBundle\Entity\LearnArchive;
 use Tourze\TrainRecordBundle\Enum\ArchiveFormat;
 use Tourze\TrainRecordBundle\Enum\ArchiveStatus;
+use Tourze\TrainRecordBundle\Exception\InvalidArgumentException;
 use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
 use Tourze\TrainRecordBundle\Repository\LearnArchiveRepository;
 use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
@@ -15,7 +16,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
  * 学习档案服务
- * 
+ *
  * 负责学习记录的归档管理，满足3年保存期限要求
  */
 class LearnArchiveService
@@ -49,13 +50,13 @@ class LearnArchiveService
     ): LearnArchive {
         $course = $this->courseRepository->find($courseId);
         if ($course === null) {
-            throw new \InvalidArgumentException('课程不存在');
+            throw new InvalidArgumentException('课程不存在');
         }
 
         // 检查是否已存在档案
         $existingArchive = $this->archiveRepository->findByUserAndCourse($userId, $courseId);
         if ($existingArchive !== null) {
-            throw new \InvalidArgumentException('该用户的课程档案已存在');
+            throw new InvalidArgumentException('该用户的课程档案已存在');
         }
 
         // 收集学习数据
@@ -564,7 +565,7 @@ class LearnArchiveService
     {
         $archive = $this->archiveRepository->find($archiveId);
         if ($archive === null) {
-            throw new \InvalidArgumentException('档案不存在');
+            throw new InvalidArgumentException('档案不存在');
         }
 
         $exportPath = $this->archiveStoragePath . '/export_' . $archiveId . '_' . time() . '.' . $format;
@@ -580,7 +581,7 @@ class LearnArchiveService
                 $content = $this->exportAsPdf($archive);
                 break;
             default:
-                throw new \InvalidArgumentException('不支持的导出格式: ' . $format);
+                throw new InvalidArgumentException('不支持的导出格式: ' . $format);
         }
 
         if (!is_dir(dirname($exportPath))) {
@@ -654,7 +655,8 @@ class LearnArchiveService
         $xml->addChild('totalEffectiveTime', (string)$archive->getTotalEffectiveTime());
         $xml->addChild('totalSessions', (string)$archive->getTotalSessions());
         
-        return $xml->asXML() ?: '';
+        $result = $xml->asXML();
+        return $result !== false ? $result : '';
     }
 
     /**

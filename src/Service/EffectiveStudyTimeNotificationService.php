@@ -10,7 +10,7 @@ use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
 
 /**
  * 有效学时通知服务
- * 
+ *
  * 负责向学员发送学时认定相关的通知：
  * 1. 实时学时状态提醒
  * 2. 无效学时原因通知

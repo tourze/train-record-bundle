@@ -9,7 +9,7 @@ use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 
 /**
  * 学习设备服务
- * 
+ *
  * 负责设备注册、识别和多设备控制
  */
 class LearnDeviceService

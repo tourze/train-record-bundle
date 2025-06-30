@@ -4,10 +4,11 @@ namespace Tourze\TrainRecordBundle\Service;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Tourze\TrainRecordBundle\Exception\TrainRecordException;
 
 /**
  * 百度人脸识别服务
- * 
+ *
  * 集成百度AI开放平台的人脸识别API
  */
 class BaiduFaceService
@@ -87,7 +88,7 @@ class BaiduFaceService
             return $this->accessToken;
         } catch (\Exception $e) {
             $this->logger->error('获取百度AI访问令牌失败', ['error' => $e->getMessage()]);
-            throw new \RuntimeException('无法获取百度AI访问令牌');
+            throw new TrainRecordException('无法获取百度AI访问令牌');
         }
     }
 

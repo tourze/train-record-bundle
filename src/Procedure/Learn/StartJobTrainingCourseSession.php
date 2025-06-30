@@ -22,16 +22,16 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 /**
  * 因为可以从报班ID中读取到课程，所以这里不需要声明课程ID
  */
-#[MethodDoc('开始观看指定视频')]
-#[MethodExpose('StartJobTrainingCourseSession')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '开始观看指定视频')]
+#[MethodExpose(method: 'StartJobTrainingCourseSession')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class StartJobTrainingCourseSession extends LockableProcedure
 {
-    #[MethodParam('报班ID')]
+    #[MethodParam(description: '报班ID')]
     public string $registrationId;
 
-    #[MethodParam('课时ID')]
+    #[MethodParam(description: '课时ID')]
     public string $lessonId;
 
     public function __construct(

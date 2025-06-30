@@ -7,13 +7,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\CreateTimeAware;
 use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
 
 /**
  * 人脸检测记录实体
- * 
+ *
  * 记录学习过程中的人脸检测结果，用于防作弊检测和学习监控。
  * 包括人脸检测置信度、检测时间、相似度评分等信息。
  */
@@ -24,41 +24,36 @@ use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
 class FaceDetect implements AdminArrayInterface, ApiArrayInterface, \Stringable
 {
     use CreateTimeAware;
+    use SnowflakeKeyAware;
     
-    #[ORM\Id]
-#[ORM\Column(type: Types::BIGINT, options: ['comment' => '字段说明'])]
-    #[ORM\CustomIdGenerator(class: SnowflakeIdGenerator::class)]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[Groups(['api', 'admin'])]
-    private ?string $id = null;
 
     #[ORM\ManyToOne(targetEntity: LearnSession::class, inversedBy: 'faceDetects')]
     #[ORM\JoinColumn(name: 'session_id', referencedColumnName: 'id', nullable: false)]
-    #[Groups(['api', 'admin'])]
+    #[Groups(groups: ['api', 'admin'])]
     private LearnSession $session;
 
 #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '字段说明'])]
-    #[Groups(['api', 'admin'])]
+    #[Groups(groups: ['api', 'admin'])]
     private ?string $imageData = null;
 
 #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true, options: ['comment' => '字段说明'])]
-    #[Groups(['api', 'admin'])]
+    #[Groups(groups: ['api', 'admin'])]
     private ?string $confidence = null;
 
 #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true, options: ['comment' => '字段说明'])]
-    #[Groups(['api', 'admin'])]
+    #[Groups(groups: ['api', 'admin'])]
     private ?string $similarity = null;
 
 #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '字段说明'])]
-    #[Groups(['api', 'admin'])]
+    #[Groups(groups: ['api', 'admin'])]
     private ?array $detectResult = null;
 
 #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false, 'comment' => '是否验证'])]
-    #[Groups(['api', 'admin'])]
+    #[Groups(groups: ['api', 'admin'])]
     private bool $isVerified = false;
 
 #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '字段说明'])]
-    #[Groups(['api', 'admin'])]
+    #[Groups(groups: ['api', 'admin'])]
     private ?string $errorMessage = null;
 
 
@@ -107,10 +102,6 @@ class FaceDetect implements AdminArrayInterface, ApiArrayInterface, \Stringable
         $this->createTime = new \DateTimeImmutable();
     }
     
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getSession(): LearnSession
     {

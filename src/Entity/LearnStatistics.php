@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainRecordBundle\Enum\StatisticsPeriod;
 use Tourze\TrainRecordBundle\Enum\StatisticsType;
@@ -16,7 +16,7 @@ use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
 
 /**
  * 学习统计实体
- * 
+ *
  * 存储各种维度的学习统计数据，支持按日、周、月等不同周期统计。
  * 包括用户统计、课程统计、行为统计、异常统计、设备统计等。
  */
@@ -28,12 +28,7 @@ use Tourze\TrainRecordBundle\Repository\LearnStatisticsRepository;
 class LearnStatistics implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[IndexColumn]
     #[ORM\Column(length: 30, enumType: StatisticsType::class, options: ['comment' => '统计类型'])]
@@ -99,11 +94,6 @@ class LearnStatistics implements ApiArrayInterface, AdminArrayInterface, \String
     public function __construct()
     {
         $this->statisticsDate = new \DateTimeImmutable();
-    }
-
-    public function getId(): ?string
-    {
-        return $this->id;
     }
 
     public function getStatisticsType(): StatisticsType

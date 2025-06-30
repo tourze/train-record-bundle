@@ -16,13 +16,13 @@ use Tourze\TrainRecordBundle\Entity\LearnLog;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
-#[MethodDoc('暂停视频观看')]
-#[MethodExpose('ReportJobTrainingCourseVideoPause')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '暂停视频观看')]
+#[MethodExpose(method: 'ReportJobTrainingCourseVideoPause')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class ReportJobTrainingCourseVideoPause extends LockableProcedure
 {
-    #[MethodParam('学习会话ID')]
+    #[MethodParam(description: '学习会话ID')]
     public string $sessionId;
 
     public function __construct(

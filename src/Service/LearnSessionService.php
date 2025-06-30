@@ -8,12 +8,14 @@ use Tourze\TrainRecordBundle\Entity\LearnSession;
 use Tourze\TrainRecordBundle\Entity\Student;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
 use Tourze\TrainRecordBundle\Enum\AnomalyType;
+use Tourze\TrainRecordBundle\Exception\InvalidArgumentException;
+use Tourze\TrainRecordBundle\Exception\SessionOperationException;
 use Tourze\TrainRecordBundle\Repository\LearnDeviceRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
  * 增强的学习会话服务
- * 
+ *
  * 提供多设备控制、进度同步、防作弊检测等功能
  */
 class LearnSessionService
@@ -71,7 +73,7 @@ class LearnSessionService
     {
         $session = $this->sessionRepository->find($sessionId);
         if ($session === null) {
-            throw new \InvalidArgumentException('学习会话不存在');
+            throw new InvalidArgumentException('学习会话不存在');
         }
         
         // 检查进度异常
@@ -148,7 +150,7 @@ class LearnSessionService
                  ['device_count' => count($activeDevices), 'new_device' => $deviceInfo]
              );
             
-            throw new \RuntimeException('检测到多设备登录，请关闭其他设备后重试');
+            throw new SessionOperationException('检测到多设备登录，请关闭其他设备后重试');
         }
     }
 
@@ -166,7 +168,7 @@ class LearnSessionService
         }
         
         // 创建新会话的逻辑需要根据实际的实体关系来实现
-        throw new \RuntimeException('创建会话功能需要完善实体关系后实现');
+        throw new SessionOperationException('创建会话功能需要完善实体关系后实现');
     }
 
     /**
@@ -185,7 +187,7 @@ class LearnSessionService
             $courseName = $activeSession->getCourse()->getTitle();
             $lessonName = $activeSession->getLesson()->getTitle();
             
-            throw new \RuntimeException(
+            throw new SessionOperationException(
                 sprintf(
                     '您正在学习课程"%s"的课时"%s"，请先完成或暂停当前学习后再开始新的课程',
                     $courseName,

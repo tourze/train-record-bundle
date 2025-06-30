@@ -19,18 +19,18 @@ use Tourze\TrainRecordBundle\Enum\LearnAction;
 use Tourze\TrainRecordBundle\Repository\FaceDetectRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
-#[MethodDoc('上报视频观看进度')]
-#[MethodExpose('ReportJobTrainingCourseVideoTimeUpdate')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '上报视频观看进度')]
+#[MethodExpose(method: 'ReportJobTrainingCourseVideoTimeUpdate')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class ReportJobTrainingCourseVideoTimeUpdate extends BaseProcedure
 {
-    #[MethodParam('学习会话ID')]
+    #[MethodParam(description: '学习会话ID')]
     public string $sessionId;
 
-    #[MethodParam('当前进度')]
+    #[MethodParam(description: '当前进度')]
     public string $currentTime;
 
-    #[MethodParam('总时长')]
+    #[MethodParam(description: '总时长')]
     public string $duration;
 
     public function __construct(

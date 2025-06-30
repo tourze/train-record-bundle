@@ -12,7 +12,7 @@ use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
 
 /**
  * 有效学时管理服务
- * 
+ *
  * 负责学时认定的核心逻辑：
  * 1. 有效学时计算和验证
  * 2. 无效时长识别和分类

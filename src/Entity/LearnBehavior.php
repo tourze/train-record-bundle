@@ -8,13 +8,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
+use Tourze\DoctrineTimestampBundle\Traits\CreateTimeAware;
 use Tourze\TrainRecordBundle\Enum\BehaviorType;
 use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
 
 /**
  * 学习行为记录实体
- * 
+ *
  * 记录学习过程中的所有用户行为，用于防作弊检测和学习分析。
  * 包括视频控制、窗口焦点、鼠标键盘活动、网络状态等各种行为。
  */
@@ -25,12 +26,8 @@ use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
 #[ORM\Index(name: 'idx_video_timestamp', columns: ['video_timestamp'])]
 class LearnBehavior implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use CreateTimeAware;
+    use SnowflakeKeyAware;
 
     #[ORM\ManyToOne(targetEntity: LearnSession::class, inversedBy: 'learnBehaviors')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -61,15 +58,7 @@ class LearnBehavior implements ApiArrayInterface, AdminArrayInterface, \Stringab
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '可疑原因'])]
     private ?string $suspiciousReason = null;
 
-    #[IndexColumn]
-    #[Groups(['restful_read', 'admin_curd'])]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeImmutable $createTime = null;
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getSession(): LearnSession
     {
@@ -174,17 +163,6 @@ class LearnBehavior implements ApiArrayInterface, AdminArrayInterface, \Stringab
     public function setSuspiciousReason(?string $suspiciousReason): static
     {
         $this->suspiciousReason = $suspiciousReason;
-        return $this;
-    }
-
-    public function getCreateTime(): ?\DateTimeImmutable
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(?\DateTimeImmutable $createTime): static
-    {
-        $this->createTime = $createTime;
         return $this;
     }
 

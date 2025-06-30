@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
 use Tourze\TrainRecordBundle\Enum\AnomalyStatus;
@@ -17,7 +17,7 @@ use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
 
 /**
  * 学习异常记录实体
- * 
+ *
  * 记录和管理学习过程中的异常情况，包括多设备登录、快速进度、
  * 窗口切换、空闲超时、人脸检测失败、网络异常等各种异常行为。
  */
@@ -30,12 +30,7 @@ use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
 class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[ORM\ManyToOne(targetEntity: LearnSession::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -89,10 +84,6 @@ class LearnAnomaly implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         $this->detectedTime = new \DateTimeImmutable();
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getSession(): LearnSession
     {

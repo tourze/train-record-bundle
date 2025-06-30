@@ -12,7 +12,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
  * 学习异常服务
- * 
+ *
  * 负责检测、记录和处理学习过程中的各种异常情况
  */
 class LearnAnomalyService

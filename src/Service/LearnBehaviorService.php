@@ -7,12 +7,13 @@ use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Entity\LearnBehavior;
 use Tourze\TrainRecordBundle\Entity\LearnSession;
 use Tourze\TrainRecordBundle\Enum\BehaviorType;
+use Tourze\TrainRecordBundle\Exception\InvalidArgumentException;
 use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
  * 学习行为服务
- * 
+ *
  * 负责记录、分析和检测学习行为，包括防作弊检测
  */
 class LearnBehaviorService
@@ -43,7 +44,7 @@ class LearnBehaviorService
     ): LearnBehavior {
         $session = $this->sessionRepository->find($sessionId);
         if ($session === null) {
-            throw new \InvalidArgumentException('学习会话不存在');
+            throw new InvalidArgumentException('学习会话不存在');
         }
 
         $behavior = new LearnBehavior();
@@ -186,7 +187,7 @@ class LearnBehaviorService
     {
         $session = $this->sessionRepository->find($sessionId);
         if ($session === null) {
-            throw new \InvalidArgumentException('学习会话不存在');
+            throw new InvalidArgumentException('学习会话不存在');
         }
         
         $behaviors = $this->behaviorRepository->findBySession($sessionId);
@@ -256,7 +257,7 @@ class LearnBehaviorService
     {
         $session = $this->sessionRepository->find($sessionId);
         if ($session === null) {
-            throw new \InvalidArgumentException('学习会话不存在');
+            throw new InvalidArgumentException('学习会话不存在');
         }
 
         // 获取会话的行为统计

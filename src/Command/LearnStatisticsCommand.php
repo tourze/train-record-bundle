@@ -11,6 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Tourze\TrainRecordBundle\Enum\StatisticsPeriod;
 use Tourze\TrainRecordBundle\Enum\StatisticsType;
+use Tourze\TrainRecordBundle\Exception\InvalidArgumentException;
 use Tourze\TrainRecordBundle\Service\LearnAnalyticsService;
 
 #[AsCommand(
@@ -428,7 +429,7 @@ class LearnStatisticsCommand extends Command
                 break;
 
             default:
-                throw new \InvalidArgumentException("不支持的导出格式: {$format}");
+                throw new InvalidArgumentException("不支持的导出格式: {$format}");
         }
     }
 

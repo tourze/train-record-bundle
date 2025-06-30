@@ -111,8 +111,8 @@ class LearnMonitorCommand extends Command
 
         // 设置信号处理
         if ((bool) function_exists('pcntl_signal')) {
-            pcntl_signal(SIGTERM, [$this, 'handleSignal']);
-            pcntl_signal(SIGINT, [$this, 'handleSignal']);
+            pcntl_signal(SIGTERM, $this->handleSignal(...));
+            pcntl_signal(SIGINT, $this->handleSignal(...));
         }
 
         $startTime = time();

@@ -18,13 +18,13 @@ use Tourze\TrainRecordBundle\Entity\LearnLog;
 use Tourze\TrainRecordBundle\Enum\LearnAction;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
-#[MethodDoc('开始观看指定视频')]
-#[MethodExpose('ReportJobTrainingCourseVideoPlay')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '开始观看指定视频')]
+#[MethodExpose(method: 'ReportJobTrainingCourseVideoPlay')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class ReportJobTrainingCourseVideoPlay extends BaseProcedure
 {
-    #[MethodParam('学习会话ID')]
+    #[MethodParam(description: '学习会话ID')]
     public string $sessionId;
 
     public function __construct(

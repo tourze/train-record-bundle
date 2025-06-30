@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainRecordBundle\Tests\Integration;
 
-use BizUserBundle\BizUserBundle;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle;
@@ -55,8 +54,6 @@ class TrainRecordIntegrationTest extends KernelTestCase
             DoctrineUserAgentBundle::class => ['all' => true],
             DoctrineUserBundle::class => ['all' => true],
             DoctrineTrackBundle::class => ['all' => true],
-            // Core bundles
-            BizUserBundle::class => ['all' => true],
             TrainCategoryBundle::class => ['all' => true],
             TrainCourseBundle::class => ['all' => true],
             TrainClassroomBundle::class => ['all' => true],

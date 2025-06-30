@@ -5,6 +5,7 @@ namespace Tourze\TrainRecordBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
@@ -19,7 +20,7 @@ use Tourze\TrainRecordBundle\Repository\LearnLogRepository;
 class LearnLog implements Stringable
 {
     use CreatedByAware;
-    #[Groups(['restful_read', 'api_tree', 'admin_curd', 'api_list'])]
+    #[Groups(groups: ['restful_read', 'api_tree', 'admin_curd', 'api_list'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -28,8 +29,8 @@ class LearnLog implements Stringable
     #[ORM\ManyToOne(inversedBy: 'learnLogs')]
     private ?LearnSession $learnSession = null;
 
-    #[ORM\ManyToOne(targetEntity: 'BizUserBundle\Entity\BizUser')]
-    private $student = null;
+    #[ORM\ManyToOne]
+    private ?UserInterface $student = null;
 
     #[ORM\ManyToOne(inversedBy: 'learnLogs')]
     private ?Registration $registration = null;
@@ -44,7 +45,7 @@ class LearnLog implements Stringable
     private ?string $createdFromUa = null;
 
     #[IndexColumn]
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
     private ?\DateTimeImmutable $createTime = null;
 
@@ -69,12 +70,12 @@ class LearnLog implements Stringable
         return $this;
     }
 
-    public function getStudent()
+    public function getStudent(): ?UserInterface
     {
         return $this->student;
     }
 
-    public function setStudent($student): static
+    public function setStudent(?UserInterface $student): static
     {
         $this->student = $student;
 

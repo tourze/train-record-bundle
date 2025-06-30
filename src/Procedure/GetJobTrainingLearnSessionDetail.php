@@ -11,12 +11,12 @@ use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\TrainClassroomBundle\Repository\RegistrationRepository;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
-#[MethodDoc('获取学员的学习明细')]
-#[MethodExpose('GetJobTrainingLearnSessionDetail')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '获取学员的学习明细')]
+#[MethodExpose(method: 'GetJobTrainingLearnSessionDetail')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class GetJobTrainingLearnSessionDetail extends BaseProcedure
 {
-    #[MethodParam('报班ID')]
+    #[MethodParam(description: '报班ID')]
     public string $registrationId;
 
     public function __construct(
