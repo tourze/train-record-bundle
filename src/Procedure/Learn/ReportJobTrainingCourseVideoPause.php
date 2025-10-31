@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
 use Carbon\CarbonImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
+use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
@@ -18,6 +22,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 #[MethodDoc(summary: '暂停视频观看')]
 #[MethodExpose(method: 'ReportJobTrainingCourseVideoPause')]
+#[MethodTag(name: '培训记录')]
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class ReportJobTrainingCourseVideoPause extends LockableProcedure
@@ -29,6 +34,7 @@ class ReportJobTrainingCourseVideoPause extends LockableProcedure
         private readonly LearnSessionRepository $sessionRepository,
         private readonly DoctrineService $doctrineService,
         private readonly Security $security,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -40,7 +46,7 @@ class ReportJobTrainingCourseVideoPause extends LockableProcedure
             'id' => $this->sessionId,
             'student' => $student,
         ]);
-        if ($learnSession === null) {
+        if (null === $learnSession) {
             throw new ApiException('找不到学习记录');
         }
 
@@ -49,7 +55,8 @@ class ReportJobTrainingCourseVideoPause extends LockableProcedure
             $learnSession->setLastLearnTime(CarbonImmutable::now());
             // 将会话设置为非活跃状态
             $learnSession->setActive(false);
-            $this->sessionRepository->save($learnSession);
+            $this->entityManager->persist($learnSession);
+            $this->entityManager->flush();
         }
 
         $log = new LearnLog();

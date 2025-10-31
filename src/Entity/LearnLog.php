@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
+use Tourze\DoctrineIpBundle\Traits\CreatedFromIpAware;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserBundle\Traits\CreatedByAware;
 use Tourze\TrainClassroomBundle\Entity\Registration;
@@ -17,14 +20,17 @@ use Tourze\TrainRecordBundle\Repository\LearnLogRepository;
 
 #[ORM\Entity(repositoryClass: LearnLogRepository::class)]
 #[ORM\Table(name: 'ims_job_training_learn_action_log', options: ['comment' => '学习轨迹'])]
-class LearnLog implements Stringable
+class LearnLog implements \Stringable
 {
     use CreatedByAware;
+    use CreatedFromIpAware;
+
     #[Groups(groups: ['restful_read', 'api_tree', 'admin_curd', 'api_list'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    #[Assert\Type(type: 'int')]
+    private int $id = 0;
 
     #[ORM\ManyToOne(inversedBy: 'learnLogs')]
     private ?LearnSession $learnSession = null;
@@ -39,9 +45,12 @@ class LearnLog implements Stringable
     private ?Lesson $lesson = null;
 
     #[ORM\Column(length: 30, enumType: LearnAction::class, options: ['comment' => '动作'])]
+    #[Assert\NotNull]
+    #[Assert\Choice(callback: [LearnAction::class, 'cases'])]
     private LearnAction $action;
 
     #[CreateUserAgentColumn]
+    #[Assert\Length(max: 65535)]
     private ?string $createdFromUa = null;
 
     #[IndexColumn]
@@ -49,11 +58,23 @@ class LearnLog implements Stringable
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
     private ?\DateTimeImmutable $createTime = null;
 
-    #[ORM\Column(length: 45, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
+    #[ORM\Column(length: 20, nullable: true, options: ['comment' => '日志级别'])]
+    #[Assert\Length(max: 20)]
+    #[Assert\Choice(choices: ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency', null], message: 'Invalid log level')]
+    private ?string $logLevel = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '日志消息'])]
+    #[Assert\Length(max: 65535)]
+    private ?string $message = null;
 
-    public function getId(): ?int
+    /**
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '日志上下文JSON'])]
+    #[Assert\Type(type: 'array')]
+    private ?array $context = null;
+
+    public function getId(): int
     {
         return $this->id;
     }
@@ -63,11 +84,9 @@ class LearnLog implements Stringable
         return $this->learnSession;
     }
 
-    public function setLearnSession(?LearnSession $learnSession): static
+    public function setLearnSession(?LearnSession $learnSession): void
     {
         $this->learnSession = $learnSession;
-
-        return $this;
     }
 
     public function getStudent(): ?UserInterface
@@ -75,11 +94,9 @@ class LearnLog implements Stringable
         return $this->student;
     }
 
-    public function setStudent(?UserInterface $student): static
+    public function setStudent(?UserInterface $student): void
     {
         $this->student = $student;
-
-        return $this;
     }
 
     public function getRegistration(): ?Registration
@@ -87,11 +104,9 @@ class LearnLog implements Stringable
         return $this->registration;
     }
 
-    public function setRegistration(?Registration $registration): static
+    public function setRegistration(?Registration $registration): void
     {
         $this->registration = $registration;
-
-        return $this;
     }
 
     public function getLesson(): ?Lesson
@@ -99,11 +114,9 @@ class LearnLog implements Stringable
         return $this->lesson;
     }
 
-    public function setLesson(?Lesson $lesson): static
+    public function setLesson(?Lesson $lesson): void
     {
         $this->lesson = $lesson;
-
-        return $this;
     }
 
     public function getAction(): LearnAction
@@ -111,11 +124,9 @@ class LearnLog implements Stringable
         return $this->action;
     }
 
-    public function setAction(LearnAction $action): static
+    public function setAction(LearnAction $action): void
     {
         $this->action = $action;
-
-        return $this;
     }
 
     public function getCreatedFromUa(): ?string
@@ -123,18 +134,14 @@ class LearnLog implements Stringable
         return $this->createdFromUa;
     }
 
-    public function setCreatedFromUa(?string $createdFromUa): static
+    public function setCreatedFromUa(?string $createdFromUa): void
     {
         $this->createdFromUa = $createdFromUa;
-
-        return $this;
     }
 
-    public function setCreateTime(?\DateTimeImmutable $createdAt): self
+    public function setCreateTime(?\DateTimeImmutable $createTime): void
     {
-        $this->createTime = $createdAt;
-
-        return $this;
+        $this->createTime = $createTime;
     }
 
     public function getCreateTime(): ?\DateTimeImmutable
@@ -142,16 +149,41 @@ class LearnLog implements Stringable
         return $this->createTime;
     }
 
-    public function getCreatedFromIp(): ?string
+    public function getLogLevel(): ?string
     {
-        return $this->createdFromIp;
+        return $this->logLevel;
     }
 
-    public function setCreatedFromIp(?string $createdFromIp): void
+    public function setLogLevel(?string $logLevel): void
     {
-        $this->createdFromIp = $createdFromIp;
+        $this->logLevel = $logLevel;
     }
 
+    public function getMessage(): ?string
+    {
+        return $this->message;
+    }
+
+    public function setMessage(?string $message): void
+    {
+        $this->message = $message;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getContext(): ?array
+    {
+        return $this->context;
+    }
+
+    /**
+     * @param array<string, mixed>|null $context
+     */
+    public function setContext(?array $context): void
+    {
+        $this->context = $context;
+    }
 
     public function __toString(): string
     {

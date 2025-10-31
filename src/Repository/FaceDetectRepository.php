@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\TrainRecordBundle\Entity\FaceDetect;
 
 /**
- * @method FaceDetect|null find($id, $lockMode = null, $lockVersion = null)
- * @method FaceDetect|null findOneBy(array $criteria, array $orderBy = null)
- * @method FaceDetect[]    findAll()
- * @method FaceDetect[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<FaceDetect>
  */
+#[AsRepository(entityClass: FaceDetect::class)]
 class FaceDetectRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -21,22 +22,27 @@ class FaceDetectRepository extends ServiceEntityRepository
 
     /**
      * 查找会话的人脸检测记录
+     * @return array<FaceDetect>
      */
     public function findBySession(string $sessionId): array
     {
+        /** @var array<FaceDetect> */
         return $this->createQueryBuilder('f')
             ->andWhere('f.session = :sessionId')
             ->setParameter('sessionId', $sessionId)
             ->orderBy('f.createTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 查找已验证的人脸检测记录
+     * @return array<FaceDetect>
      */
     public function findVerifiedBySession(string $sessionId): array
     {
+        /** @var array<FaceDetect> */
         return $this->createQueryBuilder('f')
             ->andWhere('f.session = :sessionId')
             ->andWhere('f.isVerified = :verified')
@@ -44,7 +50,8 @@ class FaceDetectRepository extends ServiceEntityRepository
             ->setParameter('verified', true)
             ->orderBy('f.createTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -52,12 +59,15 @@ class FaceDetectRepository extends ServiceEntityRepository
      */
     public function countBySession(string $sessionId): int
     {
-        return $this->createQueryBuilder('f')
+        $result = $this->createQueryBuilder('f')
             ->select('COUNT(f.id)')
             ->andWhere('f.session = :sessionId')
             ->setParameter('sessionId', $sessionId)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
+
+        return (int) $result;
     }
 
     /**
@@ -65,21 +75,26 @@ class FaceDetectRepository extends ServiceEntityRepository
      */
     public function countVerifiedBySession(string $sessionId): int
     {
-        return $this->createQueryBuilder('f')
+        $result = $this->createQueryBuilder('f')
             ->select('COUNT(f.id)')
             ->andWhere('f.session = :sessionId')
             ->andWhere('f.isVerified = :verified')
             ->setParameter('sessionId', $sessionId)
             ->setParameter('verified', true)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
+
+        return (int) $result;
     }
 
     /**
      * 查找低相似度的人脸检测记录
+     * @return array<FaceDetect>
      */
     public function findLowSimilarityBySession(string $sessionId, string $threshold = '0.80'): array
     {
+        /** @var array<FaceDetect> */
         return $this->createQueryBuilder('f')
             ->andWhere('f.session = :sessionId')
             ->andWhere('f.similarity < :threshold OR f.similarity IS NULL')
@@ -87,6 +102,29 @@ class FaceDetectRepository extends ServiceEntityRepository
             ->setParameter('threshold', $threshold)
             ->orderBy('f.createTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+    }
+
+    /**
+     * 保存实体
+     */
+    public function save(FaceDetect $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    /**
+     * 删除实体
+     */
+    public function remove(FaceDetect $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
     }
 }

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -11,12 +14,11 @@ use Tourze\EnumExtra\SelectTrait;
 /**
  * 统计类型枚举
  */
-enum StatisticsType: string
- implements Itemable, Labelable, Selectable{
-    
+enum StatisticsType: string implements Itemable, Labelable, Selectable, BadgeInterface
+{
     use ItemTrait;
     use SelectTrait;
-case USER = 'user';                     // 用户统计
+    case USER = 'user';                     // 用户统计
     case COURSE = 'course';                 // 课程统计
     case BEHAVIOR = 'behavior';             // 行为统计
     case ANOMALY = 'anomaly';               // 异常统计
@@ -28,6 +30,7 @@ case USER = 'user';                     // 用户统计
     case ENGAGEMENT = 'engagement';         // 参与度统计
     case QUALITY = 'quality';               // 质量统计
     case TREND = 'trend';                   // 趋势统计
+    case SYSTEM = 'system';                 // 系统统计
 
     /**
      * 获取统计类型标签
@@ -47,7 +50,32 @@ case USER = 'user';                     // 用户统计
             self::ENGAGEMENT => '参与度统计',
             self::QUALITY => '质量统计',
             self::TREND => '趋势统计',
+            self::SYSTEM => '系统统计',
         };
+    }
+
+    /**
+     * 获取徽章颜色
+     */
+    public function getBadgeColor(): string
+    {
+        return 'primary';
+    }
+
+    /**
+     * 获取徽章样式类
+     */
+    public function getBadgeClass(): string
+    {
+        return 'bg-primary';
+    }
+
+    /**
+     * 获取徽章标识
+     */
+    public function getBadge(): string
+    {
+        return $this->getBadgeClass();
     }
 
     /**
@@ -68,6 +96,7 @@ case USER = 'user';                     // 用户统计
             self::ENGAGEMENT => '统计参与度、活跃度等参与相关指标',
             self::QUALITY => '统计学习质量、评分等质量相关指标',
             self::TREND => '统计发展趋势、变化趋势等趋势相关指标',
+            self::SYSTEM => '统计系统性能、资源使用、错误率等系统相关指标',
         };
     }
 
@@ -83,6 +112,7 @@ case USER = 'user';                     // 用户统计
             self::ANOMALY => 'security_related',
             self::DURATION, self::EFFICIENCY => 'performance_related',
             self::TREND => 'analysis_related',
+            self::SYSTEM => 'system_related',
         };
     }
 
@@ -96,6 +126,7 @@ case USER = 'user';                     // 用户统计
             self::BEHAVIOR, self::DURATION, self::COMPLETION => 2,  // 中优先级
             self::ANOMALY, self::DEVICE, self::EFFICIENCY => 3,     // 低优先级
             self::ENGAGEMENT, self::QUALITY, self::TREND => 4,      // 扩展优先级
+            self::SYSTEM => 3,                                      // 低优先级
         };
     }
 
@@ -110,7 +141,7 @@ case USER = 'user';                     // 用户统计
             self::PROGRESS,
             self::DURATION,
             self::COMPLETION,
-        ]);
+        ], true);
     }
 
     /**
@@ -123,11 +154,12 @@ case USER = 'user';                     // 用户统计
             self::BEHAVIOR,
             self::ANOMALY,
             self::PROGRESS,
-        ]);
+        ], true);
     }
 
     /**
      * 获取所有统计类型
+     * @return array<int, self>
      */
     public static function getAllTypes(): array
     {
@@ -144,32 +176,37 @@ case USER = 'user';                     // 用户统计
             self::ENGAGEMENT,
             self::QUALITY,
             self::TREND,
+            self::SYSTEM,
         ];
     }
 
     /**
      * 按分类获取统计类型
+     * @return array<int, self>
      */
     public static function getByCategory(string $category): array
     {
-        return array_filter(self::getAllTypes(), fn($type) => $type->getCategory() === $category);
+        return array_filter(self::getAllTypes(), fn ($type) => $type->getCategory() === $category);
     }
 
     /**
      * 获取核心统计类型
+     * @return array<int, self>
      */
     public static function getCoreTypes(): array
     {
-        return array_filter(self::getAllTypes(), fn($type) => $type->isCoreStatistics());
+        return array_filter(self::getAllTypes(), fn ($type) => $type->isCoreStatistics());
     }
 
     /**
      * 按优先级排序
+     * @return array<int, self>
      */
     public static function getSortedByPriority(): array
     {
         $types = self::getAllTypes();
-        usort($types, fn($a, $b) => $a->getPriority() <=> $b->getPriority());
+        usort($types, fn ($a, $b) => $a->getPriority() <=> $b->getPriority());
+
         return $types;
     }
-} 
+}

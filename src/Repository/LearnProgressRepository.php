@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\TrainRecordBundle\Entity\LearnProgress;
 
 /**
- * @method LearnProgress|null find($id, $lockMode = null, $lockVersion = null)
- * @method LearnProgress|null findOneBy(array $criteria, array $orderBy = null)
- * @method LearnProgress[]    findAll()
- * @method LearnProgress[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<LearnProgress>
  */
+#[AsRepository(entityClass: LearnProgress::class)]
 class LearnProgressRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -21,9 +22,12 @@ class LearnProgressRepository extends ServiceEntityRepository
 
     /**
      * 查找用户在课程中的学习进度
+     *
+     * @return array<LearnProgress>
      */
     public function findByUserAndCourse(string $userId, string $courseId): array
     {
+        /** @var array<LearnProgress> */
         return $this->createQueryBuilder('lp')
             ->andWhere('lp.userId = :userId')
             ->andWhere('lp.course = :courseId')
@@ -31,7 +35,8 @@ class LearnProgressRepository extends ServiceEntityRepository
             ->setParameter('courseId', $courseId)
             ->orderBy('lp.createTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -39,34 +44,46 @@ class LearnProgressRepository extends ServiceEntityRepository
      */
     public function findByUserAndLesson(string $userId, string $lessonId): ?LearnProgress
     {
-        return $this->createQueryBuilder('lp')
+        $result = $this->createQueryBuilder('lp')
             ->andWhere('lp.userId = :userId')
             ->andWhere('lp.lesson = :lessonId')
             ->setParameter('userId', $userId)
             ->setParameter('lessonId', $lessonId)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof LearnProgress || null === $result);
+
+        return $result;
     }
 
     /**
      * 查找已完成的学习进度
+     *
+     * @return array<LearnProgress>
      */
     public function findCompletedByUser(string $userId): array
     {
+        /** @var array<LearnProgress> */
         return $this->createQueryBuilder('lp')
             ->andWhere('lp.userId = :userId')
             ->andWhere('lp.isCompleted = true')
             ->setParameter('userId', $userId)
             ->orderBy('lp.updateTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 统计用户的课程完成情况
+     *
+     * @return array<string, mixed>
      */
     public function getCourseCompletionStats(string $userId, string $courseId): array
     {
+        /** @var array<string, mixed> */
         return $this->createQueryBuilder('lp')
             ->select('COUNT(lp.id) as totalLessons, SUM(CASE WHEN lp.isCompleted = true THEN 1 ELSE 0 END) as completedLessons, AVG(lp.progress) as avgProgress')
             ->andWhere('lp.userId = :userId')
@@ -74,41 +91,53 @@ class LearnProgressRepository extends ServiceEntityRepository
             ->setParameter('userId', $userId)
             ->setParameter('courseId', $courseId)
             ->getQuery()
-            ->getSingleResult();
+            ->getSingleResult()
+        ;
     }
 
     /**
      * 查找需要同步的进度记录
+     *
+     * @return array<LearnProgress>
      */
     public function findNeedingSync(\DateTimeInterface $lastSyncTime): array
     {
+        /** @var array<LearnProgress> */
         return $this->createQueryBuilder('lp')
             ->andWhere('lp.lastUpdateTime > :lastSyncTime')
             ->setParameter('lastSyncTime', $lastSyncTime)
             ->orderBy('lp.lastUpdateTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 查找低质量学习记录
+     *
+     * @return array<LearnProgress>
      */
     public function findLowQualityProgress(float $qualityThreshold = 5.0): array
     {
+        /** @var array<LearnProgress> */
         return $this->createQueryBuilder('lp')
             ->andWhere('lp.qualityScore < :threshold')
             ->andWhere('lp.qualityScore IS NOT NULL')
             ->setParameter('threshold', $qualityThreshold)
             ->orderBy('lp.qualityScore', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 统计学习效率分布
+     *
+     * @return array<string, mixed>
      */
     public function getLearningEfficiencyStats(): array
     {
+        /** @var array<string, mixed> */
         return $this->createQueryBuilder('lp')
             ->select('
                 COUNT(lp.id) as totalRecords,
@@ -118,29 +147,37 @@ class LearnProgressRepository extends ServiceEntityRepository
             ')
             ->andWhere('lp.watchedDuration > 0')
             ->getQuery()
-            ->getSingleResult();
+            ->getSingleResult()
+        ;
     }
 
     /**
      * 查找最近更新的进度记录
+     *
+     * @return array<LearnProgress>
      */
     public function findRecentlyUpdated(int $limit = 50): array
     {
+        /** @var array<LearnProgress> */
         return $this->createQueryBuilder('lp')
             ->orderBy('lp.lastUpdateTime', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 批量更新有效学习时长
+     *
+     * @param array<int> $progressIds
+     * @param array<float> $effectiveDurations
      */
     public function batchUpdateEffectiveDuration(array $progressIds, array $effectiveDurations): void
     {
         foreach ($progressIds as $index => $progressId) {
             $effectiveDuration = $effectiveDurations[$index];
-            
+
             $this->createQueryBuilder('lp')
                 ->update()
                 ->set('lp.effectiveDuration', ':effectiveDuration')
@@ -148,56 +185,65 @@ class LearnProgressRepository extends ServiceEntityRepository
                 ->setParameter('effectiveDuration', $effectiveDuration)
                 ->setParameter('progressId', $progressId)
                 ->getQuery()
-                ->execute();
+                ->execute()
+            ;
         }
     }
 
     /**
      * 更新学习进度
-     *
-     * @param LearnProgress $progress
-     * @param bool $flush
      */
     public function updateProgress(LearnProgress $progress, bool $flush = true): void
     {
         $this->getEntityManager()->persist($progress);
-        
-        if ((bool) $flush) {
+
+        if ($flush) {
             $this->getEntityManager()->flush();
         }
     }
 
     /**
      * 根据课程查找学习进度
+     *
+     * @return array<LearnProgress>
      */
     public function findByCourse(string $courseId): array
     {
+        /** @var array<LearnProgress> */
         return $this->createQueryBuilder('lp')
             ->andWhere('lp.course = :courseId')
             ->setParameter('courseId', $courseId)
             ->orderBy('lp.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 根据用户查找学习进度
+     *
+     * @return array<LearnProgress>
      */
     public function findByUser(string $userId): array
     {
+        /** @var array<LearnProgress> */
         return $this->createQueryBuilder('lp')
             ->andWhere('lp.userId = :userId')
             ->setParameter('userId', $userId)
             ->orderBy('lp.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 根据用户和日期范围查找学习进度
+     *
+     * @return array<LearnProgress>
      */
     public function findByUserAndDateRange(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
+        /** @var array<LearnProgress> */
         return $this->createQueryBuilder('lp')
             ->andWhere('lp.userId = :userId')
             ->andWhere('lp.createTime >= :startDate')
@@ -207,38 +253,48 @@ class LearnProgressRepository extends ServiceEntityRepository
             ->setParameter('endDate', $endDate)
             ->orderBy('lp.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 按过滤条件计算完成率
+     *
+     * @param array<string, mixed> $filters
      */
     public function calculateCompletionRateByFilters(array $filters): float
     {
         $qb = $this->createQueryBuilder('lp')
-            ->select('COUNT(lp.id) as total, SUM(CASE WHEN lp.isCompleted = true THEN 1 ELSE 0 END) as completed');
-            
+            ->select('COUNT(lp.id) as total, SUM(CASE WHEN lp.isCompleted = true THEN 1 ELSE 0 END) as completed')
+        ;
+
         if (isset($filters['courseId'])) {
             $qb->andWhere('lp.course = :courseId')
-               ->setParameter('courseId', $filters['courseId']);
+                ->setParameter('courseId', $filters['courseId'])
+            ;
         }
-        
+
         if (isset($filters['userId'])) {
             $qb->andWhere('lp.userId = :userId')
-               ->setParameter('userId', $filters['userId']);
+                ->setParameter('userId', $filters['userId'])
+            ;
         }
-        
+
+        /** @var array{total: int, completed: int}|null $result */
         $result = $qb->getQuery()->getSingleResult();
-        
-        if ($result['total'] == 0) {
+
+        if (!is_array($result) || 0 === $result['total']) {
             return 0.0;
         }
-        
+
         return (float) ($result['completed'] / $result['total']) * 100;
     }
 
     /**
      * 按日期范围和过滤条件查找进度
+     *
+     * @param array<string, mixed> $filters
+     * @return array<LearnProgress>
      */
     public function findByDateRangeAndFilters(\DateTimeInterface $startDate, \DateTimeInterface $endDate, array $filters = []): array
     {
@@ -246,21 +302,26 @@ class LearnProgressRepository extends ServiceEntityRepository
             ->where('lp.createTime >= :startDate')
             ->andWhere('lp.createTime <= :endDate')
             ->setParameter('startDate', $startDate)
-            ->setParameter('endDate', $endDate);
-            
+            ->setParameter('endDate', $endDate)
+        ;
+
         if (isset($filters['courseId'])) {
             $qb->andWhere('lp.course = :courseId')
-               ->setParameter('courseId', $filters['courseId']);
+                ->setParameter('courseId', $filters['courseId'])
+            ;
         }
-        
+
         if (isset($filters['userId'])) {
             $qb->andWhere('lp.userId = :userId')
-               ->setParameter('userId', $filters['userId']);
+                ->setParameter('userId', $filters['userId'])
+            ;
         }
-        
+
+        /** @var array<LearnProgress> */
         return $qb->orderBy('lp.createTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -268,7 +329,7 @@ class LearnProgressRepository extends ServiceEntityRepository
      */
     public function countCompletionsByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
     {
-        return $this->createQueryBuilder('lp')
+        $result = $this->createQueryBuilder('lp')
             ->select('COUNT(lp.id)')
             ->where('lp.isCompleted = :completed')
             ->andWhere('lp.createTime >= :startDate')
@@ -277,6 +338,31 @@ class LearnProgressRepository extends ServiceEntityRepository
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
+
+        return (int) $result;
     }
-} 
+
+    /**
+     * 保存实体
+     */
+    public function save(LearnProgress $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    /**
+     * 删除实体
+     */
+    public function remove(LearnProgress $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+}

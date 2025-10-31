@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
+use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
@@ -18,20 +21,23 @@ use Tourze\TrainRecordBundle\Repository\EffectiveStudyRecordRepository;
  */
 #[ORM\Entity(repositoryClass: EffectiveStudyRecordRepository::class)]
 #[ORM\Table(name: 'job_training_effective_study_record', options: ['comment' => '有效学时记录'])]
-#[ORM\Index(name: 'idx_user_date', columns: ['user_id', 'study_date'])]
-#[ORM\Index(name: 'idx_session_time', columns: ['session_id', 'start_time', 'end_time'])]
-#[ORM\Index(name: 'idx_status_reason', columns: ['status', 'invalid_reason'])]
-#[ORM\Index(name: 'idx_course_lesson', columns: ['course_id', 'lesson_id'])]
-#[ORM\Index(name: 'idx_effective_duration', columns: ['effective_duration'])]
-class EffectiveStudyRecord implements Stringable
+#[ORM\Index(name: 'job_training_effective_study_record_idx_user_date', columns: ['user_id', 'study_date'])]
+#[ORM\Index(name: 'job_training_effective_study_record_idx_session_time', columns: ['session_id', 'start_time', 'end_time'])]
+#[ORM\Index(name: 'job_training_effective_study_record_idx_status_reason', columns: ['status', 'invalid_reason'])]
+#[ORM\Index(name: 'job_training_effective_study_record_idx_course_lesson', columns: ['course_id', 'lesson_id'])]
+class EffectiveStudyRecord implements \Stringable
 {
     use TimestampableAware;
 
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 64, nullable: false, options: ['comment' => '主键ID'])]
+    #[Assert\Length(max: 64)]
+    #[Assert\NotBlank]
     private ?string $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: false, options: ['comment' => '用户ID（学员ID）'])]
+    #[Assert\Length(max: 64)]
+    #[Assert\NotBlank]
     private string $userId;
 
     /**
@@ -56,66 +62,97 @@ class EffectiveStudyRecord implements Stringable
     private Lesson $lesson;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: false, options: ['comment' => '学习日期'])]
+    #[Assert\NotNull]
     private \DateTimeImmutable $studyDate;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '开始时间'])]
+    #[Assert\NotNull]
     private \DateTimeImmutable $startTime;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false, options: ['comment' => '结束时间'])]
+    #[Assert\NotNull]
     private \DateTimeImmutable $endTime;
 
     #[ORM\Column(type: Types::FLOAT, nullable: false, options: ['comment' => '总时长（秒）'])]
+    #[Assert\PositiveOrZero]
     private float $totalDuration;
 
     #[ORM\Column(type: Types::FLOAT, nullable: false, options: ['comment' => '有效时长（秒）'])]
+    #[Assert\PositiveOrZero]
+    #[IndexColumn]
     private float $effectiveDuration;
 
     #[ORM\Column(type: Types::FLOAT, nullable: false, options: ['comment' => '无效时长（秒）'])]
+    #[Assert\PositiveOrZero]
     private float $invalidDuration;
 
     #[ORM\Column(type: Types::STRING, length: 32, nullable: false, enumType: StudyTimeStatus::class, options: ['comment' => '学时状态'])]
+    #[Assert\Choice(callback: [StudyTimeStatus::class, 'cases'])]
     private StudyTimeStatus $status;
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true, enumType: InvalidTimeReason::class, options: ['comment' => '无效原因（如果状态为无效）'])]
+    #[Assert\Choice(callback: [InvalidTimeReason::class, 'cases'])]
     private ?InvalidTimeReason $invalidReason = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '详细说明'])]
+    #[Assert\Length(max: 65535)]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '学习质量评分（0-10分）'])]
+    #[Assert\Range(min: 0, max: 10, notInRangeMessage: 'Quality score must be between 0 and 10.')]
     private ?float $qualityScore = null;
 
     #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '专注度评分（0-1）'])]
+    #[Assert\Range(min: 0, max: 1, notInRangeMessage: 'Focus score must be between 0 and 1.')]
     private ?float $focusScore = null;
 
     #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '交互活跃度评分（0-1）'])]
+    #[Assert\Range(min: 0, max: 1, notInRangeMessage: 'Interaction score must be between 0 and 1.')]
     private ?float $interactionScore = null;
 
     #[ORM\Column(type: Types::FLOAT, nullable: true, options: ['comment' => '学习连续性评分（0-1）'])]
+    #[Assert\Range(min: 0, max: 1, notInRangeMessage: 'Continuity score must be between 0 and 1.')]
     private ?float $continuityScore = null;
 
+    /**
+     * @var array<int, array<string, mixed>>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '证据数据（JSON格式）'])]
+    #[Assert\Type(type: 'array', message: 'Evidence data must be an array.')]
     private ?array $evidenceData = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '行为统计数据（JSON格式）'])]
+    #[Assert\Type(type: 'array', message: 'Behavior stats must be an array.')]
     private ?array $behaviorStats = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '验证结果数据（JSON格式）'])]
+    #[Assert\Type(type: 'array', message: 'Validation result must be an array.')]
     private ?array $validationResult = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '审核意见'])]
+    #[Assert\Length(max: 65535)]
     private ?string $reviewComment = null;
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true, options: ['comment' => '审核人'])]
+    #[Assert\Length(max: 64)]
     private ?string $reviewedBy = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '审核时间'])]
-    private ?\DateTimeImmutable $reviewedAt = null;
+    #[Assert\Type(type: '\DateTimeImmutable', message: 'Review time must be a valid DateTime.')]
+    private ?\DateTimeImmutable $reviewTime = null;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否计入日累计时长', 'default' => true])]
+    #[Assert\Type(type: 'bool', message: 'Include in daily total must be a boolean.')]
     private bool $includeInDailyTotal = true;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否已通知学员', 'default' => false])]
+    #[Assert\Type(type: 'bool', message: 'Student notified must be a boolean.')]
     private bool $studentNotified = false;
 
     public function __construct()
@@ -123,6 +160,7 @@ class EffectiveStudyRecord implements Stringable
         $this->id = uniqid('esr_', true);
         $this->createTime = new \DateTimeImmutable();
         $this->updateTime = new \DateTimeImmutable();
+        $this->status = StudyTimeStatus::PENDING;
     }
 
     public function getId(): ?string
@@ -135,10 +173,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->userId;
     }
 
-    public function setUserId(string $userId): static
+    public function setUserId(string $userId): void
     {
         $this->userId = $userId;
-        return $this;
     }
 
     public function getSession(): LearnSession
@@ -146,10 +183,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->session;
     }
 
-    public function setSession(LearnSession $session): static
+    public function setSession(LearnSession $session): void
     {
         $this->session = $session;
-        return $this;
     }
 
     public function getCourse(): Course
@@ -157,10 +193,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->course;
     }
 
-    public function setCourse(Course $course): static
+    public function setCourse(Course $course): void
     {
         $this->course = $course;
-        return $this;
     }
 
     public function getLesson(): Lesson
@@ -168,10 +203,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->lesson;
     }
 
-    public function setLesson(Lesson $lesson): static
+    public function setLesson(Lesson $lesson): void
     {
         $this->lesson = $lesson;
-        return $this;
     }
 
     public function getStudyDate(): \DateTimeImmutable
@@ -179,10 +213,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->studyDate;
     }
 
-    public function setStudyDate(\DateTimeImmutable $studyDate): static
+    public function setStudyDate(\DateTimeImmutable $studyDate): void
     {
         $this->studyDate = $studyDate;
-        return $this;
     }
 
     public function getStartTime(): \DateTimeImmutable
@@ -190,10 +223,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->startTime;
     }
 
-    public function setStartTime(\DateTimeImmutable $startTime): static
+    public function setStartTime(\DateTimeImmutable $startTime): void
     {
         $this->startTime = $startTime;
-        return $this;
     }
 
     public function getEndTime(): \DateTimeImmutable
@@ -201,10 +233,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->endTime;
     }
 
-    public function setEndTime(\DateTimeImmutable $endTime): static
+    public function setEndTime(\DateTimeImmutable $endTime): void
     {
         $this->endTime = $endTime;
-        return $this;
     }
 
     public function getTotalDuration(): float
@@ -212,10 +243,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->totalDuration;
     }
 
-    public function setTotalDuration(float $totalDuration): static
+    public function setTotalDuration(float $totalDuration): void
     {
         $this->totalDuration = $totalDuration;
-        return $this;
     }
 
     public function getEffectiveDuration(): float
@@ -223,10 +253,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->effectiveDuration;
     }
 
-    public function setEffectiveDuration(float $effectiveDuration): static
+    public function setEffectiveDuration(float $effectiveDuration): void
     {
         $this->effectiveDuration = $effectiveDuration;
-        return $this;
     }
 
     public function getInvalidDuration(): float
@@ -234,10 +263,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->invalidDuration;
     }
 
-    public function setInvalidDuration(float $invalidDuration): static
+    public function setInvalidDuration(float $invalidDuration): void
     {
         $this->invalidDuration = $invalidDuration;
-        return $this;
     }
 
     public function getStatus(): StudyTimeStatus
@@ -245,10 +273,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->status;
     }
 
-    public function setStatus(StudyTimeStatus $status): static
+    public function setStatus(StudyTimeStatus $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getInvalidReason(): ?InvalidTimeReason
@@ -256,10 +283,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->invalidReason;
     }
 
-    public function setInvalidReason(?InvalidTimeReason $invalidReason): static
+    public function setInvalidReason(?InvalidTimeReason $invalidReason): void
     {
         $this->invalidReason = $invalidReason;
-        return $this;
     }
 
     public function getDescription(): ?string
@@ -267,10 +293,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->description;
     }
 
-    public function setDescription(?string $description): static
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
-        return $this;
     }
 
     public function getQualityScore(): ?float
@@ -278,10 +303,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->qualityScore;
     }
 
-    public function setQualityScore(?float $qualityScore): static
+    public function setQualityScore(?float $qualityScore): void
     {
         $this->qualityScore = $qualityScore;
-        return $this;
     }
 
     public function getFocusScore(): ?float
@@ -289,10 +313,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->focusScore;
     }
 
-    public function setFocusScore(?float $focusScore): static
+    public function setFocusScore(?float $focusScore): void
     {
         $this->focusScore = $focusScore;
-        return $this;
     }
 
     public function getInteractionScore(): ?float
@@ -300,10 +323,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->interactionScore;
     }
 
-    public function setInteractionScore(?float $interactionScore): static
+    public function setInteractionScore(?float $interactionScore): void
     {
         $this->interactionScore = $interactionScore;
-        return $this;
     }
 
     public function getContinuityScore(): ?float
@@ -311,43 +333,57 @@ class EffectiveStudyRecord implements Stringable
         return $this->continuityScore;
     }
 
-    public function setContinuityScore(?float $continuityScore): static
+    public function setContinuityScore(?float $continuityScore): void
     {
         $this->continuityScore = $continuityScore;
-        return $this;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>|null
+     */
     public function getEvidenceData(): ?array
     {
         return $this->evidenceData;
     }
 
-    public function setEvidenceData(?array $evidenceData): static
+    /**
+     * @param array<int, array<string, mixed>>|null $evidenceData
+     */
+    public function setEvidenceData(?array $evidenceData): void
     {
         $this->evidenceData = $evidenceData;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getBehaviorStats(): ?array
     {
         return $this->behaviorStats;
     }
 
-    public function setBehaviorStats(?array $behaviorStats): static
+    /**
+     * @param array<string, mixed>|null $behaviorStats
+     */
+    public function setBehaviorStats(?array $behaviorStats): void
     {
         $this->behaviorStats = $behaviorStats;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getValidationResult(): ?array
     {
         return $this->validationResult;
     }
 
-    public function setValidationResult(?array $validationResult): static
+    /**
+     * @param array<string, mixed>|null $validationResult
+     */
+    public function setValidationResult(?array $validationResult): void
     {
         $this->validationResult = $validationResult;
-        return $this;
     }
 
     public function getReviewComment(): ?string
@@ -355,10 +391,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->reviewComment;
     }
 
-    public function setReviewComment(?string $reviewComment): static
+    public function setReviewComment(?string $reviewComment): void
     {
         $this->reviewComment = $reviewComment;
-        return $this;
     }
 
     public function getReviewedBy(): ?string
@@ -366,21 +401,19 @@ class EffectiveStudyRecord implements Stringable
         return $this->reviewedBy;
     }
 
-    public function setReviewedBy(?string $reviewedBy): static
+    public function setReviewedBy(?string $reviewedBy): void
     {
         $this->reviewedBy = $reviewedBy;
-        return $this;
     }
 
-    public function getReviewedAt(): ?\DateTimeImmutable
+    public function getReviewTime(): ?\DateTimeImmutable
     {
-        return $this->reviewedAt;
+        return $this->reviewTime;
     }
 
-    public function setReviewedAt(?\DateTimeImmutable $reviewedAt): static
+    public function setReviewTime(?\DateTimeImmutable $reviewTime): void
     {
-        $this->reviewedAt = $reviewedAt;
-        return $this;
+        $this->reviewTime = $reviewTime;
     }
 
     public function isIncludeInDailyTotal(): bool
@@ -388,10 +421,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->includeInDailyTotal;
     }
 
-    public function setIncludeInDailyTotal(bool $includeInDailyTotal): static
+    public function setIncludeInDailyTotal(bool $includeInDailyTotal): void
     {
         $this->includeInDailyTotal = $includeInDailyTotal;
-        return $this;
     }
 
     public function isStudentNotified(): bool
@@ -399,10 +431,9 @@ class EffectiveStudyRecord implements Stringable
         return $this->studentNotified;
     }
 
-    public function setStudentNotified(bool $studentNotified): static
+    public function setStudentNotified(bool $studentNotified): void
     {
         $this->studentNotified = $studentNotified;
-        return $this;
     }
 
     /**
@@ -410,9 +441,10 @@ class EffectiveStudyRecord implements Stringable
      */
     public function getEffectiveRate(): float
     {
-        if ($this->totalDuration === 0.0) {
+        if (0.0 === $this->totalDuration) {
             return 0.0;
         }
+
         return $this->effectiveDuration / $this->totalDuration;
     }
 
@@ -421,9 +453,10 @@ class EffectiveStudyRecord implements Stringable
      */
     public function getInvalidRate(): float
     {
-        if ($this->totalDuration === 0.0) {
+        if (0.0 === $this->totalDuration) {
             return 0.0;
         }
+
         return $this->invalidDuration / $this->totalDuration;
     }
 
@@ -432,7 +465,7 @@ class EffectiveStudyRecord implements Stringable
      */
     public function isHighQuality(): bool
     {
-        return $this->qualityScore !== null && $this->qualityScore >= 8.0;
+        return null !== $this->qualityScore && $this->qualityScore >= 8.0;
     }
 
     /**
@@ -450,10 +483,10 @@ class EffectiveStudyRecord implements Stringable
     {
         $this->status = $status;
         $this->reviewedBy = $reviewedBy;
-        $this->reviewedAt = new \DateTimeImmutable();
+        $this->reviewTime = new \DateTimeImmutable();
         $this->reviewComment = $comment;
         $this->updateTime = new \DateTimeImmutable();
-        
+
         return $this;
     }
 
@@ -469,7 +502,7 @@ class EffectiveStudyRecord implements Stringable
         $this->invalidDuration = $this->totalDuration;
         $this->includeInDailyTotal = false;
         $this->updateTime = new \DateTimeImmutable();
-        
+
         return $this;
     }
 
@@ -484,25 +517,28 @@ class EffectiveStudyRecord implements Stringable
         $this->invalidDuration = $this->totalDuration - $this->effectiveDuration;
         $this->includeInDailyTotal = true;
         $this->updateTime = new \DateTimeImmutable();
-        
+
         return $this;
     }
 
     /**
      * 添加证据数据
      */
+    /**
+     * @param array<string, mixed> $data
+     */
     public function addEvidence(string $type, array $data): static
     {
-        if ($this->evidenceData === null) {
+        if (null === $this->evidenceData) {
             $this->evidenceData = [];
         }
-        
+
         $this->evidenceData[] = [
             'type' => $type,
             'data' => $data,
             'timestamp' => time(),
         ];
-        
+
         return $this;
     }
 
@@ -514,7 +550,7 @@ class EffectiveStudyRecord implements Stringable
         $hours = floor($duration / 3600);
         $minutes = floor(($duration % 3600) / 60);
         $seconds = $duration % 60;
-        
+
         return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
     }
 
@@ -524,7 +560,7 @@ class EffectiveStudyRecord implements Stringable
     public function getEfficiencyDescription(): string
     {
         $rate = $this->getEffectiveRate();
-        
+
         return match (true) {
             $rate >= 0.9 => '优秀',
             $rate >= 0.8 => '良好',
@@ -538,4 +574,4 @@ class EffectiveStudyRecord implements Stringable
     {
         return (string) $this->id;
     }
-} 
+}

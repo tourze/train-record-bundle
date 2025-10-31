@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -7,26 +9,30 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainClassroomBundle\Entity\Registration;
+use Tourze\TrainCourseBundle\Entity\Chapter;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
+use Tourze\TrainRecordBundle\Exception\UnsupportedOperatingSystemException;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 /**
  * 学习会话
  *
  * 每次开始学习，就是一次会话，然后我们要监控是否作弊之类的行为，就是监控他单次会话内的行为
+ *
+ * @implements ApiArrayInterface<string, mixed>
+ * @implements AdminArrayInterface<string, mixed>
  */
 #[ORM\Entity(repositoryClass: LearnSessionRepository::class)]
 #[ORM\Table(name: 'job_training_learn_session', options: ['comment' => '学习记录'])]
@@ -36,6 +42,7 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
     use TimestampableAware;
     use BlameableAware;
     use SnowflakeKeyAware;
+    use IpTraceableAware;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
@@ -53,31 +60,54 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
     private Lesson $lesson;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '首次学习时间'])]
+    #[Assert\Type(type: '\DateTimeImmutable')]
     private ?\DateTimeImmutable $firstLearnTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后学习时间'])]
+    #[Assert\Type(type: '\DateTimeImmutable')]
     private ?\DateTimeImmutable $lastLearnTime = null;
 
+    #[ORM\Column(options: ['comment' => '是否已完成', 'default' => false])]
+    #[Assert\Type(type: 'bool')]
     private bool $finished = false;
 
+    #[ORM\Column(options: ['comment' => '是否激活', 'default' => false])]
+    #[Assert\Type(type: 'bool')]
     private bool $active = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '完成时间'])]
+    #[Assert\Type(type: '\DateTimeImmutable')]
     private ?\DateTimeImmutable $finishTime = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '观看时间点'])]
+    #[Assert\Length(max: 15)]
+    #[Assert\Regex(pattern: '/^\d+(\.\d{1,4})?$/', message: 'Current duration must be a valid decimal')]
     private string $currentDuration = '0.00';
 
     #[ORM\ManyToOne(targetEntity: LearnDevice::class, inversedBy: 'learnSessions')]
     #[ORM\JoinColumn(nullable: true)]
     private ?LearnDevice $device = null;
 
+    /**
+     * @var Collection<int, FaceDetect>
+     */
     #[Ignore]
     #[ORM\OneToMany(targetEntity: FaceDetect::class, mappedBy: 'session', orphanRemoval: true)]
     private Collection $faceDetects;
 
-#[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '字段说明'])]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '总时长'])]
+    #[Assert\Length(max: 15)]
+    #[Assert\Regex(pattern: '/^\d+(\.\d{1,4})?$/', message: 'Total duration must be a valid decimal')]
     private string $totalDuration = '0.00';
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 4, nullable: true, options: ['comment' => '有效时长'])]
+    #[Assert\Length(max: 15)]
+    #[Assert\Regex(pattern: '/^\d+(\.\d{1,4})?$/', message: 'Effective duration must be a valid decimal')]
+    private string $effectiveDuration = '0.00';
+
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '会话ID'])]
+    #[Assert\Length(max: 128)]
+    private ?string $sessionId = null;
 
     /**
      * @var Collection<int, LearnLog>
@@ -91,73 +121,19 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
     #[ORM\OneToMany(targetEntity: LearnBehavior::class, mappedBy: 'session', orphanRemoval: true)]
     private Collection $learnBehaviors;
 
-
-    #[CreateIpColumn]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    private ?string $updatedFromIp = null;
-
     #[CreateUserAgentColumn]
+    #[Assert\Length(max: 65535)]
     private ?string $createdFromUa = null;
 
     #[UpdateUserAgentColumn]
+    #[Assert\Length(max: 65535)]
     private ?string $updatedFromUa = null;
-
 
     public function __construct()
     {
         $this->faceDetects = new ArrayCollection();
         $this->learnLogs = new ArrayCollection();
         $this->learnBehaviors = new ArrayCollection();
-    }
-
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
     }
 
     public function setCreatedFromUa(?string $createdFromUa): void
@@ -185,11 +161,9 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->student;
     }
 
-    public function setStudent(UserInterface $student): static
+    public function setStudent(UserInterface $student): void
     {
         $this->student = $student;
-
-        return $this;
     }
 
     public function getLesson(): Lesson
@@ -197,11 +171,9 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->lesson;
     }
 
-    public function setLesson(Lesson $lesson): static
+    public function setLesson(Lesson $lesson): void
     {
         $this->lesson = $lesson;
-
-        return $this;
     }
 
     public function getCourse(): Course
@@ -209,11 +181,9 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->course;
     }
 
-    public function setCourse(Course $course): static
+    public function setCourse(Course $course): void
     {
         $this->course = $course;
-
-        return $this;
     }
 
     public function getFirstLearnTime(): ?\DateTimeImmutable
@@ -221,14 +191,12 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->firstLearnTime;
     }
 
-    public function setFirstLearnTime(?\DateTimeImmutable $firstLearnTime): static
+    public function setFirstLearnTime(?\DateTimeImmutable $firstLearnTime): void
     {
         $this->firstLearnTime = $firstLearnTime;
-        if (null === $this->getRegistration()->getFirstLearnTime()) {
-            $this->getRegistration()->setFirstLearnTime($firstLearnTime);
+        if (isset($this->registration) && null === $this->registration->getFirstLearnTime()) {
+            $this->registration->setFirstLearnTime($firstLearnTime);
         }
-
-        return $this;
     }
 
     public function getLastLearnTime(): ?\DateTimeImmutable
@@ -236,12 +204,12 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->lastLearnTime;
     }
 
-    public function setLastLearnTime(?\DateTimeImmutable $lastLearnTime): static
+    public function setLastLearnTime(?\DateTimeImmutable $lastLearnTime): void
     {
         $this->lastLearnTime = $lastLearnTime;
-        $this->getRegistration()->setLastLearnTime($lastLearnTime);
-
-        return $this;
+        if (isset($this->registration)) {
+            $this->registration->setLastLearnTime($lastLearnTime);
+        }
     }
 
     public function isFinished(): bool
@@ -249,11 +217,14 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->finished;
     }
 
-    public function setFinished(bool $finished): static
+    public function setFinished(bool $finished): void
     {
         $this->finished = $finished;
+    }
 
-        return $this;
+    public function getFinished(): bool
+    {
+        return $this->finished;
     }
 
     public function getFinishTime(): ?\DateTimeImmutable
@@ -261,11 +232,9 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->finishTime;
     }
 
-    public function setFinishTime(?\DateTimeImmutable $finishTime): static
+    public function setFinishTime(?\DateTimeImmutable $finishTime): void
     {
         $this->finishTime = $finishTime;
-
-        return $this;
     }
 
     public function isActive(): bool
@@ -273,11 +242,14 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->active;
     }
 
-    public function setActive(bool $active): static
+    public function setActive(bool $active): void
     {
         $this->active = $active;
+    }
 
-        return $this;
+    public function getActive(): bool
+    {
+        return $this->active;
     }
 
     public function getRegistration(): Registration
@@ -285,13 +257,14 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->registration;
     }
 
-    public function setRegistration(Registration $registration): static
+    public function setRegistration(Registration $registration): void
     {
         $this->registration = $registration;
-
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveApiArray(): array
     {
         return [
@@ -309,11 +282,9 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->currentDuration;
     }
 
-    public function setCurrentDuration(string $currentDuration): static
+    public function setCurrentDuration(string $currentDuration): void
     {
         $this->currentDuration = $currentDuration;
-
-        return $this;
     }
 
     /**
@@ -337,6 +308,7 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
     public function removeFaceDetect(FaceDetect $faceDetect): static
     {
         $this->faceDetects->removeElement($faceDetect);
+
         return $this;
     }
 
@@ -345,13 +317,34 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->totalDuration;
     }
 
-    public function setTotalDuration(string $totalDuration): static
+    public function setTotalDuration(string|float $totalDuration): void
     {
-        $this->totalDuration = $totalDuration;
-
-        return $this;
+        $this->totalDuration = (string) $totalDuration;
     }
 
+    public function getEffectiveDuration(): string
+    {
+        return $this->effectiveDuration;
+    }
+
+    public function setEffectiveDuration(string|float $effectiveDuration): void
+    {
+        $this->effectiveDuration = (string) $effectiveDuration;
+    }
+
+    public function getSessionId(): ?string
+    {
+        return $this->sessionId;
+    }
+
+    public function setSessionId(?string $sessionId): void
+    {
+        $this->sessionId = $sessionId;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveAdminArray(): array
     {
         return [
@@ -418,6 +411,7 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
     public function removeLearnBehavior(LearnBehavior $learnBehavior): static
     {
         $this->learnBehaviors->removeElement($learnBehavior);
+
         return $this;
     }
 
@@ -426,15 +420,15 @@ class LearnSession implements ApiArrayInterface, AdminArrayInterface, \Stringabl
         return $this->device;
     }
 
-    public function setDevice(?LearnDevice $device): static
+    public function setDevice(?LearnDevice $device): void
     {
         $this->device = $device;
-        return $this;
     }
 
     public function __toString(): string
     {
-        return sprintf('学习会话[%s] - 学生:%s 课程:%s', 
+        return sprintf(
+            '学习会话[%s] - 学生:%s 课程:%s',
             $this->id ?? '未知',
             $this->getStudent()->getUserIdentifier(),
             $this->lesson->getTitle()

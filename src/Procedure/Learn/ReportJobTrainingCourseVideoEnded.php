@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
 use Carbon\CarbonImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -12,6 +15,7 @@ use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineServi
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
+use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
@@ -21,6 +25,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 #[MethodDoc(summary: '视频观看结束')]
 #[MethodExpose(method: 'ReportJobTrainingCourseVideoEnded')]
+#[MethodTag(name: '培训记录')]
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class ReportJobTrainingCourseVideoEnded extends LockableProcedure
@@ -30,6 +35,7 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
 
     public function __construct(
         private readonly LearnSessionRepository $sessionRepository,
+        private readonly EntityManagerInterface $entityManager,
         #[Autowire(service: 'cache.app')] private readonly AdapterInterface $cache,
         private readonly DoctrineService $doctrineService,
         private readonly Security $security,
@@ -47,7 +53,7 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
             'id' => $this->sessionId,
             'student' => $student,
         ]);
-        if ($learnSession === null) {
+        if (null === $learnSession) {
             throw new ApiException('找不到学习记录');
         }
         $registration = $learnSession->getRegistration();
@@ -63,7 +69,8 @@ class ReportJobTrainingCourseVideoEnded extends LockableProcedure
             $learnSession->setCurrentDuration($learnSession->getTotalDuration());
             // 将会话设置为非活跃状态
             $learnSession->setActive(false);
-            $this->sessionRepository->save($learnSession);
+            $this->entityManager->persist($learnSession);
+            $this->entityManager->flush();
         }
 
         $log = new LearnLog();

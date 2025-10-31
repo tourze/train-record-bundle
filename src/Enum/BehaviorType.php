@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -12,7 +15,7 @@ use Tourze\EnumExtra\SelectTrait;
  * 学习行为类型枚举
  * 定义学习过程中可能发生的各种行为类型
  */
-enum BehaviorType: string implements Labelable, Itemable, Selectable
+enum BehaviorType: string implements Labelable, Itemable, Selectable, BadgeInterface
 {
     use ItemTrait;
     use SelectTrait;
@@ -20,7 +23,9 @@ enum BehaviorType: string implements Labelable, Itemable, Selectable
     // 视频控制行为
     case PLAY = 'play';
     case PAUSE = 'pause';
+    case STOP = 'stop';
     case SEEK = 'seek';
+    case FAST_FORWARD = 'fast_forward';
     case VOLUME_CHANGE = 'volume_change';
     case SPEED_CHANGE = 'speed_change';
     case FULLSCREEN_ENTER = 'fullscreen_enter';
@@ -67,7 +72,9 @@ enum BehaviorType: string implements Labelable, Itemable, Selectable
         return match ($this) {
             self::PLAY => '播放',
             self::PAUSE => '暂停',
+            self::STOP => '停止',
             self::SEEK => '拖拽进度',
+            self::FAST_FORWARD => '快进',
             self::VOLUME_CHANGE => '音量调节',
             self::SPEED_CHANGE => '倍速调节',
             self::FULLSCREEN_ENTER => '进入全屏',
@@ -119,7 +126,9 @@ enum BehaviorType: string implements Labelable, Itemable, Selectable
         return match ($this) {
             self::PLAY,
             self::PAUSE,
+            self::STOP,
             self::SEEK,
+            self::FAST_FORWARD,
             self::VOLUME_CHANGE,
             self::SPEED_CHANGE,
             self::FULLSCREEN_ENTER,
@@ -155,4 +164,30 @@ enum BehaviorType: string implements Labelable, Itemable, Selectable
             self::COPY_ATTEMPT => 'suspicious_behavior',
         };
     }
-} 
+
+    /**
+     * 获取Badge样式
+     */
+    public function getBadge(): string
+    {
+        return $this->getLabel();
+    }
+
+    /**
+     * 获取Badge样式类
+     */
+    public function getBadgeClass(): string
+    {
+        return match ($this->getCategory()) {
+            'video_control' => 'badge-primary',
+            'window_focus' => 'badge-info',
+            'mouse_activity' => 'badge-secondary',
+            'keyboard_activity' => 'badge-secondary',
+            'idle_detection' => 'badge-warning',
+            'network_status' => 'badge-info',
+            'device_status' => 'badge-secondary',
+            'suspicious_behavior' => 'badge-danger',
+            default => 'badge-secondary',
+        };
+    }
+}

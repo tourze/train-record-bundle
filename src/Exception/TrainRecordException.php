@@ -1,9 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Exception;
 
-use RuntimeException;
-
-class TrainRecordException extends RuntimeException
+abstract class TrainRecordException extends \RuntimeException
 {
 }

@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Procedure\Learn;
 
-use Carbon\CarbonImmutable;
+use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -11,6 +14,7 @@ use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineServi
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
+use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
@@ -20,6 +24,7 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 #[MethodDoc(summary: '开始观看指定视频')]
 #[MethodExpose(method: 'ReportJobTrainingCourseVideoPlay')]
+#[MethodTag(name: '培训记录')]
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class ReportJobTrainingCourseVideoPlay extends BaseProcedure
@@ -32,44 +37,49 @@ class ReportJobTrainingCourseVideoPlay extends BaseProcedure
         private readonly Security $security,
         #[Autowire(service: 'cache.app')] private readonly AdapterInterface $cache,
         private readonly DoctrineService $doctrineService,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     public function execute(): array
     {
         $student = $this->security->getUser();
+        if (null === $student) {
+            throw new ApiException('用户未登录');
+        }
 
         $learnSession = $this->sessionRepository->findOneBy([
             'id' => $this->sessionId,
             'student' => $student,
         ]);
-        if ($learnSession === null) {
+        if (null === $learnSession) {
             throw new ApiException('找不到学习记录');
         }
 
         // 检查是否有其他活跃的学习会话
-        $otherActiveSessions = $this->sessionRepository->findOtherActiveSessionsByStudent($student, $learnSession->getLesson()->getId());
-        if (!empty($otherActiveSessions)) {
+        $lesson = $learnSession->getLesson();
+        $lessonId = $lesson->getId();
+        if (null === $lessonId) {
+            throw new ApiException('课时信息无效');
+        }
+
+        $otherActiveSessions = $this->sessionRepository->findOtherActiveSessionsByStudent($student, $lessonId);
+        // 安全访问数组元素，确保至少有一个活跃会话存在
+        if ([] !== $otherActiveSessions && isset($otherActiveSessions[0])) {
             $activeSession = $otherActiveSessions[0];
             $courseName = $activeSession->getCourse()->getTitle();
             $lessonName = $activeSession->getLesson()->getTitle();
-            
-            throw new ApiException(
-                sprintf(
-                    '您正在学习课程"%s"的课时"%s"，请先完成或暂停当前学习后再开始新的课程',
-                    $courseName,
-                    $lessonName
-                ),
-                -886
-            );
+
+            throw new ApiException(sprintf('您正在学习课程"%s"的课时"%s"，请先完成或暂停当前学习后再开始新的课程', $courseName, $lessonName), -886);
         }
 
         if (!$learnSession->isFinished()) {
             // 记录最后学习时间
-            $learnSession->setLastLearnTime(CarbonImmutable::now());
+            $learnSession->setLastLearnTime(new \DateTimeImmutable());
             // 将会话设置为活跃状态
             $learnSession->setActive(true);
-            $this->sessionRepository->save($learnSession);
+            $this->entityManager->persist($learnSession);
+            $this->entityManager->flush();
         }
 
         $log = new LearnLog();

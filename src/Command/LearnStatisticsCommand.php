@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Command;
 
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -9,20 +12,35 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 use Tourze\TrainRecordBundle\Enum\StatisticsPeriod;
 use Tourze\TrainRecordBundle\Enum\StatisticsType;
-use Tourze\TrainRecordBundle\Exception\InvalidArgumentException;
-use Tourze\TrainRecordBundle\Service\LearnAnalyticsService;
+use Tourze\TrainRecordBundle\Service\Statistics\StatisticsDataCollector;
+use Tourze\TrainRecordBundle\Service\Statistics\StatisticsDataDisplayer;
+use Tourze\TrainRecordBundle\Service\Statistics\StatisticsDataProcessor;
 
 #[AsCommand(
     name: self::NAME,
     description: '生成学习统计数据'
 )]
+#[AsCronTask(
+    expression: '0 3 * * *'
+)]
+#[AsCronTask(
+    expression: '0 4 * * 0'
+)]
+#[AsCronTask(
+    expression: '0 5 1 * *'
+)]
+#[WithMonologChannel(channel: 'train_record')]
 class LearnStatisticsCommand extends Command
 {
     protected const NAME = 'learn:statistics';
+
     public function __construct(
-        private readonly LearnAnalyticsService $analyticsService,
+        private readonly StatisticsDataCollector $dataCollector,
+        private readonly StatisticsDataDisplayer $dataDisplayer,
+        private readonly StatisticsDataProcessor $dataProcessor,
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
@@ -95,61 +113,151 @@ class LearnStatisticsCommand extends Command
                 'b',
                 InputOption::VALUE_NONE,
                 '批量生成所有类型的统计'
-            );
+            )
+            ->addOption(
+                'dry-run',
+                null,
+                InputOption::VALUE_NONE,
+                '仅模拟执行，不进行实际统计计算'
+            )
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $type = $input->getOption('type');
-        $period = $input->getOption('period');
-        $date = $input->getOption('date');
-        $userId = $input->getOption('user-id');
-        $courseId = $input->getOption('course-id');
-        $days = (int) $input->getOption('days');
-        $format = $input->getOption('format');
-        $save = (bool) $input->getOption('save');
-        $exportPath = $input->getOption('export');
-        $batchGenerate = (bool) $input->getOption('batch-generate');
+        $options = $this->parseCommandOptions($input);
+
+        if ($options['dryRun']) {
+            $io->note('DRY RUN MODE: 仅模拟执行，不进行实际统计计算');
+
+            return Command::SUCCESS;
+        }
 
         $io->title('学习统计生成');
 
         try {
-            if ((bool) $batchGenerate) {
-                $result = $this->batchGenerateStatistics($date, $period, $days, $save, $io);
-            } else {
-                $result = $this->generateSingleStatistics(
-                    $type,
-                    $period,
-                    $date,
-                    $userId,
-                    $courseId,
-                    $days,
-                    $format,
-                    $save,
-                    $exportPath,
-                    $io
-                );
-            }
+            $result = $this->executeStatisticsGeneration($options, $io);
+            $this->displaySuccessMessage($result, $io);
 
-            $io->success($result['message']);
             return Command::SUCCESS;
-
         } catch (\Throwable $e) {
-            $this->logger->error('学习统计生成失败', [
-                'type' => $type,
-                'period' => $period,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            $this->handleStatisticsError($e, $options, $io);
 
-            $io->error('统计生成失败: ' . $e->getMessage());
             return Command::FAILURE;
         }
     }
 
     /**
+     * 解析命令选项
+     * @return array{type: string, period: string, date: string, userId: ?string, courseId: ?string, days: int, format: string, save: bool, exportPath: ?string, batchGenerate: bool, dryRun: bool}
+     */
+    private function parseCommandOptions(InputInterface $input): array
+    {
+        $typeOption = $input->getOption('type');
+        $periodOption = $input->getOption('period');
+        $dateOption = $input->getOption('date');
+        $userIdOption = $input->getOption('user-id');
+        $courseIdOption = $input->getOption('course-id');
+        $daysOption = $input->getOption('days');
+        $formatOption = $input->getOption('format');
+        $exportPathOption = $input->getOption('export');
+
+        return [
+            'type' => is_string($typeOption) ? $typeOption : 'user',
+            'period' => is_string($periodOption) ? $periodOption : 'daily',
+            'date' => is_string($dateOption) ? $dateOption : date('Y-m-d'),
+            'userId' => is_string($userIdOption) ? $userIdOption : null,
+            'courseId' => is_string($courseIdOption) ? $courseIdOption : null,
+            'days' => is_numeric($daysOption) ? (int) $daysOption : 7,
+            'format' => is_string($formatOption) ? $formatOption : 'table',
+            'save' => (bool) $input->getOption('save'),
+            'exportPath' => is_string($exportPathOption) ? $exportPathOption : null,
+            'batchGenerate' => (bool) $input->getOption('batch-generate'),
+            'dryRun' => (bool) $input->getOption('dry-run'),
+        ];
+    }
+
+    /**
+     * 执行统计生成
+     * @param array{type: string, period: string, date: string, userId: ?string, courseId: ?string, days: int, format: string, save: bool, exportPath: ?string, batchGenerate: bool, dryRun: bool} $options
+     * @return array<string, mixed>
+     */
+    private function executeStatisticsGeneration(array $options, SymfonyStyle $io): array
+    {
+        if ($options['batchGenerate']) {
+            return $this->executeBatchGeneration($options, $io);
+        }
+
+        return $this->executeSingleGeneration($options, $io);
+    }
+
+    /**
+     * 执行批量生成
+     * @param array{type: string, period: string, date: string, userId: ?string, courseId: ?string, days: int, format: string, save: bool, exportPath: ?string, batchGenerate: bool, dryRun: bool} $options
+     * @return array<string, mixed>
+     */
+    private function executeBatchGeneration(array $options, SymfonyStyle $io): array
+    {
+        return $this->batchGenerateStatistics(
+            $options['date'],
+            $options['period'],
+            $options['days'],
+            $options['save'],
+            $io
+        );
+    }
+
+    /**
+     * 执行单个生成
+     * @param array{type: string, period: string, date: string, userId: ?string, courseId: ?string, days: int, format: string, save: bool, exportPath: ?string, batchGenerate: bool, dryRun: bool} $options
+     * @return array<string, mixed>
+     */
+    private function executeSingleGeneration(array $options, SymfonyStyle $io): array
+    {
+        return $this->generateSingleStatistics(
+            $options['type'],
+            $options['period'],
+            $options['date'],
+            $options['userId'],
+            $options['courseId'],
+            $options['days'],
+            $options['format'],
+            $options['save'],
+            $options['exportPath'],
+            $io
+        );
+    }
+
+    /**
+     * 显示成功消息
+     * @param array<string, mixed> $result
+     */
+    private function displaySuccessMessage(array $result, SymfonyStyle $io): void
+    {
+        $message = isset($result['message']) && is_string($result['message']) ? $result['message'] : '统计生成完成';
+        $io->success($message);
+    }
+
+    /**
+     * 处理统计错误
+     * @param array{type: string, period: string, date: string, userId: ?string, courseId: ?string, days: int, format: string, save: bool, exportPath: ?string, batchGenerate: bool, dryRun: bool} $options
+     */
+    private function handleStatisticsError(\Throwable $e, array $options, SymfonyStyle $io): void
+    {
+        $this->logger->error('学习统计生成失败', [
+            'type' => $options['type'],
+            'period' => $options['period'],
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        $io->error('统计生成失败: ' . $e->getMessage());
+    }
+
+    /**
      * 生成单个统计
+     * @return array<string, mixed>
      */
     private function generateSingleStatistics(
         string $type,
@@ -161,47 +269,19 @@ class LearnStatisticsCommand extends Command
         string $format,
         bool $save,
         ?string $exportPath,
-        SymfonyStyle $io
+        SymfonyStyle $io,
     ): array {
-        $io->section("生成{$type}统计 - {$period}周期");
+        $this->displayStatisticsHeader($type, $period, $io);
 
-        $statisticsType = StatisticsType::from($type);
-        $statisticsPeriod = StatisticsPeriod::from($period);
+        [$statisticsType, $statisticsPeriod, $startDate, $endDate] = $this->prepareStatisticsParameters($type, $period, $date, $days, $io);
 
-        // 计算日期范围
-        $endDate = new \DateTimeImmutable($date . ' 23:59:59');
-        $startDate = (clone $endDate)->sub(new \DateInterval('P' . $days . 'D'));
+        $this->displayDateRange($startDate, $endDate, $days, $io);
 
-        $io->text(sprintf(
-            "统计范围: %s 到 %s (%d天)",
-            $startDate->format('Y-m-d'),
-            $endDate->format('Y-m-d'),
-            $days
-        ));
+        $statisticsData = $this->dataCollector->generateStatisticsData($statisticsType, $startDate, $endDate, $userId, $courseId);
 
-        // 生成统计数据
-        $statisticsData = $this->generateStatisticsData(
-            $statisticsType,
-            $startDate,
-            $endDate,
-            $userId,
-            $courseId
-        );
-
-        // 显示结果
-        $this->displayStatistics($statisticsData, $format, $io);
-
-        // 保存到数据库
-        if ((bool) $save) {
-            $this->saveStatistics($statisticsType, $statisticsPeriod, $statisticsData, $userId ?? $courseId ?? 'global');
-            $io->note('统计数据已保存到数据库');
-        }
-
-        // 导出文件
-        if ($exportPath !== null) {
-            $this->exportStatistics($statisticsData, $exportPath, $format);
-            $io->note("统计数据已导出到: {$exportPath}");
-        }
+        $this->dataDisplayer->displayStatistics($statisticsData, $format, $io);
+        $this->dataProcessor->handleStatisticsPersistence($statisticsType, $statisticsPeriod, $statisticsData, $userId, $courseId, $save, $io);
+        $this->dataProcessor->handleStatisticsExport($statisticsData, $exportPath, $format, $io);
 
         return [
             'message' => sprintf('%s统计生成完成', $statisticsType->getLabel()),
@@ -210,14 +290,51 @@ class LearnStatisticsCommand extends Command
     }
 
     /**
+     * 显示统计头部
+     */
+    private function displayStatisticsHeader(string $type, string $period, SymfonyStyle $io): void
+    {
+        $io->section("生成{$type}统计 - {$period}周期");
+    }
+
+    /**
+     * 准备统计参数
+     * @return array{StatisticsType, StatisticsPeriod, \DateTimeImmutable, \DateTimeImmutable}
+     */
+    private function prepareStatisticsParameters(string $type, string $period, string $date, int $days, SymfonyStyle $io): array
+    {
+        $statisticsType = StatisticsType::from($type);
+        $statisticsPeriod = StatisticsPeriod::from($period);
+
+        $endDate = new \DateTimeImmutable($date . ' 23:59:59');
+        $startDate = (clone $endDate)->sub(new \DateInterval('P' . $days . 'D'));
+
+        return [$statisticsType, $statisticsPeriod, $startDate, $endDate];
+    }
+
+    /**
+     * 显示日期范围
+     */
+    private function displayDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate, int $days, SymfonyStyle $io): void
+    {
+        $io->text(sprintf(
+            '统计范围: %s 到 %s (%d天)',
+            $startDate->format('Y-m-d'),
+            $endDate->format('Y-m-d'),
+            $days
+        ));
+    }
+
+    /**
      * 批量生成统计
+     * @return array<string, mixed>
      */
     private function batchGenerateStatistics(
         string $date,
         string $period,
         int $days,
         bool $save,
-        SymfonyStyle $io
+        SymfonyStyle $io,
     ): array {
         $io->section('批量生成所有统计');
 
@@ -245,15 +362,15 @@ class LearnStatisticsCommand extends Command
             try {
                 $io->text("生成 {$type->getLabel()} 统计...");
 
-                $statisticsData = $this->generateStatisticsData($type, $startDate, $endDate);
+                $statisticsData = $this->dataCollector->generateStatisticsData($type, $startDate, $endDate);
 
-                if ((bool) $save) {
-                    $this->saveStatistics($type, $statisticsPeriod, $statisticsData, 'global');
+                if ($save) {
+                    $this->dataProcessor->saveStatistics($type, $statisticsPeriod, $statisticsData, 'global');
                 }
 
-                $generatedCount++;
+                ++$generatedCount;
             } catch (\Throwable $e) {
-                $errorCount++;
+                ++$errorCount;
                 $this->logger->error('生成统计失败', [
                     'type' => $type->value,
                     'error' => $e->getMessage(),
@@ -276,289 +393,4 @@ class LearnStatisticsCommand extends Command
             'errors' => $errorCount,
         ];
     }
-
-    /**
-     * 生成统计数据
-     */
-    private function generateStatisticsData(
-        StatisticsType $type,
-        \DateTimeInterface $startDate,
-        \DateTimeInterface $endDate,
-        ?string $userId = null,
-        ?string $courseId = null
-    ): array {
-        return match ($type) {
-            StatisticsType::USER => ($userId !== null) ? $this->analyticsService->generateUserAnalytics($userId, $startDate, $endDate)
-                : $this->generateGlobalUserStatistics($startDate, $endDate),
-            
-            StatisticsType::COURSE => ($courseId !== null) ? $this->analyticsService->generateCourseAnalytics($courseId, $startDate, $endDate)
-                : $this->generateGlobalCourseStatistics($startDate, $endDate),
-            
-            StatisticsType::BEHAVIOR => $this->generateBehaviorStatistics($startDate, $endDate, $userId),
-            StatisticsType::ANOMALY => $this->generateAnomalyStatistics($startDate, $endDate, $userId),
-            StatisticsType::DEVICE => $this->generateDeviceStatistics($startDate, $endDate, $userId),
-            StatisticsType::PROGRESS => $this->generateProgressStatistics($startDate, $endDate, $userId, $courseId),
-            StatisticsType::DURATION => $this->generateDurationStatistics($startDate, $endDate, $userId, $courseId),
-            
-            default => $this->analyticsService->generateSystemAnalytics($startDate, $endDate),
-        };
-    }
-
-    /**
-     * 显示统计结果
-     */
-    private function displayStatistics(array $data, string $format, SymfonyStyle $io): void
-    {
-        switch ($format) {
-            case 'json':
-                $io->text(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                break;
-
-            case 'csv':
-                $this->displayCsvFormat($data, $io);
-                break;
-
-            case 'table':
-            default:
-                $this->displayTableFormat($data, $io);
-                break;
-        }
-    }
-
-    /**
-     * 表格格式显示
-     */
-    private function displayTableFormat(array $data, SymfonyStyle $io): void
-    {
-        if ((bool) isset($data['overview'])) {
-            $io->section('概览');
-            $overview = $data['overview'];
-            $rows = [];
-            foreach ($overview as $key => $value) {
-                $rows[] = [ucfirst($key), is_numeric($value) ? number_format($value, 2) : $value];
-            }
-            $io->table(['指标', '数值'], $rows);
-        }
-
-        if ((bool) isset($data['userMetrics'])) {
-            $io->section('用户指标');
-            $this->displayMetricsTable($data['userMetrics'], $io);
-        }
-
-        if ((bool) isset($data['courseMetrics'])) {
-            $io->section('课程指标');
-            $this->displayMetricsTable($data['courseMetrics'], $io);
-        }
-
-        if ((bool) isset($data['behaviorAnalysis'])) {
-            $io->section('行为分析');
-            $this->displayMetricsTable($data['behaviorAnalysis'], $io);
-        }
-    }
-
-    /**
-     * 显示指标表格
-     */
-    private function displayMetricsTable(array $metrics, SymfonyStyle $io): void
-    {
-        $rows = [];
-        foreach ($metrics as $key => $value) {
-            if ((bool) is_array($value)) {
-                $value = json_encode($value, JSON_UNESCAPED_UNICODE);
-            }
-            $rows[] = [ucfirst($key), is_numeric($value) ? number_format($value, 2) : $value];
-        }
-        $io->table(['指标', '数值'], $rows);
-    }
-
-    /**
-     * CSV格式显示
-     */
-    private function displayCsvFormat(array $data, SymfonyStyle $io): void
-    {
-        $io->text('指标,数值');
-        $this->outputCsvData($data, $io);
-    }
-
-    /**
-     * 输出CSV数据
-     */
-    private function outputCsvData(array $data, SymfonyStyle $io, string $prefix = ''): void
-    {
-        foreach ($data as $key => $value) {
-            $fullKey = ($prefix !== '') ? $prefix . '.' . $key : $key;
-            
-            if ((bool) is_array($value)) {
-                $this->outputCsvData($value, $io, $fullKey);
-            } else {
-                $io->text(sprintf('%s,%s', $fullKey, $value));
-            }
-        }
-    }
-
-    /**
-     * 保存统计数据
-     */
-    private function saveStatistics(
-        StatisticsType $type,
-        StatisticsPeriod $period,
-        array $data,
-        string $scopeId
-    ): void {
-        // TODO: Implement statistics saving
-        // $this->analyticsService->createStatistics($type, $period, $scopeId, $data);
-    }
-
-    /**
-     * 导出统计数据
-     */
-    private function exportStatistics(array $data, string $filePath, string $format): void
-    {
-        $directory = dirname($filePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        switch ($format) {
-            case 'json':
-                file_put_contents($filePath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                break;
-
-            case 'csv':
-                $this->exportCsvFormat($data, $filePath);
-                break;
-
-            default:
-                throw new InvalidArgumentException("不支持的导出格式: {$format}");
-        }
-    }
-
-    /**
-     * 导出CSV格式
-     */
-    private function exportCsvFormat(array $data, string $filePath): void
-    {
-        $handle = fopen($filePath, 'w');
-        fputcsv($handle, ['指标', '数值']);
-        
-        $this->writeCsvData($data, $handle);
-        
-        fclose($handle);
-    }
-
-    /**
-     * 写入CSV数据
-     */
-    private function writeCsvData(array $data, $handle, string $prefix = ''): void
-    {
-        foreach ($data as $key => $value) {
-            $fullKey = ($prefix !== '') ? $prefix . '.' . $key : $key;
-            
-            if ((bool) is_array($value)) {
-                $this->writeCsvData($value, $handle, $fullKey);
-            } else {
-                fputcsv($handle, [$fullKey, $value]);
-            }
-        }
-    }
-
-    /**
-     * 生成全局用户统计（简化实现）
-     */
-    private function generateGlobalUserStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
-    {
-        return [
-            'overview' => [
-                'totalUsers' => 0,
-                'activeUsers' => 0,
-                'newUsers' => 0,
-                'userRetention' => 0,
-            ],
-        ];
-    }
-
-    /**
-     * 生成全局课程统计（简化实现）
-     */
-    private function generateGlobalCourseStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
-    {
-        return [
-            'overview' => [
-                'totalCourses' => 0,
-                'activeCourses' => 0,
-                'completionRate' => 0,
-                'averageProgress' => 0,
-            ],
-        ];
-    }
-
-    /**
-     * 生成行为统计（简化实现）
-     */
-    private function generateBehaviorStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId): array
-    {
-        return [
-            'overview' => [
-                'totalBehaviors' => 0,
-                'suspiciousBehaviors' => 0,
-                'suspiciousRate' => 0,
-            ],
-        ];
-    }
-
-    /**
-     * 生成异常统计（简化实现）
-     */
-    private function generateAnomalyStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId): array
-    {
-        return [
-            'overview' => [
-                'totalAnomalies' => 0,
-                'resolvedAnomalies' => 0,
-                'resolutionRate' => 0,
-            ],
-        ];
-    }
-
-    /**
-     * 生成设备统计（简化实现）
-     */
-    private function generateDeviceStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId): array
-    {
-        return [
-            'overview' => [
-                'totalDevices' => 0,
-                'activeDevices' => 0,
-                'trustedDevices' => 0,
-            ],
-        ];
-    }
-
-    /**
-     * 生成进度统计（简化实现）
-     */
-    private function generateProgressStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
-    {
-        return [
-            'overview' => [
-                'totalLessons' => 0,
-                'completedLessons' => 0,
-                'averageProgress' => 0,
-            ],
-        ];
-    }
-
-    /**
-     * 生成时长统计（简化实现）
-     */
-    private function generateDurationStatistics(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
-    {
-        return [
-            'overview' => [
-                'totalDuration' => 0,
-                'effectiveDuration' => 0,
-                'effectiveRate' => 0,
-            ],
-        ];
-    }
-} 
+}

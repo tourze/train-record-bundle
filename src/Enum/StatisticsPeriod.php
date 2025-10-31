@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -11,12 +14,11 @@ use Tourze\EnumExtra\SelectTrait;
 /**
  * 统计周期枚举
  */
-enum StatisticsPeriod: string
- implements Itemable, Labelable, Selectable{
-    
+enum StatisticsPeriod: string implements Itemable, Labelable, Selectable, BadgeInterface
+{
     use ItemTrait;
     use SelectTrait;
-case DAILY = 'daily';           // 日统计
+    case DAILY = 'daily';           // 日统计
     case WEEKLY = 'weekly';         // 周统计
     case MONTHLY = 'monthly';       // 月统计
     case QUARTERLY = 'quarterly';   // 季度统计
@@ -38,6 +40,44 @@ case DAILY = 'daily';           // 日统计
             self::YEARLY => '年',
             self::REAL_TIME => '实时',
         };
+    }
+
+    /**
+     * 获取徽章颜色
+     */
+    public function getBadgeColor(): string
+    {
+        return match ($this) {
+            self::HOURLY, self::REAL_TIME => 'info',
+            self::DAILY => 'primary',
+            self::WEEKLY => 'success',
+            self::MONTHLY => 'warning',
+            self::QUARTERLY => 'secondary',
+            self::YEARLY => 'dark',
+        };
+    }
+
+    /**
+     * 获取徽章样式类
+     */
+    public function getBadgeClass(): string
+    {
+        return match ($this) {
+            self::HOURLY, self::REAL_TIME => 'bg-info',
+            self::DAILY => 'bg-primary',
+            self::WEEKLY => 'bg-success',
+            self::MONTHLY => 'bg-warning',
+            self::QUARTERLY => 'bg-secondary',
+            self::YEARLY => 'bg-dark',
+        };
+    }
+
+    /**
+     * 获取徽章标识
+     */
+    public function getBadge(): string
+    {
+        return $this->getBadgeClass();
     }
 
     /**
@@ -141,7 +181,7 @@ case DAILY = 'daily';           // 日统计
      */
     public function isHighFrequency(): bool
     {
-        return in_array($this, [self::REAL_TIME, self::HOURLY]);
+        return in_array($this, [self::REAL_TIME, self::HOURLY], true);
     }
 
     /**
@@ -149,7 +189,7 @@ case DAILY = 'daily';           // 日统计
      */
     public function isLowFrequency(): bool
     {
-        return in_array($this, [self::QUARTERLY, self::YEARLY]);
+        return in_array($this, [self::QUARTERLY, self::YEARLY], true);
     }
 
     /**
@@ -158,7 +198,7 @@ case DAILY = 'daily';           // 日统计
     public function getNextStatisticsTime(\DateTimeInterface $currentTime): \DateTime
     {
         $nextTime = \DateTime::createFromInterface($currentTime);
-        
+
         switch ($this) {
             case self::HOURLY:
                 $nextTime->add(new \DateInterval('PT1H'));
@@ -182,7 +222,7 @@ case DAILY = 'daily';           // 日统计
                 $nextTime->add(new \DateInterval('PT1M'));
                 break;
         }
-        
+
         return $nextTime;
     }
 
@@ -196,6 +236,7 @@ case DAILY = 'daily';           // 日统计
 
     /**
      * 获取所有周期
+     * @return array<int, self>
      */
     public static function getAllPeriods(): array
     {
@@ -212,6 +253,7 @@ case DAILY = 'daily';           // 日统计
 
     /**
      * 获取常用周期
+     * @return array<int, self>
      */
     public static function getCommonPeriods(): array
     {
@@ -225,11 +267,13 @@ case DAILY = 'daily';           // 日统计
 
     /**
      * 按频率排序
+     * @return array<int, self>
      */
     public static function getSortedByFrequency(): array
     {
         $periods = self::getAllPeriods();
-        usort($periods, fn($a, $b) => $b->getFrequencyPerDay() <=> $a->getFrequencyPerDay());
+        usort($periods, fn ($a, $b) => $b->getFrequencyPerDay() <=> $a->getFrequencyPerDay());
+
         return $periods;
     }
 
@@ -249,4 +293,4 @@ case DAILY = 'daily';           // 日统计
             default => null,
         };
     }
-} 
+}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Procedure;
 
 use Symfony\Bundle\SecurityBundle\Security;
@@ -7,12 +9,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
+use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
-use Tourze\TrainClassroomBundle\Repository\RegistrationRepository;
+use Tourze\TrainClassroomBundle\Service\RegistrationService;
 use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
 
 #[MethodDoc(summary: '获取学员的学习明细')]
 #[MethodExpose(method: 'GetJobTrainingLearnSessionDetail')]
+#[MethodTag(name: '培训记录')]
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class GetJobTrainingLearnSessionDetail extends BaseProcedure
 {
@@ -21,7 +26,7 @@ class GetJobTrainingLearnSessionDetail extends BaseProcedure
 
     public function __construct(
         private readonly Security $security,
-        private readonly RegistrationRepository $registrationRepository,
+        private readonly RegistrationService $registrationService,
         private readonly LearnSessionRepository $learnSessionRepository,
     ) {
     }
@@ -30,10 +35,12 @@ class GetJobTrainingLearnSessionDetail extends BaseProcedure
     {
         $student = $this->security->getUser();
 
-        $registration = $this->registrationRepository->findOneBy([
-            'student' => $student,
-            'id' => $this->registrationId,
-        ]);
+        $registration = $this->registrationService->findById($this->registrationId);
+
+        // 验证该报名是否属于当前用户
+        if (null === $registration || $registration->getStudent() !== $student) {
+            throw new ApiException('找不到对应的报名信息');
+        }
 
         $list = [];
         $sessions = $this->learnSessionRepository->findBy(['registration' => $registration]);

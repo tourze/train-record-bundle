@@ -7,9 +7,57 @@ services:
 
   Tourze\TrainRecordBundle\Command\:
     resource: '../../Command'
+
+  Tourze\TrainRecordBundle\Controller\:
+    resource: '../../Controller'
+    tags: ['controller.service_arguments']
+
   Tourze\TrainRecordBundle\Procedure\:
     resource: '../../Procedure'
   Tourze\TrainRecordBundle\Repository\:
     resource: '../../Repository'
   Tourze\TrainRecordBundle\Service\:
     resource: '../../Service'
+
+  # Archive Operations - 需要明确注册以便测试使用
+  Tourze\TrainRecordBundle\Command\Operation\CleanupArchiveOperation:
+    public: true
+
+  Tourze\TrainRecordBundle\Command\Operation\CreateArchiveOperation:
+    public: true
+
+  Tourze\TrainRecordBundle\Command\Operation\UpdateArchiveOperation:
+    public: true
+
+  Tourze\TrainRecordBundle\Command\Operation\VerifyArchiveOperation:
+    public: true
+
+  Tourze\TrainRecordBundle\Command\Operation\ExportArchiveOperation:
+    public: true
+
+  # Archive Operation Factory
+  Tourze\TrainRecordBundle\Command\Operation\ArchiveOperationFactory:
+    arguments:
+      - '@Tourze\TrainRecordBundle\Repository\LearnArchiveRepository'
+      - '@Tourze\TrainRecordBundle\Repository\LearnSessionRepository'
+      - '@Tourze\TrainRecordBundle\Service\LearnArchiveService'
+      - '@logger'
+      - '@doctrine.orm.entity_manager'
+
+  # Register the refactored command
+  Tourze\TrainRecordBundle\Command\LearnArchiveCommand:
+    arguments:
+      - '@Tourze\TrainRecordBundle\Command\Operation\ArchiveOperationFactory'
+      - '@logger'
+    tags:
+      - { name: 'console.command' }
+
+  # Archive Service - 显式配置存储路径
+  Tourze\TrainRecordBundle\Service\Archive\ArchiveExporter:
+    arguments:
+      $archiveStoragePath: '%kernel.project_dir%/var/archives/learn_records'
+
+  Tourze\TrainRecordBundle\Service\Archive\ArchiveFileGenerator:
+    arguments:
+      $archiveStoragePath: '%kernel.project_dir%/var/archives/learn_records'
+

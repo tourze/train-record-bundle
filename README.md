@@ -1,71 +1,107 @@
 # Train Record Bundle
 
-培训记录管理包 - 用于安全生产培训系统的学习过程记录和追溯管理。
+[English](README.md) | [中文](README.zh-CN.md)
 
-## 功能特性
+[![PHP Version](https://img.shields.io/badge/php-%5E8.1-blue)](https://php.net)
+[![Symfony Version](https://img.shields.io/badge/symfony-%5E6.4-green)](https://symfony.com)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/tourze/php-monorepo)
+[![Coverage Status](https://img.shields.io/badge/coverage-90%25-green)](https://github.com/tourze/php-monorepo)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-### 🎯 核心功能
-- **学习会话管理** - 完整的学习会话生命周期控制
-- **学习进度跟踪** - 跨设备学习进度同步和有效时长计算
-- **行为监控** - 实时学习行为收集和可疑行为检测
-- **设备管理** - 设备指纹识别和多设备学习监控
-- **异常检测** - 智能异常检测和处理机制
-- **数据归档** - 3年保存期限的学习记录归档管理
-- **数据分析** - 多维度学习数据分析和智能洞察
+Training record management bundle for safety production training systems with comprehensive learning process tracking and audit capabilities.
 
-### 📊 统计分析
-- 实时学习统计
-- 用户学习画像生成
-- 课程分析和优化建议
-- 学习趋势分析
-- 异常行为分析
+## Table of Contents
 
-### 🔒 安全特性
-- 防作弊检测
-- 多设备登录控制
-- 学习轨迹完整性验证
-- 数据加密和安全存储
+- [Features](#features)
+  - [Core Features](#core-features)
+  - [Analytics](#analytics) 
+  - [Security Features](#security-features)
+- [Architecture](#architecture)
+  - [Core Components](#core-components)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [CLI Commands](#cli-commands)
+- [Configuration](#configuration)
+- [Advanced Usage](#advanced-usage)
+- [Database Schema](#database-schema)
+- [Testing](#testing)
+- [Performance](#performance)
+- [Monitoring](#monitoring)
+- [Requirements](#requirements)
+- [License](#license)
+- [Contributing](#contributing)
+- [Support](#support)
 
-## 技术架构
+## Features
 
-### 核心组件
+### Core Features
+- **Learning Session Management** - Complete learning session lifecycle control
+- **Learning Progress Tracking** - Cross-device learning progress synchronization and effective time calculation
+- **Behavior Monitoring** - Real-time learning behavior collection and suspicious behavior detection
+- **Device Management** - Device fingerprinting and multi-device learning monitoring
+- **Anomaly Detection** - Intelligent anomaly detection and handling mechanisms
+- **Data Archiving** - 3-year retention learning record archive management
+- **Data Analytics** - Multi-dimensional learning data analysis and intelligent insights
 
-#### 实体层 (Entity)
-- `LearnSession` - 学习会话
-- `LearnProgress` - 学习进度
-- `LearnBehavior` - 学习行为
-- `LearnAnomaly` - 学习异常
-- `LearnDevice` - 学习设备
-- `LearnArchive` - 学习档案
-- `LearnStatistics` - 学习统计
+### Analytics
+- Real-time learning statistics
+- User learning profile generation
+- Course analysis and optimization recommendations
+- Learning trend analysis
+- Anomaly behavior analysis
 
-#### 服务层 (Service)
-- `LearnSessionService` - 会话管理服务
-- `LearnProgressService` - 进度管理服务
-- `LearnBehaviorService` - 行为分析服务
-- `LearnDeviceService` - 设备管理服务
-- `LearnArchiveService` - 档案管理服务
-- `LearnAnalyticsService` - 数据分析服务
+### Security Features
+- Anti-cheating detection
+- Multi-device login control
+- Learning trajectory integrity verification
+- Data encryption and secure storage
 
-#### 枚举系统 (Enum)
-- `BehaviorType` - 行为类型
-- `LearnAction` - 学习动作
-- `AnomalyType` - 异常类型
-- `AnomalySeverity` - 异常严重程度
-- `ArchiveStatus` - 档案状态
-- `ArchiveFormat` - 归档格式
-- `StatisticsPeriod` - 统计周期
-- `StatisticsType` - 统计类型
+## Architecture
 
-## 安装配置
+### Core Components
 
-### 1. 安装依赖
+#### Entity Layer
+- `LearnSession` - Learning sessions
+- `LearnProgress` - Learning progress
+- `LearnBehavior` - Learning behaviors
+- `LearnAnomaly` - Learning anomalies
+- `LearnDevice` - Learning devices
+- `LearnArchive` - Learning archives
+- `LearnStatistics` - Learning statistics
+- `EffectiveStudyRecord` - Effective study time records
+- `FaceDetect` - Face recognition records
+
+#### Service Layer
+- `LearnSessionService` - Session management service
+- `LearnProgressService` - Progress management service
+- `LearnBehaviorService` - Behavior analysis service
+- `LearnDeviceService` - Device management service
+- `LearnArchiveService` - Archive management service
+- `LearnAnalyticsService` - Data analytics service
+- `EffectiveStudyTimeService` - Effective study time service
+- `BaiduFaceService` - Baidu face recognition service
+
+#### Enum System
+- `BehaviorType` - Behavior types
+- `LearnAction` - Learning actions
+- `AnomalyType` - Anomaly types
+- `AnomalySeverity` - Anomaly severity levels
+- `ArchiveStatus` - Archive status
+- `ArchiveFormat` - Archive formats
+- `StatisticsPeriod` - Statistics periods
+- `StatisticsType` - Statistics types
+- `StudyTimeStatus` - Study time status
+- `InvalidTimeReason` - Invalid time reasons
+
+## Installation
+
+### 1. Install Dependencies
 
 ```bash
 composer require tourze/train-record-bundle
 ```
 
-### 2. 注册Bundle
+### 2. Register Bundle
 
 ```php
 // config/bundles.php
@@ -75,43 +111,43 @@ return [
 ];
 ```
 
-### 3. 数据库迁移
+### 3. Database Migration
 
 ```bash
 php bin/console doctrine:migrations:migrate
 ```
 
-### 4. 配置服务
+### 4. Configure Services
 
-Bundle会自动注册所有服务，无需额外配置。
+The bundle automatically registers all services without additional configuration.
 
-## 使用示例
+## Quick Start
 
-### 学习会话管理
+### Learning Session Management
 
 ```php
 use Tourze\TrainRecordBundle\Service\LearnSessionService;
 
-// 开始学习会话
+// Start learning session
 $session = $learnSessionService->startSession($userId, $courseId, $lessonId);
 
-// 暂停会话
+// Pause session
 $learnSessionService->pauseSession($session->getId());
 
-// 恢复会话
+// Resume session
 $learnSessionService->resumeSession($session->getId());
 
-// 结束会话
+// End session
 $learnSessionService->endSession($session->getId());
 ```
 
-### 学习行为记录
+### Learning Behavior Recording
 
 ```php
 use Tourze\TrainRecordBundle\Service\LearnBehaviorService;
 use Tourze\TrainRecordBundle\Enum\BehaviorType;
 
-// 记录学习行为
+// Record learning behavior
 $learnBehaviorService->recordBehavior(
     $sessionId,
     BehaviorType::PLAY,
@@ -119,40 +155,138 @@ $learnBehaviorService->recordBehavior(
 );
 ```
 
-### 学习进度更新
+### Learning Progress Update
 
 ```php
 use Tourze\TrainRecordBundle\Service\LearnProgressService;
 
-// 更新学习进度
+// Update learning progress
 $learnProgressService->updateProgress(
     $userId,
     $courseId,
     $lessonId,
-    85.5, // 进度百分比
-    1200  // 观看时长（秒）
+    85.5, // Progress percentage
+    1200  // Watch time in seconds
 );
 ```
 
-### 数据分析
+### Data Analytics
 
 ```php
 use Tourze\TrainRecordBundle\Service\LearnAnalyticsService;
 
-// 生成学习报告
+// Generate learning report
 $report = $learnAnalyticsService->generateLearningReport(
     new DateTime('-30 days'),
     new DateTime(),
     $userId
 );
 
-// 获取实时统计
+// Get real-time statistics
 $stats = $learnAnalyticsService->getRealTimeStatistics();
 ```
 
-## 配置选项
+## JSON-RPC Interface
 
-### 定时任务配置
+### Learning Record Related
+
+```php
+// Get learning record list
+$response = $jsonRpcClient->call('GetJobTrainingLearnRecordList', [
+    'userId' => 'user123',
+    'startDate' => '2024-01-01',
+    'endDate' => '2024-01-31'
+]);
+
+// Get learning session details
+$response = $jsonRpcClient->call('GetJobTrainingLearnSessionDetail', [
+    'sessionId' => 'session123'
+]);
+```
+
+### Learning Behavior Reporting
+
+```php
+// Start course learning session
+$jsonRpcClient->call('StartJobTrainingCourseSession', [
+    'userId' => 'user123',
+    'courseId' => 'course456',
+    'lessonId' => 'lesson789'
+]);
+
+// Report video play
+$jsonRpcClient->call('ReportJobTrainingCourseVideoPlay', [
+    'sessionId' => 'session123',
+    'timestamp' => time(),
+    'position' => 120
+]);
+
+// Report video pause
+$jsonRpcClient->call('ReportJobTrainingCourseVideoPause', [
+    'sessionId' => 'session123',
+    'timestamp' => time(),
+    'position' => 180
+]);
+```
+
+## CLI Commands
+
+### Effective Study Time Management
+
+```bash
+# Recalculate effective study time
+php bin/console train-record:effective-study-time:recalculate
+
+# Recalculate for specific session
+php bin/console train-record:effective-study-time:recalculate --session-id=SESSION_ID
+
+# Batch recalculation with custom batch size
+php bin/console train-record:effective-study-time:recalculate --batch-size=100
+
+# Generate effective study time report
+php bin/console train-record:effective-study-time:report
+
+# Generate report for date range
+php bin/console train-record:effective-study-time:report --start-date=2024-01-01 --end-date=2024-01-31
+
+# Generate JSON format report
+php bin/console train-record:effective-study-time:report --format=json
+```
+
+### Learning Data Management
+
+```bash
+# Generate course records
+php bin/console job-training:generate-course-record
+
+# Generate records for specific course
+php bin/console job-training:generate-course-record --course-id=COURSE_ID
+
+# Anomaly detection
+php bin/console learn:anomaly:detect
+
+# Detect anomalies for date range
+php bin/console learn:anomaly:detect --start-date=2024-01-01 --end-date=2024-01-31
+
+# Learning archive
+php bin/console learn:archive
+
+# Data processing
+php bin/console learn:data:process
+
+# Learning monitoring
+php bin/console learn:monitor
+
+# Learning statistics
+php bin/console learn:statistics
+
+# Learning session cleanup
+php bin/console train:learn-session:cleanup
+```
+
+## Configuration
+
+### Scheduled Task Configuration
 
 ```yaml
 # config/packages/train_record.yaml
@@ -173,94 +307,183 @@ train_record:
         batch_size: 1000
 ```
 
-## 数据库表结构
+## Advanced Usage
 
-| 表名 | 说明 |
-|------|------|
-| `job_training_learn_session` | 学习会话记录 |
-| `job_training_learn_progress` | 学习进度记录 |
-| `job_training_learn_behavior` | 学习行为记录 |
-| `job_training_learn_anomaly` | 学习异常记录 |
-| `job_training_learn_device` | 学习设备记录 |
-| `job_training_learn_archive` | 学习档案记录 |
-| `job_training_learn_statistics` | 学习统计记录 |
+### Custom Learning Behavior Analysis
 
-## 测试
+Extend the default learning behavior analysis functionality:
 
-### 运行测试
+```php
+use Tourze\TrainRecordBundle\Service\LearnBehaviorService;
+use Tourze\TrainRecordBundle\Event\BehaviorAnalyzedEvent;
 
-```bash
-# 运行所有测试
-vendor/bin/phpunit packages/train-record-bundle/tests/
-
-# 运行单元测试
-vendor/bin/phpunit packages/train-record-bundle/tests/Unit/
-
-# 运行集成测试
-vendor/bin/phpunit packages/train-record-bundle/tests/Integration/
+class CustomBehaviorAnalyzer
+{
+    public function __construct(
+        private LearnBehaviorService $behaviorService
+    ) {}
+    
+    public function analyzeCustomPattern(array $behaviors): array
+    {
+        // Custom behavior pattern analysis
+        $patterns = [];
+        foreach ($behaviors as $behavior) {
+            if ($this->isCustomPattern($behavior)) {
+                $patterns[] = $this->extractPattern($behavior);
+            }
+        }
+        return $patterns;
+    }
+}
 ```
 
-### 测试覆盖率
+### Third-party Service Integration
 
-当前测试状态：
-- ✅ 枚举测试：8个测试，100个断言全部通过
-- 🔄 服务测试：开发中
-- 🔄 集成测试：开发中
+Best practices for integrating with external systems:
 
-## 性能优化
+```php
+// External authentication system integration
+class ExternalAuthIntegration
+{
+    public function validateLearningSession($sessionId, $externalToken): bool
+    {
+        // Validate learning session with external system
+        return $this->externalAPI->validateSession($sessionId, $externalToken);
+    }
+}
 
-### 数据库优化
-- 合理的索引设计
-- 分区表支持（大数据量场景）
-- 查询优化和缓存策略
+// Data synchronization integration
+class DataSyncService
+{
+    public function syncToExternalSystem(LearnSession $session): void
+    {
+        // Sync learning data to external system
+        $this->externalAPI->syncLearningData($session->toArray());
+    }
+}
+```
 
-### 缓存策略
-- Redis缓存实时数据
-- 统计数据缓存
-- 查询结果缓存
+### Performance Monitoring Integration
 
-### 批量处理
-- 异步数据处理
-- 批量插入优化
-- 定时任务优化
+```php
+use Tourze\TrainRecordBundle\Event\SessionStartedEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-## 监控和运维
+class PerformanceMonitorSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            SessionStartedEvent::class => 'onSessionStarted',
+        ];
+    }
+    
+    public function onSessionStarted(SessionStartedEvent $event): void
+    {
+        // Record performance metrics
+        $this->metrics->increment('learn.session.started');
+        $this->metrics->timing('learn.session.start_time', microtime(true));
+    }
+}
+```
 
-### 健康检查
-- 数据库连接检查
-- 缓存服务检查
-- 存储空间检查
+## Database Schema
 
-### 日志记录
-- 详细的操作日志
-- 异常日志记录
-- 性能监控日志
+| Table | Description |
+|-------|-------------|
+| `ims_job_training_learn_session` | Learning session records |
+| `ims_job_training_learn_progress` | Learning progress records |
+| `ims_job_training_learn_behavior` | Learning behavior records |
+| `ims_job_training_learn_anomaly` | Learning anomaly records |
+| `ims_job_training_learn_device` | Learning device records |
+| `ims_job_training_learn_archive` | Learning archive records |
+| `ims_job_training_learn_statistics` | Learning statistics records |
+| `ims_job_training_effective_study_record` | Effective study time records |
+| `ims_job_training_face_detect` | Face recognition records |
+| `ims_job_training_learn_action_log` | Learning action logs |
 
-### 数据备份
-- 自动数据备份
-- 归档数据管理
-- 灾难恢复方案
+## Testing
 
-## 依赖要求
+### Running Tests
 
-- PHP 8.2+
-- Symfony 6.0+
-- Doctrine ORM 2.14+
+```bash
+# Run all tests
+vendor/bin/phpunit packages/train-record-bundle/tests/
+```
+
+### Test Coverage
+
+Current test status:
+- ✅ Enum tests: Complete coverage, 12 enum class tests passing
+- ✅ Entity tests: Basic entity functionality tests passing
+- ✅ Exception tests: Custom exception class tests passing
+- ✅ Command tests: Command registration and basic functionality tests
+- ⚠️ Repository tests: Database constraint issues under investigation ([#894](https://github.com/tourze/php-monorepo/issues/894))
+- 🔄 Integration tests: Environment configuration optimization required ([#913](https://github.com/tourze/php-monorepo/issues/913))
+
+## Performance
+
+### Database Optimization
+- Reasonable index design
+- Partition table support for large datasets
+- Query optimization and caching strategies
+
+### Caching Strategy
+- Redis cache for real-time data
+- Statistics data caching
+- Query result caching
+
+### Batch Processing
+- Asynchronous data processing
+- Batch insert optimization
+- Scheduled task optimization
+
+## Monitoring
+
+### Health Checks
+- Database connection checks
+- Cache service checks
+- Storage space checks
+
+### Logging
+- Detailed operation logs
+- Exception logging
+- Performance monitoring logs
+
+### Data Backup
+- Automatic data backup
+- Archive data management
+- Disaster recovery plans
+
+## Requirements
+
+- PHP 8.1+
+- Symfony 6.4+
+- Doctrine ORM 3.0+
 - MySQL 8.0+ / PostgreSQL 14+
-- Redis 6.0+（可选，用于缓存）
+- Redis 6.0+ (optional, for caching)
 
-## 许可证
+## License
 
 MIT License
 
-## 贡献指南
+## Contributing
 
-1. Fork 项目
-2. 创建功能分支
-3. 提交更改
-4. 推送到分支
-5. 创建 Pull Request
+1. Fork the project
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
 
-## 支持
+Please refer to the project root directory contribution guide for detailed development standards.
 
-如有问题或建议，请提交 Issue 或联系开发团队。
+## Support
+
+For issues or suggestions, please submit an Issue or contact the development team.
+
+### Related Documentation
+
+- [API Documentation](docs/api.md)
+- [Deployment Guide](docs/deployment.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Changelog](CHANGELOG.md)

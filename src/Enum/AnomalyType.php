@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -11,13 +14,14 @@ use Tourze\EnumExtra\SelectTrait;
 /**
  * 学习异常类型枚举
  */
-enum AnomalyType: string
- implements Itemable, Labelable, Selectable{
-    
+enum AnomalyType: string implements Itemable, Labelable, Selectable, BadgeInterface
+{
     use ItemTrait;
     use SelectTrait;
-case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
+    case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
+    case MULTIPLE_DEVICE_LOGIN = 'multiple_device_login'; // 多设备登录（别名）
     case RAPID_PROGRESS = 'rapid_progress';             // 快速进度异常
+    case FAST_FORWARD = 'fast_forward';                 // 快进异常
     case WINDOW_SWITCH = 'window_switch';               // 窗口切换异常
     case IDLE_TIMEOUT = 'idle_timeout';                 // 空闲超时
     case FACE_DETECT_FAIL = 'face_detect_fail';         // 人脸检测失败
@@ -39,7 +43,9 @@ case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
     {
         return match ($this) {
             self::MULTIPLE_DEVICE => '多设备登录',
+            self::MULTIPLE_DEVICE_LOGIN => '多设备同时登录',
             self::RAPID_PROGRESS => '快速进度异常',
+            self::FAST_FORWARD => '快进异常',
             self::WINDOW_SWITCH => '窗口切换异常',
             self::IDLE_TIMEOUT => '空闲超时',
             self::FACE_DETECT_FAIL => '人脸检测失败',
@@ -63,7 +69,9 @@ case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
     {
         return match ($this) {
             self::MULTIPLE_DEVICE => '检测到用户在多个设备上同时学习',
+            self::MULTIPLE_DEVICE_LOGIN => '检测到用户使用多设备同时登录系统',
             self::RAPID_PROGRESS => '学习进度推进过快，可能存在作弊行为',
+            self::FAST_FORWARD => '视频播放快进异常，可能存在作弊行为',
             self::WINDOW_SWITCH => '频繁切换窗口或失去焦点',
             self::IDLE_TIMEOUT => '长时间无操作，可能已离开学习',
             self::FACE_DETECT_FAIL => '人脸识别验证失败',
@@ -86,8 +94,8 @@ case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
     public function getCategory(): string
     {
         return match ($this) {
-            self::MULTIPLE_DEVICE, self::DEVICE_CHANGE, self::CONCURRENT_SESSION => 'device',
-            self::RAPID_PROGRESS, self::PROGRESS_ROLLBACK, self::TIME_ANOMALY => 'progress',
+            self::MULTIPLE_DEVICE, self::MULTIPLE_DEVICE_LOGIN, self::DEVICE_CHANGE, self::CONCURRENT_SESSION => 'device',
+            self::RAPID_PROGRESS, self::FAST_FORWARD, self::PROGRESS_ROLLBACK, self::TIME_ANOMALY => 'progress',
             self::WINDOW_SWITCH, self::IDLE_TIMEOUT, self::SUSPICIOUS_BEHAVIOR => 'behavior',
             self::FACE_DETECT_FAIL, self::SECURITY_VIOLATION => 'security',
             self::NETWORK_ANOMALY, self::IP_CHANGE => 'network',
@@ -119,11 +127,12 @@ case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
             self::MULTIPLE_DEVICE,
             self::FACE_DETECT_FAIL,
             self::CONCURRENT_SESSION,
-        ]);
+        ], true);
     }
 
     /**
      * 获取所有异常类型
+     * @return array<int, self>
      */
     public static function getAllTypes(): array
     {
@@ -148,9 +157,31 @@ case MULTIPLE_DEVICE = 'multiple_device';           // 多设备登录
 
     /**
      * 按分类获取异常类型
+     * @return array<int, self>
      */
     public static function getByCategory(string $category): array
     {
-        return array_filter(self::getAllTypes(), fn($type) => $type->getCategory() === $category);
+        return array_filter(self::getAllTypes(), fn ($type) => $type->getCategory() === $category);
     }
-} 
+
+    /**
+     * 获取徽章样式类
+     */
+    public function getBadgeClass(): string
+    {
+        return match ($this) {
+            self::SECURITY_VIOLATION, self::MULTIPLE_DEVICE, self::MULTIPLE_DEVICE_LOGIN => 'bg-danger',
+            self::FACE_DETECT_FAIL, self::RAPID_PROGRESS, self::CONCURRENT_SESSION, self::FAST_FORWARD => 'bg-warning',
+            self::WINDOW_SWITCH, self::DEVICE_CHANGE, self::SUSPICIOUS_BEHAVIOR, self::PROGRESS_ROLLBACK, self::DATA_INCONSISTENCY => 'bg-info',
+            self::IDLE_TIMEOUT, self::NETWORK_ANOMALY, self::IP_CHANGE, self::TIME_ANOMALY, self::INVALID_OPERATION => 'bg-secondary',
+        };
+    }
+
+    /**
+     * 获取徽章标识
+     */
+    public function getBadge(): string
+    {
+        return $this->getBadgeClass();
+    }
+}

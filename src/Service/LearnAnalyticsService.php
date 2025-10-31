@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Service;
 
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
+use Tourze\TrainRecordBundle\Entity\LearnSession;
 use Tourze\TrainRecordBundle\Repository\LearnAnomalyRepository;
 use Tourze\TrainRecordBundle\Repository\LearnBehaviorRepository;
 use Tourze\TrainRecordBundle\Repository\LearnProgressRepository;
@@ -13,13 +17,14 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
  *
  * 负责学习数据的统计分析，生成各种维度的报表和洞察
  */
+#[WithMonologChannel(channel: 'train_record')]
 class LearnAnalyticsService
 {
     // 分析配置常量
     private const PERCENTILE_THRESHOLDS = [25, 50, 75, 90, 95]; // 百分位阈值
 
     public function __construct(
-                private readonly LearnSessionRepository $sessionRepository,
+        private readonly LearnSessionRepository $sessionRepository,
         private readonly LearnProgressRepository $progressRepository,
         private readonly LearnBehaviorRepository $behaviorRepository,
         private readonly LearnAnomalyRepository $anomalyRepository,
@@ -29,21 +34,23 @@ class LearnAnalyticsService
 
     /**
      * 生成学习统计报告
+     *
+     * @return array<string, mixed>
      */
     public function generateLearningReport(
         ?\DateTimeInterface $startDate = null,
         ?\DateTimeInterface $endDate = null,
         ?string $userId = null,
-        ?string $courseId = null
+        ?string $courseId = null,
     ): array {
-        $startDate = $startDate ?? (new \DateTimeImmutable())->modify('-30 days');
-        $endDate = $endDate ?? new \DateTimeImmutable();
+        $startDate ??= (new \DateTimeImmutable())->modify('-30 days');
+        $endDate ??= new \DateTimeImmutable();
 
         $report = [
             'period' => [
                 'start' => $startDate->format('Y-m-d H:i:s'),
                 'end' => $endDate->format('Y-m-d H:i:s'),
-                'days' => $startDate->diff($endDate)->days + 1,
+                'days' => (false !== $startDate->diff($endDate)->days ? $startDate->diff($endDate)->days : 0) + 1,
             ],
             'overview' => $this->generateOverviewStats($startDate, $endDate, $userId, $courseId),
             'sessions' => $this->generateSessionStats($startDate, $endDate, $userId, $courseId),
@@ -52,7 +59,7 @@ class LearnAnalyticsService
             'anomalies' => $this->generateAnomalyStats($startDate, $endDate, $userId, $courseId),
             'trends' => $this->generateTrendAnalysis($startDate, $endDate, $userId, $courseId),
             'insights' => $this->generateInsights($startDate, $endDate, $userId, $courseId),
-            'generatedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'generatedTime' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ];
 
         $this->logger->info('学习报告已生成', [
@@ -67,14 +74,16 @@ class LearnAnalyticsService
 
     /**
      * 获取用户学习分析
+     *
+     * @return array<string, mixed>
      */
     public function getUserAnalytics(
         string $userId,
         ?\DateTimeInterface $startDate = null,
-        ?\DateTimeInterface $endDate = null
+        ?\DateTimeInterface $endDate = null,
     ): array {
-        $startDate = $startDate ?? (new \DateTimeImmutable())->modify('-90 days');
-        $endDate = $endDate ?? new \DateTimeImmutable();
+        $startDate ??= (new \DateTimeImmutable())->modify('-90 days');
+        $endDate ??= new \DateTimeImmutable();
 
         return [
             'userId' => $userId,
@@ -92,14 +101,15 @@ class LearnAnalyticsService
 
     /**
      * 获取课程分析
+     * @return array<string, mixed>
      */
     public function getCourseAnalytics(
         string $courseId,
         ?\DateTimeInterface $startDate = null,
-        ?\DateTimeInterface $endDate = null
+        ?\DateTimeInterface $endDate = null,
     ): array {
-        $startDate = $startDate ?? (new \DateTimeImmutable())->modify('-30 days');
-        $endDate = $endDate ?? new \DateTimeImmutable();
+        $startDate ??= (new \DateTimeImmutable())->modify('-30 days');
+        $endDate ??= new \DateTimeImmutable();
 
         return [
             'courseId' => $courseId,
@@ -117,12 +127,13 @@ class LearnAnalyticsService
 
     /**
      * 获取实时统计
+     * @return array<string, mixed>
      */
     public function getRealTimeStatistics(): array
     {
         $now = new \DateTimeImmutable();
         $today = (clone $now)->setTime(0, 0, 0);
-        $thisHour = (clone $now)->setTime((int)$now->format('H'), 0, 0);
+        $thisHour = (clone $now)->setTime((int) $now->format('H'), 0, 0);
 
         return [
             'timestamp' => $now->format('Y-m-d H:i:s'),
@@ -144,16 +155,21 @@ class LearnAnalyticsService
 
     /**
      * 生成概览统计
+     * @return array<string, mixed>
      */
     private function generateOverviewStats(
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate,
         ?string $userId = null,
-        ?string $courseId = null
+        ?string $courseId = null,
     ): array {
         $filters = ['startDate' => $startDate, 'endDate' => $endDate];
-        if ((bool) $userId) $filters['userId'] = $userId;
-        if ((bool) $courseId) $filters['courseId'] = $courseId;
+        if ((bool) $userId) {
+            $filters['userId'] = $userId;
+        }
+        if ((bool) $courseId) {
+            $filters['courseId'] = $courseId;
+        }
 
         return [
             'totalSessions' => $this->sessionRepository->countByFilters($filters),
@@ -169,19 +185,24 @@ class LearnAnalyticsService
 
     /**
      * 生成会话统计
+     * @return array<string, mixed>
      */
     private function generateSessionStats(
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate,
         ?string $userId = null,
-        ?string $courseId = null
+        ?string $courseId = null,
     ): array {
         $filters = [];
-        if ($userId !== null) $filters['userId'] = $userId;
-        if ($courseId !== null) $filters['courseId'] = $courseId;
+        if (null !== $userId) {
+            $filters['userId'] = $userId;
+        }
+        if (null !== $courseId) {
+            $filters['courseId'] = $courseId;
+        }
         $sessions = $this->sessionRepository->findByDateRangeAndFilters($startDate, $endDate, $filters);
-        
-        $durations = array_map(fn($s) => $s->getTotalDuration(), $sessions);
+
+        $durations = array_map(fn ($s) => (float) $s->getTotalDuration(), $sessions);
         $dailyStats = $this->groupSessionsByDay($sessions);
 
         return [
@@ -203,20 +224,25 @@ class LearnAnalyticsService
 
     /**
      * 生成进度统计
+     * @return array<string, mixed>
      */
     private function generateProgressStats(
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate,
         ?string $userId = null,
-        ?string $courseId = null
+        ?string $courseId = null,
     ): array {
         $filters = [];
-        if ($userId !== null) $filters['userId'] = $userId;
-        if ($courseId !== null) $filters['courseId'] = $courseId;
+        if (null !== $userId) {
+            $filters['userId'] = $userId;
+        }
+        if (null !== $courseId) {
+            $filters['courseId'] = $courseId;
+        }
         $progressRecords = $this->progressRepository->findByDateRangeAndFilters($startDate, $endDate, $filters);
-        
-        $progressValues = array_map(fn($p) => $p->getProgress(), $progressRecords);
-        $effectiveTimes = array_map(fn($p) => $p->getEffectiveDuration(), $progressRecords);
+
+        $progressValues = array_map(fn ($p) => $p->getProgress(), $progressRecords);
+        $effectiveTimes = array_map(fn ($p) => $p->getEffectiveDuration(), $progressRecords);
 
         return [
             'totalRecords' => count($progressRecords),
@@ -238,23 +264,28 @@ class LearnAnalyticsService
 
     /**
      * 生成行为统计
+     * @return array<string, mixed>
      */
     private function generateBehaviorStats(
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate,
         ?string $userId = null,
-        ?string $courseId = null
+        ?string $courseId = null,
     ): array {
         $filters = [];
-        if ($userId !== null) $filters['userId'] = $userId;
-        if ($courseId !== null) $filters['courseId'] = $courseId;
+        if (null !== $userId) {
+            $filters['userId'] = $userId;
+        }
+        if (null !== $courseId) {
+            $filters['courseId'] = $courseId;
+        }
         $behaviors = $this->behaviorRepository->findByDateRangeAndFilters($startDate, $endDate, $filters);
-        
+
         return [
             'totalBehaviors' => count($behaviors),
             'typeDistribution' => $this->groupBehaviorsByType($behaviors),
-            'suspiciousCount' => count(array_filter($behaviors, fn($b) => $b->isSuspicious())),
-            'suspiciousRate' => count($behaviors) > 0 ? (count(array_filter($behaviors, fn($b) => $b->isSuspicious())) / count($behaviors)) * 100 : 0,
+            'suspiciousCount' => count(array_filter($behaviors, fn ($b) => $b->isSuspicious())),
+            'suspiciousRate' => count($behaviors) > 0 ? (count(array_filter($behaviors, fn ($b) => $b->isSuspicious())) / count($behaviors)) * 100 : 0,
             'temporalPatterns' => $this->analyzeBehaviorTemporalPatterns($behaviors),
             'userBehaviorProfiles' => $this->generateUserBehaviorProfiles($behaviors),
         ];
@@ -262,18 +293,23 @@ class LearnAnalyticsService
 
     /**
      * 生成异常统计
+     * @return array<string, mixed>
      */
     private function generateAnomalyStats(
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate,
         ?string $userId = null,
-        ?string $courseId = null
+        ?string $courseId = null,
     ): array {
         $filters = [];
-        if ($userId !== null) $filters['userId'] = $userId;
-        if ($courseId !== null) $filters['courseId'] = $courseId;
+        if (null !== $userId) {
+            $filters['userId'] = $userId;
+        }
+        if (null !== $courseId) {
+            $filters['courseId'] = $courseId;
+        }
         $anomalies = $this->anomalyRepository->findByDateRangeAndFilters($startDate, $endDate, $filters);
-        
+
         return [
             'totalAnomalies' => count($anomalies),
             'typeDistribution' => $this->groupAnomaliesByType($anomalies),
@@ -286,16 +322,17 @@ class LearnAnalyticsService
 
     /**
      * 生成趋势分析
+     * @return array<string, mixed>
      */
     private function generateTrendAnalysis(
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate,
         ?string $userId = null,
-        ?string $courseId = null
+        ?string $courseId = null,
     ): array {
         $startDateImmutable = $startDate instanceof \DateTimeImmutable ? $startDate : \DateTimeImmutable::createFromInterface($startDate);
         $endDateImmutable = $endDate instanceof \DateTimeImmutable ? $endDate : \DateTimeImmutable::createFromInterface($endDate);
-        
+
         return [
             'sessionTrends' => $this->analyzeSessionTrends($startDateImmutable, $endDateImmutable, $userId, $courseId),
             'progressTrends' => $this->analyzeProgressTrends($startDateImmutable, $endDateImmutable, $userId, $courseId),
@@ -306,12 +343,13 @@ class LearnAnalyticsService
 
     /**
      * 生成洞察
+     * @return array<int, array<string, mixed>>
      */
     private function generateInsights(
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate,
         ?string $userId = null,
-        ?string $courseId = null
+        ?string $courseId = null,
     ): array {
         $insights = [];
 
@@ -369,11 +407,14 @@ class LearnAnalyticsService
     /**
      * 生成用户学习画像
      */
+    /**
+     * @return array<string, mixed>
+     */
     private function generateUserLearningProfile(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
-        $sessions = $this->sessionRepository->findByUserAndDateRange((string) $userId, $startDate, $endDate);
-        $behaviors = $this->behaviorRepository->findByUserAndDateRange((string) $userId, $startDate, $endDate);
-        
+        $sessions = $this->sessionRepository->findByUserAndDateRange($userId, $startDate, $endDate);
+        $behaviors = $this->behaviorRepository->findByUserAndDateRange($userId, $startDate, $endDate);
+
         return [
             'learningStyle' => $this->identifyLearningStyle($sessions, $behaviors),
             'preferredTime' => $this->identifyPreferredLearningTime($sessions),
@@ -387,10 +428,11 @@ class LearnAnalyticsService
 
     /**
      * 计算中位数
+     * @param array<float> $values
      */
     private function calculateMedian(array $values): float
     {
-        if ((bool) empty($values)) {
+        if ([] === $values) {
             return 0.0;
         }
 
@@ -398,20 +440,22 @@ class LearnAnalyticsService
         $count = count($values);
         $middle = floor($count / 2);
 
-        if ($count % 2 === 0) {
-            return ($values[(int)$middle - 1] + $values[(int)$middle]) / 2;
-        } else {
-            return $values[(int)$middle];
+        if (0 === $count % 2) {
+            return ($values[(int) $middle - 1] + $values[(int) $middle]) / 2;
         }
+
+        return $values[(int) $middle];
     }
 
     /**
      * 计算百分位数
+     * @param array<float> $values
+     * @return array<int, float>
      */
     private function calculatePercentiles(array $values): array
     {
-        if ((bool) empty($values)) {
-            return array_fill_keys(self::PERCENTILE_THRESHOLDS, 0);
+        if ([] === $values) {
+            return array_fill_keys(self::PERCENTILE_THRESHOLDS, 0.0);
         }
 
         sort($values);
@@ -424,9 +468,9 @@ class LearnAnalyticsService
             $upper = ceil($index);
 
             if ($lower === $upper) {
-                $percentiles[$percentile] = $values[(int)$lower];
+                $percentiles[$percentile] = $values[(int) $lower];
             } else {
-                $percentiles[$percentile] = $values[(int)$lower] + ($index - $lower) * ($values[(int)$upper] - $values[(int)$lower]);
+                $percentiles[$percentile] = $values[(int) $lower] + ($index - $lower) * ($values[(int) $upper] - $values[(int) $lower]);
             }
         }
 
@@ -436,49 +480,86 @@ class LearnAnalyticsService
     /**
      * 按天分组会话
      */
+    /**
+     * @param array<LearnSession> $sessions
+     * @return array<string, array<string, int|float>>
+     */
     private function groupSessionsByDay(array $sessions): array
     {
         $dailyStats = [];
         foreach ($sessions as $session) {
-            $date = $session->getFirstLearnTime()->format('Y-m-d');
+            $firstLearnTime = $session->getFirstLearnTime();
+            if (null === $firstLearnTime) {
+                continue;
+            }
+            $date = $firstLearnTime->format('Y-m-d');
             if (!isset($dailyStats[$date])) {
                 $dailyStats[$date] = ['count' => 0, 'duration' => 0];
             }
-            $dailyStats[$date]['count']++;
-            $dailyStats[$date]['duration'] += $session->getTotalDuration();
+            ++$dailyStats[$date]['count'];
+            $duration = $session->getTotalDuration();
+            if (is_numeric($duration)) {
+                $dailyStats[$date]['duration'] += $duration;
+            }
         }
+
         return $dailyStats;
     }
 
     /**
      * 按小时分组会话
      */
+    /**
+     * @param array<LearnSession> $sessions
+     * @return array<int, array<string, float|int>>
+     */
     private function groupSessionsByHour(array $sessions): array
     {
         $hourlyStats = array_fill(0, 24, ['count' => 0, 'duration' => 0]);
         foreach ($sessions as $session) {
-            $hour = (int) $session->getFirstLearnTime()->format('H');
-            $hourlyStats[$hour]['count']++;
-            $hourlyStats[$hour]['duration'] += $session->getTotalDuration();
+            $firstLearnTime = $session->getFirstLearnTime();
+            if (null === $firstLearnTime) {
+                continue;
+            }
+            $hour = (int) $firstLearnTime->format('H');
+            ++$hourlyStats[$hour]['count'];
+            $duration = $session->getTotalDuration();
+            if (is_numeric($duration)) {
+                $hourlyStats[$hour]['duration'] += $duration;
+            }
         }
+
         return $hourlyStats;
     }
 
     /**
      * 按设备分组会话
      */
+    /**
+     * @param array<LearnSession> $sessions
+     * @return array<string, int>
+     */
     private function groupSessionsByDevice(array $sessions): array
     {
         $deviceStats = [];
         foreach ($sessions as $session) {
-            $device = $session->getDeviceFingerprint() ?? 'unknown';
-            $deviceStats[$device] = ($deviceStats[$device]) + 1;
+            $deviceEntity = $session->getDevice();
+            $device = $deviceEntity?->getDeviceFingerprint() ?? 'unknown';
+            if (!isset($deviceStats[$device])) {
+                $deviceStats[$device] = 0;
+            }
+            ++$deviceStats[$device];
         }
+
         return $deviceStats;
     }
 
     /**
      * 计算进度范围分布
+     */
+    /**
+     * @param array<float> $progressValues
+     * @return array<string, mixed>
      */
     private function calculateProgressRanges(array $progressValues): array
     {
@@ -491,13 +572,13 @@ class LearnAnalyticsService
 
         foreach ($progressValues as $progress) {
             if ($progress <= 25) {
-                $ranges['0-25%']++;
+                ++$ranges['0-25%'];
             } elseif ($progress <= 50) {
-                $ranges['26-50%']++;
+                ++$ranges['26-50%'];
             } elseif ($progress <= 75) {
-                $ranges['51-75%']++;
+                ++$ranges['51-75%'];
             } else {
-                $ranges['76-100%']++;
+                ++$ranges['76-100%'];
             }
         }
 
@@ -510,11 +591,15 @@ class LearnAnalyticsService
     private function getCurrentOnlineUsers(): int
     {
         $fiveMinutesAgo = (new \DateTimeImmutable())->modify('-5 minutes');
+
         return $this->sessionRepository->countActiveSessionsSince($fiveMinutesAgo);
     }
 
     /**
      * 获取系统健康指标
+     */
+    /**
+     * @return array<string, mixed>
      */
     private function getSystemHealthMetrics(): array
     {
@@ -527,45 +612,282 @@ class LearnAnalyticsService
     }
 
     // 其他辅助方法的简化实现...
-    private function calculateSessionCompletionStats(array $sessions): array { return []; }
-    private function analyzeProgressCompletion(array $progressRecords): array { return []; }
-    private function calculateLearningVelocity(array $progressRecords): array { return []; }
-    private function groupBehaviorsByType(array $behaviors): array { return []; }
-    private function analyzeBehaviorTemporalPatterns(array $behaviors): array { return []; }
-    private function generateUserBehaviorProfiles(array $behaviors): array { return []; }
-    private function groupAnomaliesByType(array $anomalies): array { return []; }
-    private function groupAnomaliesBySeverity(array $anomalies): array { return []; }
-    private function groupAnomaliesByStatus(array $anomalies): array { return []; }
-    private function calculateAnomalyResolutionStats(array $anomalies): array { return []; }
-    private function analyzeAnomalyTrends(array $anomalies): array { return []; }
-    private function analyzeSessionTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
-    private function analyzeProgressTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
-    private function analyzeEngagementTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
-    private function analyzeQualityTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array { return []; }
-    private function calculateUserPerformanceMetrics(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function analyzeUserBehaviorPatterns(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function analyzeUserProgress(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function generateUserRecommendations(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function getCourseEnrollmentStats(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function analyzeCourseCompletion(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function calculateCourseEngagement(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function analyzeCoursedifficulty(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function segmentCourseLearners(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array { return []; }
-    private function identifyLearningStyle(array $sessions, array $behaviors): string { return 'visual'; }
-    private function identifyPreferredLearningTime(array $sessions): array { return []; }
-    private function identifySessionPattern(array $sessions): string { return 'regular'; }
-    private function calculateEngagementLevel(array $sessions, array $behaviors): float { return 0.8; }
-    private function calculateLearningPace(array $sessions): string { return 'moderate'; }
-    private function identifyLearningStrengths(array $sessions, array $behaviors): array { return []; }
-    private function identifyLearningChallenges(array $sessions, array $behaviors): array { return []; }
+    /**
+     * @param array<mixed> $sessions
+     * @return array<string, mixed>
+     */
+    private function calculateSessionCompletionStats(array $sessions): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $progressRecords
+     * @return array<string, mixed>
+     */
+    private function analyzeProgressCompletion(array $progressRecords): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $progressRecords
+     * @return array<string, mixed>
+     */
+    private function calculateLearningVelocity(array $progressRecords): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $behaviors
+     * @return array<string, mixed>
+     */
+    private function groupBehaviorsByType(array $behaviors): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $behaviors
+     * @return array<string, mixed>
+     */
+    private function analyzeBehaviorTemporalPatterns(array $behaviors): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $behaviors
+     * @return array<string, mixed>
+     */
+    private function generateUserBehaviorProfiles(array $behaviors): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $anomalies
+     * @return array<string, mixed>
+     */
+    private function groupAnomaliesByType(array $anomalies): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $anomalies
+     * @return array<string, mixed>
+     */
+    private function groupAnomaliesBySeverity(array $anomalies): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $anomalies
+     * @return array<string, mixed>
+     */
+    private function groupAnomaliesByStatus(array $anomalies): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $anomalies
+     * @return array<string, mixed>
+     */
+    private function calculateAnomalyResolutionStats(array $anomalies): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $anomalies
+     * @return array<string, mixed>
+     */
+    private function analyzeAnomalyTrends(array $anomalies): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function analyzeSessionTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function analyzeProgressTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function analyzeEngagementTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function analyzeQualityTrends(\DateTimeImmutable $startDate, \DateTimeInterface $endDate, ?string $userId, ?string $courseId): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function calculateUserPerformanceMetrics(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function analyzeUserBehaviorPatterns(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function analyzeUserProgress(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function generateUserRecommendations(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getCourseEnrollmentStats(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function analyzeCourseCompletion(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function calculateCourseEngagement(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function analyzeCoursedifficulty(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function segmentCourseLearners(string $courseId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $sessions
+     * @param array<mixed> $behaviors
+     */
+    private function identifyLearningStyle(array $sessions, array $behaviors): string
+    {
+        return 'visual';
+    }
+
+    /**
+     * @param array<mixed> $sessions
+     * @return array<string, mixed>
+     */
+    private function identifyPreferredLearningTime(array $sessions): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $sessions
+     */
+    private function identifySessionPattern(array $sessions): string
+    {
+        return 'regular';
+    }
+
+    /**
+     * @param array<mixed> $sessions
+     * @param array<mixed> $behaviors
+     */
+    private function calculateEngagementLevel(array $sessions, array $behaviors): float
+    {
+        return 0.8;
+    }
+
+    /**
+     * @param array<mixed> $sessions
+     */
+    private function calculateLearningPace(array $sessions): string
+    {
+        return 'moderate';
+    }
+
+    /**
+     * @param array<mixed> $sessions
+     * @param array<mixed> $behaviors
+     * @return array<string, mixed>
+     */
+    private function identifyLearningStrengths(array $sessions, array $behaviors): array
+    {
+        return [];
+    }
+
+    /**
+     * @param array<mixed> $sessions
+     * @param array<mixed> $behaviors
+     * @return array<string, mixed>
+     */
+    private function identifyLearningChallenges(array $sessions, array $behaviors): array
+    {
+        return [];
+    }
 
     /**
      * 生成用户分析报告
      */
+    /**
+     * @return array<string, mixed>
+     */
     public function generateUserAnalytics(
-        string $userId, 
-        \DateTimeInterface $startDate, 
-        \DateTimeInterface $endDate
+        string $userId,
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate,
     ): array {
         return [
             'userId' => $userId,
@@ -583,10 +905,13 @@ class LearnAnalyticsService
     /**
      * 生成课程分析报告
      */
+    /**
+     * @return array<string, mixed>
+     */
     public function generateCourseAnalytics(
-        string $courseId, 
-        \DateTimeInterface $startDate, 
-        \DateTimeInterface $endDate
+        string $courseId,
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate,
     ): array {
         return [
             'courseId' => $courseId,
@@ -605,9 +930,12 @@ class LearnAnalyticsService
     /**
      * 生成系统分析报告
      */
+    /**
+     * @return array<string, mixed>
+     */
     public function generateSystemAnalytics(
-        \DateTimeInterface $startDate, 
-        \DateTimeInterface $endDate
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate,
     ): array {
         return [
             'period' => [
@@ -619,4 +947,4 @@ class LearnAnalyticsService
             'anomalies' => $this->generateAnomalyStats($startDate, $endDate),
         ];
     }
-} 
+}

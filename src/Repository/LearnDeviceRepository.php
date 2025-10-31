@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\TrainRecordBundle\Entity\LearnDevice;
 
 /**
- * @method LearnDevice|null find($id, $lockMode = null, $lockVersion = null)
- * @method LearnDevice|null findOneBy(array $criteria, array $orderBy = null)
- * @method LearnDevice[]    findAll()
- * @method LearnDevice[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<LearnDevice>
  */
+#[AsRepository(entityClass: LearnDevice::class)]
 class LearnDeviceRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -21,6 +22,8 @@ class LearnDeviceRepository extends ServiceEntityRepository
 
     /**
      * 查找用户的活跃设备
+     *
+     * @return array<LearnDevice>
      */
     public function findActiveByUser(string $userId, ?\DateTimeInterface $threshold = null): array
     {
@@ -28,16 +31,20 @@ class LearnDeviceRepository extends ServiceEntityRepository
             ->andWhere('ld.userId = :userId')
             ->andWhere('ld.isActive = true')
             ->andWhere('ld.isBlocked = false')
-            ->setParameter('userId', $userId);
-        
-        if ($threshold !== null) {
-            $qb->andWhere('ld.lastUsedTime >= :threshold')
-               ->setParameter('threshold', $threshold);
+            ->setParameter('userId', $userId)
+        ;
+
+        if (null !== $threshold) {
+            $qb->andWhere('ld.lastUseTime >= :threshold')
+                ->setParameter('threshold', $threshold)
+            ;
         }
-        
-        return $qb->orderBy('ld.lastUsedTime', 'DESC')
+
+        /** @var array<LearnDevice> */
+        return $qb->orderBy('ld.lastUseTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -45,38 +52,51 @@ class LearnDeviceRepository extends ServiceEntityRepository
      */
     public function findByFingerprint(string $deviceFingerprint): ?LearnDevice
     {
-        return $this->createQueryBuilder('ld')
+        $result = $this->createQueryBuilder('ld')
             ->andWhere('ld.deviceFingerprint = :deviceFingerprint')
             ->setParameter('deviceFingerprint', $deviceFingerprint)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof LearnDevice || null === $result);
+
+        return $result;
     }
 
     /**
      * 查找用户的可信设备
+     *
+     * @return array<LearnDevice>
      */
     public function findTrustedByUser(string $userId): array
     {
+        /** @var array<LearnDevice> */
         return $this->createQueryBuilder('ld')
             ->andWhere('ld.userId = :userId')
             ->andWhere('ld.isTrusted = true')
             ->andWhere('ld.isActive = true')
             ->setParameter('userId', $userId)
-            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->orderBy('ld.lastUseTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 查找被阻止的设备
+     *
+     * @return array<LearnDevice>
      */
     public function findBlockedDevices(): array
     {
+        /** @var array<LearnDevice> */
         return $this->createQueryBuilder('ld')
             ->andWhere('ld.isBlocked = true')
-            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->orderBy('ld.lastUseTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -84,27 +104,34 @@ class LearnDeviceRepository extends ServiceEntityRepository
      */
     public function countByUser(string $userId): int
     {
-        return $this->createQueryBuilder('ld')
+        $result = $this->createQueryBuilder('ld')
             ->select('COUNT(ld.id)')
             ->andWhere('ld.userId = :userId')
             ->andWhere('ld.isActive = true')
             ->setParameter('userId', $userId)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
+
+        return (int) $result;
     }
 
     /**
      * 查找长时间未使用的设备
+     *
+     * @return array<LearnDevice>
      */
     public function findInactiveDevices(\DateTimeInterface $beforeDate): array
     {
+        /** @var array<LearnDevice> */
         return $this->createQueryBuilder('ld')
-            ->andWhere('ld.lastUsedTime < :beforeDate')
+            ->andWhere('ld.lastUseTime < :beforeDate')
             ->andWhere('ld.isActive = true')
             ->setParameter('beforeDate', $beforeDate)
-            ->orderBy('ld.lastUsedTime', 'ASC')
+            ->orderBy('ld.lastUseTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -114,39 +141,48 @@ class LearnDeviceRepository extends ServiceEntityRepository
     {
         $this->createQueryBuilder('ld')
             ->update()
-            ->set('ld.lastUsedTime', ':now')
+            ->set('ld.lastUseTime', ':now')
             ->set('ld.usageCount', 'ld.usageCount + 1')
             ->andWhere('ld.id = :deviceId')
             ->setParameter('now', new \DateTimeImmutable())
             ->setParameter('deviceId', $deviceId)
             ->getQuery()
-            ->execute();
+            ->execute()
+        ;
     }
 
     /**
      * 查找活跃的设备
+     *
+     * @return array<LearnDevice>
      */
     public function findActive(): array
     {
+        /** @var array<LearnDevice> */
         return $this->createQueryBuilder('ld')
             ->andWhere('ld.isActive = true')
             ->andWhere('ld.isBlocked = false')
-            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->orderBy('ld.lastUseTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 根据最后使用时间查找设备
+     *
+     * @return array<LearnDevice>
      */
     public function findByLastSeenAfter(\DateTimeInterface $afterDate): array
     {
+        /** @var array<LearnDevice> */
         return $this->createQueryBuilder('ld')
-            ->andWhere('ld.lastUsedTime > :afterDate')
+            ->andWhere('ld.lastUseTime > :afterDate')
             ->setParameter('afterDate', $afterDate)
-            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->orderBy('ld.lastUseTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -154,24 +190,56 @@ class LearnDeviceRepository extends ServiceEntityRepository
      */
     public function findByUserAndFingerprint(string $userId, string $deviceFingerprint): ?LearnDevice
     {
-        return $this->createQueryBuilder('ld')
+        $result = $this->createQueryBuilder('ld')
             ->andWhere('ld.userId = :userId')
             ->andWhere('ld.deviceFingerprint = :deviceFingerprint')
             ->setParameter('userId', $userId)
             ->setParameter('deviceFingerprint', $deviceFingerprint)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof LearnDevice || null === $result);
+
+        return $result;
     }
 
     /**
      * 查找用户的所有设备
+     *
+     * @return array<LearnDevice>
      */
     public function findByUser(string $userId): array
     {
+        /** @var array<LearnDevice> */
         return $this->createQueryBuilder('ld')
             ->andWhere('ld.userId = :userId')
-            ->orderBy('ld.lastUsedTime', 'DESC')
+            ->setParameter('userId', $userId)
+            ->orderBy('ld.lastUseTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+    }
+
+    /**
+     * 保存实体
+     */
+    public function save(LearnDevice $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    /**
+     * 删除实体
+     */
+    public function remove(LearnDevice $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
     }
 }

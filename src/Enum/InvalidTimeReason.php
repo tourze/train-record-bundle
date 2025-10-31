@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -12,7 +15,7 @@ use Tourze\EnumExtra\SelectTrait;
  * 无效时长原因枚举
  * 定义不计入有效学习时长的各种情形
  */
-enum InvalidTimeReason: string implements Labelable, Itemable, Selectable
+enum InvalidTimeReason: string implements Labelable, Itemable, Selectable, BadgeInterface
 {
     use ItemTrait;
     use SelectTrait;
@@ -63,6 +66,30 @@ enum InvalidTimeReason: string implements Labelable, Itemable, Selectable
             self::SUSPICIOUS_BEHAVIOR => '可疑行为',
             self::MANUAL_EXCLUSION => '手动排除',
         };
+    }
+
+    /**
+     * 获取徽章颜色
+     */
+    public function getBadgeColor(): string
+    {
+        return 'danger';
+    }
+
+    /**
+     * 获取徽章样式类
+     */
+    public function getBadgeClass(): string
+    {
+        return 'bg-danger';
+    }
+
+    /**
+     * 获取徽章标识
+     */
+    public function getBadge(): string
+    {
+        return $this->getBadgeClass();
     }
 
     /**
@@ -164,6 +191,7 @@ enum InvalidTimeReason: string implements Labelable, Itemable, Selectable
 
     /**
      * 获取所有规范要求的原因
+     * @return array<int, self>
      */
     public static function getRegulationReasons(): array
     {
@@ -181,6 +209,7 @@ enum InvalidTimeReason: string implements Labelable, Itemable, Selectable
 
     /**
      * 获取技术原因
+     * @return array<int, self>
      */
     public static function getTechnicalReasons(): array
     {
@@ -197,9 +226,10 @@ enum InvalidTimeReason: string implements Labelable, Itemable, Selectable
 
     /**
      * 按严重程度分组
+     * @return array<int, self>
      */
     public static function getBySeverity(string $severity): array
     {
-        return array_filter(self::cases(), fn($case) => $case->getSeverity() === $severity);
+        return array_filter(self::cases(), fn ($case) => $case->getSeverity() === $severity);
     }
 }

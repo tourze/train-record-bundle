@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Tourze\TrainRecordBundle\Entity\LearnAnomaly;
 use Tourze\TrainRecordBundle\Enum\AnomalySeverity;
@@ -15,17 +19,20 @@ use Tourze\TrainRecordBundle\Repository\LearnSessionRepository;
  *
  * 负责检测、记录和处理学习过程中的各种异常情况
  */
+#[WithMonologChannel(channel: 'train_record')]
 class LearnAnomalyService
 {
     public function __construct(
-                private readonly LearnAnomalyRepository $anomalyRepository,
+        private readonly LearnAnomalyRepository $anomalyRepository,
         private readonly LearnSessionRepository $sessionRepository,
         private readonly LoggerInterface $logger,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     /**
      * 检测多设备登录异常
+     * @return array<mixed>
      */
     public function detectMultipleDeviceAnomaly(string $userId): array
     {
@@ -39,7 +46,7 @@ class LearnAnomalyService
     public function detectRapidProgressAnomaly(string $sessionId, float $speedThreshold): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if ($session === null) {
+        if (null === $session) {
             return null;
         }
 
@@ -63,7 +70,7 @@ class LearnAnomalyService
     public function detectWindowSwitchAnomaly(string $sessionId, int $switchThreshold): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if ($session === null) {
+        if (null === $session) {
             return null;
         }
 
@@ -87,7 +94,7 @@ class LearnAnomalyService
     public function detectIdleTimeoutAnomaly(string $sessionId, int $timeoutSeconds): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if ($session === null) {
+        if (null === $session) {
             return null;
         }
 
@@ -111,7 +118,7 @@ class LearnAnomalyService
     public function detectFaceDetectFailAnomaly(string $sessionId, int $failThreshold): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if ($session === null) {
+        if (null === $session) {
             return null;
         }
 
@@ -132,10 +139,13 @@ class LearnAnomalyService
     /**
      * 检测网络异常
      */
+    /**
+     * @param array<string, mixed> $networkData
+     */
     public function detectNetworkAnomaly(string $sessionId, array $networkData): ?LearnAnomaly
     {
         $session = $this->sessionRepository->find($sessionId);
-        if ($session === null) {
+        if (null === $session) {
             return null;
         }
 
@@ -159,14 +169,14 @@ class LearnAnomalyService
     public function resolveAnomaly(string $anomalyId, string $resolution, string $resolvedBy = 'system'): void
     {
         $anomaly = $this->anomalyRepository->find($anomalyId);
-        if ($anomaly === null) {
+        if (null === $anomaly) {
             return;
         }
 
         $anomaly->setStatus(AnomalyStatus::RESOLVED);
         $anomaly->setResolution($resolution);
         $anomaly->setResolvedBy($resolvedBy);
-        $anomaly->setResolvedTime(new \DateTimeImmutable());
+        $anomaly->setResolveTime(new \DateTimeImmutable());
 
         $this->entityManager->persist($anomaly);
         $this->entityManager->flush();
@@ -181,6 +191,9 @@ class LearnAnomalyService
     /**
      * 检测异常
      */
+    /**
+     * @param array<string, mixed> $behaviorData
+     */
     public function detectAnomaly(string $sessionId, array $behaviorData): ?LearnAnomaly
     {
         // 简化实现，根据行为数据检测异常
@@ -189,6 +202,7 @@ class LearnAnomalyService
 
     /**
      * 分类异常
+     * @param array<string, mixed> $anomalyData
      */
     public function classifyAnomaly(array $anomalyData): string
     {
@@ -198,6 +212,7 @@ class LearnAnomalyService
 
     /**
      * 获取异常报告
+     * @return array<string, mixed>
      */
     public function getAnomalyReport(string $userId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
@@ -213,10 +228,11 @@ class LearnAnomalyService
 
     /**
      * 获取异常趋势
+     * @return array<mixed>
      */
     public function getAnomalyTrends(): array
     {
         // 简化实现，返回空趋势
         return [];
     }
-} 
+}

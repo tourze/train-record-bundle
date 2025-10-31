@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -11,12 +14,11 @@ use Tourze\EnumExtra\SelectTrait;
 /**
  * 异常严重程度枚举
  */
-enum AnomalySeverity: string
- implements Itemable, Labelable, Selectable{
-    
+enum AnomalySeverity: string implements Itemable, Labelable, Selectable, BadgeInterface
+{
     use ItemTrait;
     use SelectTrait;
-case LOW = 'low';           // 低
+    case LOW = 'low';           // 低
     case MEDIUM = 'medium';     // 中
     case HIGH = 'high';         // 高
     case CRITICAL = 'critical'; // 严重
@@ -78,7 +80,7 @@ case LOW = 'low';           // 低
      */
     public function requiresImmediateAction(): bool
     {
-        return in_array($this, [self::HIGH, self::CRITICAL]);
+        return in_array($this, [self::HIGH, self::CRITICAL], true);
     }
 
     /**
@@ -86,7 +88,7 @@ case LOW = 'low';           // 低
      */
     public function isHighPriority(): bool
     {
-        return in_array($this, [self::HIGH, self::CRITICAL]);
+        return in_array($this, [self::HIGH, self::CRITICAL], true);
     }
 
     /**
@@ -104,6 +106,7 @@ case LOW = 'low';           // 低
 
     /**
      * 获取所有严重程度
+     * @return array<int, self>
      */
     public static function getAllSeverities(): array
     {
@@ -117,11 +120,13 @@ case LOW = 'low';           // 低
 
     /**
      * 按权重排序
+     * @return array<int, self>
      */
     public static function getSortedByWeight(): array
     {
         $severities = self::getAllSeverities();
-        usort($severities, fn($a, $b) => $b->getWeight() <=> $a->getWeight());
+        usort($severities, fn ($a, $b) => $b->getWeight() <=> $a->getWeight());
+
         return $severities;
     }
 
@@ -138,4 +143,25 @@ case LOW = 'low';           // 低
             default => null,
         };
     }
-} 
+
+    /**
+     * 获取徽章样式类
+     */
+    public function getBadgeClass(): string
+    {
+        return match ($this) {
+            self::LOW => 'bg-success',
+            self::MEDIUM => 'bg-warning',
+            self::HIGH => 'bg-danger',
+            self::CRITICAL => 'bg-dark',
+        };
+    }
+
+    /**
+     * 获取徽章标识
+     */
+    public function getBadge(): string
+    {
+        return $this->getBadgeClass();
+    }
+}

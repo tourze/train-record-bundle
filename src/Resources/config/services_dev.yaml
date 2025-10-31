@@ -1,0 +1,10 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: false # 禁用自动配置以避免 RoutingAutoLoaderInterface 和 ContextServiceInterface 冲突
+    public: true
+
+  # DataFixtures
+  Tourze\TrainRecordBundle\DataFixtures\:
+    resource: '../../DataFixtures/'
+    tags: ['doctrine.fixture.orm']

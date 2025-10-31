@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Exception;
 
-class InvalidArgumentException extends TrainRecordException
+abstract class InvalidArgumentException extends TrainRecordException
 {
 }

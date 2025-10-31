@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainRecordBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -12,7 +15,7 @@ use Tourze\EnumExtra\SelectTrait;
  * 学时状态枚举
  * 用于管理有效学时的各种状态
  */
-enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
+enum StudyTimeStatus: string implements Labelable, Itemable, Selectable, BadgeInterface
 {
     use ItemTrait;
     use SelectTrait;
@@ -27,6 +30,7 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
     case APPROVED = 'approved';                     // 已认定
     case REJECTED = 'rejected';                     // 已拒绝
     case EXPIRED = 'expired';                       // 已过期
+    case PENDING_REVIEW = 'pending_review';         // 待人工审核
 
     public function getLabel(): string
     {
@@ -41,6 +45,7 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
             self::APPROVED => '已认定',
             self::REJECTED => '已拒绝',
             self::EXPIRED => '已过期',
+            self::PENDING_REVIEW => '待人工审核',
         };
     }
 
@@ -60,6 +65,7 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
             self::APPROVED => '已通过认定的最终有效学时',
             self::REJECTED => '审核后被拒绝认定的学时',
             self::EXPIRED => '超过认定期限的过期学时',
+            self::PENDING_REVIEW => '等待人工审核的学习时长',
         };
     }
 
@@ -71,7 +77,7 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
         return match ($this) {
             self::VALID, self::APPROVED => 'green',
             self::INVALID, self::EXCLUDED, self::REJECTED => 'red',
-            self::PENDING, self::REVIEWING => 'orange',
+            self::PENDING, self::REVIEWING, self::PENDING_REVIEW => 'orange',
             self::PARTIAL => 'yellow',
             self::SUSPENDED => 'blue',
             self::EXPIRED => 'gray',
@@ -86,12 +92,50 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
         return match ($this) {
             self::VALID, self::APPROVED => 'check-circle',
             self::INVALID, self::EXCLUDED, self::REJECTED => 'x-circle',
-            self::PENDING => 'clock',
+            self::PENDING, self::PENDING_REVIEW => 'clock',
             self::PARTIAL => 'pie-chart',
             self::SUSPENDED => 'pause',
             self::REVIEWING => 'search',
             self::EXPIRED => 'calendar-x',
         };
+    }
+
+    /**
+     * 获取徽章颜色
+     */
+    public function getBadgeColor(): string
+    {
+        return match ($this) {
+            self::VALID, self::APPROVED => 'success',
+            self::INVALID, self::EXCLUDED, self::REJECTED => 'danger',
+            self::PENDING, self::REVIEWING, self::PENDING_REVIEW => 'warning',
+            self::PARTIAL => 'info',
+            self::SUSPENDED => 'primary',
+            self::EXPIRED => 'secondary',
+        };
+    }
+
+    /**
+     * 获取徽章样式类
+     */
+    public function getBadgeClass(): string
+    {
+        return match ($this) {
+            self::VALID, self::APPROVED => 'bg-success',
+            self::INVALID, self::EXCLUDED, self::REJECTED => 'bg-danger',
+            self::PENDING, self::REVIEWING, self::PENDING_REVIEW => 'bg-warning',
+            self::PARTIAL => 'bg-info',
+            self::SUSPENDED => 'bg-primary',
+            self::EXPIRED => 'bg-secondary',
+        };
+    }
+
+    /**
+     * 获取徽章标识
+     */
+    public function getBadge(): string
+    {
+        return $this->getBadgeClass();
     }
 
     /**
@@ -103,7 +147,7 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
             self::APPROVED,
             self::REJECTED,
             self::EXPIRED,
-        ]);
+        ], true);
     }
 
     /**
@@ -115,7 +159,7 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
             self::VALID,
             self::PARTIAL,
             self::APPROVED,
-        ]);
+        ], true);
     }
 
     /**
@@ -126,7 +170,8 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
         return in_array($this, [
             self::PENDING,
             self::REVIEWING,
-        ]);
+            self::PENDING_REVIEW,
+        ], true);
     }
 
     /**
@@ -148,16 +193,18 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
             self::SUSPENDED,
             self::REJECTED,
             self::EXPIRED,
-        ]);
+        ], true);
     }
 
     /**
      * 获取下一个可能的状态
+     * @return array<int, self>
      */
     public function getNextPossibleStatuses(): array
     {
         return match ($this) {
             self::PENDING => [self::VALID, self::INVALID, self::PARTIAL, self::REVIEWING],
+            self::PENDING_REVIEW => [self::APPROVED, self::REJECTED, self::REVIEWING],
             self::REVIEWING => [self::APPROVED, self::REJECTED, self::PARTIAL],
             self::VALID => [self::APPROVED, self::EXCLUDED, self::REVIEWING],
             self::INVALID => [self::EXCLUDED, self::REVIEWING],
@@ -175,11 +222,12 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
      */
     public function canTransitionTo(self $status): bool
     {
-        return in_array($status, $this->getNextPossibleStatuses());
+        return in_array($status, $this->getNextPossibleStatuses(), true);
     }
 
     /**
      * 获取所有状态
+     * @return array<int, self>
      */
     public static function getAllStatuses(): array
     {
@@ -194,39 +242,44 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
             self::APPROVED,
             self::REJECTED,
             self::EXPIRED,
+            self::PENDING_REVIEW,
         ];
     }
 
     /**
      * 获取活跃状态（非最终状态）
+     * @return array<int, self>
      */
     public static function getActiveStatuses(): array
     {
-        return array_filter(self::getAllStatuses(), fn($status) => !$status->isFinal());
+        return array_filter(self::getAllStatuses(), fn ($status) => !$status->isFinal());
     }
 
     /**
      * 获取最终状态
+     * @return array<int, self>
      */
     public static function getFinalStatuses(): array
     {
-        return array_filter(self::getAllStatuses(), fn($status) => $status->isFinal());
+        return array_filter(self::getAllStatuses(), fn ($status) => $status->isFinal());
     }
 
     /**
      * 获取可计入学时的状态
+     * @return array<int, self>
      */
     public static function getCountableStatuses(): array
     {
-        return array_filter(self::getAllStatuses(), fn($status) => $status->isCountable());
+        return array_filter(self::getAllStatuses(), fn ($status) => $status->isCountable());
     }
 
     /**
      * 获取需要审核的状态
+     * @return array<int, self>
      */
     public static function getReviewStatuses(): array
     {
-        return array_filter(self::getAllStatuses(), fn($status) => $status->needsReview());
+        return array_filter(self::getAllStatuses(), fn ($status) => $status->needsReview());
     }
 
     /**
@@ -238,6 +291,7 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
             'valid', '有效' => self::VALID,
             'invalid', '无效' => self::INVALID,
             'pending', '待确认' => self::PENDING,
+            'pending_review', '待人工审核' => self::PENDING_REVIEW,
             'partial', '部分' => self::PARTIAL,
             'excluded', '排除' => self::EXCLUDED,
             'suspended', '暂停' => self::SUSPENDED,
@@ -248,4 +302,4 @@ enum StudyTimeStatus: string implements Labelable, Itemable, Selectable
             default => null,
         };
     }
-} 
+}
