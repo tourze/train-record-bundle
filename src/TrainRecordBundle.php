@@ -21,6 +21,7 @@ use Tourze\JsonRPCLogBundle\JsonRPCLogBundle;
 use Tourze\JsonRPCSecurityBundle\JsonRPCSecurityBundle;
 use Tourze\TrainClassroomBundle\TrainClassroomBundle;
 use Tourze\TrainCourseBundle\TrainCourseBundle;
+use Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle;
 
 class TrainRecordBundle extends Bundle implements BundleDependencyInterface
 {
@@ -42,6 +43,7 @@ class TrainRecordBundle extends Bundle implements BundleDependencyInterface
             TrainCourseBundle::class => ['all' => true],
             TrainClassroomBundle::class => ['all' => true],
             SecurityBundle::class => ['all' => true],
+            EasyAdminMenuBundle::class => ['all' => true],
         ];
     }
 }

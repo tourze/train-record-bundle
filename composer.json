@@ -55,7 +55,7 @@
     "tourze/enum-extra": "1.0.*",
     "tourze/json-rpc-core": "1.0.*",
     "tourze/json-rpc-lock-bundle": "1.0.*",
-    "tourze/json-rpc-log-bundle": "0.1.*",
+    "tourze/json-rpc-log-bundle": "1.0.*",
     "tourze/question-bank-bundle": "0.0.*",
     "tourze/symfony-cron-job-bundle": "1.0.*",
     "tourze/test-paper-bundle": "0.0.*",
