@@ -3,7 +3,6 @@
 namespace Tourze\TrainRecordBundle\Tests\Entity;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use Tourze\TrainRecordBundle\Entity\EffectiveStudyRecord;
 use Tourze\TrainRecordBundle\Enum\InvalidTimeReason;
@@ -13,7 +12,6 @@ use Tourze\TrainRecordBundle\Enum\StudyTimeStatus;
  * @internal
  */
 #[CoversClass(EffectiveStudyRecord::class)]
-#[RunTestsInSeparateProcesses]
 final class EffectiveStudyRecordTest extends AbstractEntityTestCase
 {
     protected function createEntity(): object
