@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tourze\TrainRecordBundle\DataFixtures;
 
-use BizUserBundle\DataFixtures\BizUserFixtures;
-use BizUserBundle\Entity\BizUser;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -17,6 +15,8 @@ use Tourze\TrainCourseBundle\DataFixtures\LessonFixtures;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainRecordBundle\Entity\LearnSession;
+use Tourze\UserServiceContracts\UserManagerInterface;
+use Tourze\UserServiceContracts\UserServiceConstants;
 
 /**
  * 生产环境学习会话数据装载器
@@ -24,11 +24,24 @@ use Tourze\TrainRecordBundle\Entity\LearnSession;
 class LearnSessionFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
     public const ACTIVE_SESSION_REFERENCE = 'active-learn-session';
+    public const STUDENT_USER_REFERENCE = 'learn-session-student-user';
+
+    public function __construct(
+        private readonly UserManagerInterface $userManager,
+    ) {
+    }
 
     public function load(ObjectManager $manager): void
     {
-        // 获取依赖实体
-        $student = $this->getReference(BizUserFixtures::ADMIN_USER_REFERENCE, BizUser::class);
+        // 创建学生用户
+        $student = $this->userManager->createUser(
+            userIdentifier: 'learn-session-student',
+            password: 'password',
+            roles: ['ROLE_USER'],
+        );
+
+        $manager->persist($student);
+        $this->addReference(self::STUDENT_USER_REFERENCE, $student);
 
         // 获取课程和课时 (需要先导入)
         $course = $this->getReference(CourseFixtures::COURSE_PHP_BASICS, Course::class);
@@ -66,7 +79,7 @@ class LearnSessionFixtures extends Fixture implements FixtureGroupInterface, Dep
     public function getDependencies(): array
     {
         return [
-            BizUserFixtures::class,
+            UserServiceConstants::USER_FIXTURES_NAME,
             CourseFixtures::class,
             LessonFixtures::class,
             RegistrationFixtures::class,
