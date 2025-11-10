@@ -60,7 +60,7 @@
     "tourze/test-paper-bundle": "0.0.*",
     "tourze/train-classroom-bundle": "0.0.*",
     "tourze/train-course-bundle": "0.0.*",
-    "tourze/user-service-contracts": "1.*",
+    "tourze/user-service-contracts": "1.1.*",
     "twig/twig": "^3.21"
   },
   "require-dev": {
