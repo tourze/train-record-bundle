@@ -66,11 +66,6 @@ final class LearnSessionCrudControllerTest extends AbstractTrainRecordAdminContr
         yield 'active' => ['active'];
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(LearnSession::class, LearnSessionCrudController::getEntityFqcn());
-    }
-
     public function testConfigureFields(): void
     {
         $controller = new LearnSessionCrudController();

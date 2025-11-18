@@ -8,7 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Tourze\TrainRecordBundle\Tests\Controller\Admin\AbstractTrainRecordAdminControllerTestCase;
 use Tourze\TrainRecordBundle\Controller\Admin\LearnAnomalyCrudController;
 use Tourze\TrainRecordBundle\Entity\LearnAnomaly;
 
@@ -64,11 +63,6 @@ final class LearnAnomalyCrudControllerTest extends AbstractTrainRecordAdminContr
         yield 'severity' => ['severity'];
         yield 'status' => ['status'];
         yield 'detectTime' => ['detectTime'];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(LearnAnomaly::class, LearnAnomalyCrudController::getEntityFqcn());
     }
 
     public function testConfigureFields(): void

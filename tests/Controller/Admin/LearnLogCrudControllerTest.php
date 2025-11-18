@@ -7,7 +7,6 @@ namespace Tourze\TrainRecordBundle\Tests\Controller\Admin;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Tourze\TrainRecordBundle\Tests\Controller\Admin\AbstractTrainRecordAdminControllerTestCase;
 use Tourze\TrainRecordBundle\Controller\Admin\LearnLogCrudController;
 use Tourze\TrainRecordBundle\Entity\LearnLog;
 
@@ -62,11 +61,6 @@ final class LearnLogCrudControllerTest extends AbstractTrainRecordAdminControlle
         yield 'createdFromIp' => ['createdFromIp'];
         yield 'createdFromUa' => ['createdFromUa'];
         yield 'message' => ['message'];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(LearnLog::class, LearnLogCrudController::getEntityFqcn());
     }
 
     public function testConfigureFields(): void

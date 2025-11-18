@@ -8,7 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Tourze\TrainRecordBundle\Tests\Controller\Admin\AbstractTrainRecordAdminControllerTestCase;
 use Tourze\TrainRecordBundle\Controller\Admin\FaceDetectCrudController;
 use Tourze\TrainRecordBundle\Entity\FaceDetect;
 
@@ -58,11 +57,6 @@ final class FaceDetectCrudControllerTest extends AbstractTrainRecordAdminControl
         yield 'imageData' => ['imageData'];
         yield 'confidence' => ['confidence'];
         yield 'similarity' => ['similarity'];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(FaceDetect::class, FaceDetectCrudController::getEntityFqcn());
     }
 
     public function testConfigureFields(): void

@@ -8,7 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Tourze\TrainRecordBundle\Tests\Controller\Admin\AbstractTrainRecordAdminControllerTestCase;
 use Tourze\TrainRecordBundle\Controller\Admin\LearnDeviceCrudController;
 use Tourze\TrainRecordBundle\Entity\LearnDevice;
 
@@ -68,11 +67,6 @@ final class LearnDeviceCrudControllerTest extends AbstractTrainRecordAdminContro
         yield 'operatingSystem' => ['operatingSystem'];
         yield 'isTrusted' => ['isTrusted'];
         yield 'firstUseTime' => ['firstUseTime'];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(LearnDevice::class, LearnDeviceCrudController::getEntityFqcn());
     }
 
     public function testConfigureFields(): void

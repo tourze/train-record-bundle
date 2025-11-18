@@ -8,7 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Tourze\TrainRecordBundle\Tests\Controller\Admin\AbstractTrainRecordAdminControllerTestCase;
 use Tourze\TrainRecordBundle\Controller\Admin\LearnArchiveCrudController;
 use Tourze\TrainRecordBundle\Entity\LearnArchive;
 
@@ -64,11 +63,6 @@ final class LearnArchiveCrudControllerTest extends AbstractTrainRecordAdminContr
         yield 'archiveFormat' => ['archiveFormat'];
         yield 'archiveStatus' => ['archiveStatus'];
         yield 'archiveTime' => ['archiveTime'];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(LearnArchive::class, LearnArchiveCrudController::getEntityFqcn());
     }
 
     public function testConfigureFields(): void

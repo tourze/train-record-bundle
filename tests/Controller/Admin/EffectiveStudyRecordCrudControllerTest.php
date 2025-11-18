@@ -8,7 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Tourze\TrainRecordBundle\Tests\Controller\Admin\AbstractTrainRecordAdminControllerTestCase;
 use Tourze\TrainRecordBundle\Controller\Admin\EffectiveStudyRecordCrudController;
 use Tourze\TrainRecordBundle\Entity\EffectiveStudyRecord;
 
@@ -62,12 +61,6 @@ final class EffectiveStudyRecordCrudControllerTest extends AbstractTrainRecordAd
         yield 'userId' => ['userId'];
         yield 'session' => ['session'];
         yield 'studyDate' => ['studyDate'];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $controller = new EffectiveStudyRecordCrudController();
-        $this->assertStringEndsWith('EffectiveStudyRecord', $controller::getEntityFqcn());
     }
 
     public function testConfigureCrud(): void

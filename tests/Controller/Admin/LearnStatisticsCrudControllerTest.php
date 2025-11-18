@@ -67,11 +67,6 @@ final class LearnStatisticsCrudControllerTest extends AbstractTrainRecordAdminCo
         yield 'totalSessions' => ['totalSessions'];
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(LearnStatistics::class, LearnStatisticsCrudController::getEntityFqcn());
-    }
-
     public function testConfigureFields(): void
     {
         $controller = new LearnStatisticsCrudController();

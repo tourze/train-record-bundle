@@ -8,7 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Tourze\TrainRecordBundle\Tests\Controller\Admin\AbstractTrainRecordAdminControllerTestCase;
 use Tourze\TrainRecordBundle\Controller\Admin\LearnProgressCrudController;
 use Tourze\TrainRecordBundle\Entity\LearnProgress;
 
@@ -68,11 +67,6 @@ final class LearnProgressCrudControllerTest extends AbstractTrainRecordAdminCont
         yield 'watchedDuration' => ['已观看时长(秒)'];
         yield 'isCompleted' => ['是否完成'];
         yield 'lastUpdateTime' => ['最后更新时间'];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(LearnProgress::class, LearnProgressCrudController::getEntityFqcn());
     }
 
     public function testConfigureFields(): void

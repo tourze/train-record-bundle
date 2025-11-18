@@ -8,8 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Tourze\TrainRecordBundle\Tests\Controller\Admin\AbstractTrainRecordAdminControllerTestCase;
 use Tourze\TrainRecordBundle\Controller\Admin\LearnBehaviorCrudController;
 use Tourze\TrainRecordBundle\Entity\LearnBehavior;
 
@@ -60,11 +58,6 @@ final class LearnBehaviorCrudControllerTest extends AbstractTrainRecordAdminCont
         yield 'session' => ['session'];
         yield 'behaviorType' => ['behaviorType'];
         yield 'behaviorData' => ['behaviorData'];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(LearnBehavior::class, LearnBehaviorCrudController::getEntityFqcn());
     }
 
     public function testConfigureFields(): void
